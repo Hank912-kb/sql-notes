@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL 學習手冊 — 邊寫邊跑</title>
+<style>
+  :root{
+    --paper:#EDEFE9;
+    --paper-card:#F6F7F3;
+    --ink:#1B211D;
+    --ink-soft:#4B564E;
+    --rule:#C7CCC2;
+    --teal:#1F6F63;
+    --teal-soft:#DCEAE4;
+    --mustard:#B9822E;
+    --mustard-soft:#F3E6CE;
+    --console-bg:#14201D;
+    --console-panel:#1B2A25;
+    --console-text:#DCEAE3;
+    --console-accent:#6FD8AE;
+    --console-error:#E2896B;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Noto Serif TC', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+    --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Cascadia Code', monospace;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.65; font-size:16px;
+  }
+  h1,h2,h3{ font-family:var(--serif); font-weight:700; color:var(--ink); margin:0 0 .4em; }
+  h1{ font-size:2.1rem; letter-spacing:-0.01em; }
+  h2{ font-size:1.5rem; margin-top:0; }
+  h3{ font-size:1.05rem; color:var(--teal); margin-bottom:.6em; }
+  p{ margin:.5em 0 1em; max-width:68ch; }
+  a{ color:var(--teal); }
+  code, .mono{ font-family:var(--mono); }
+
+  .layout{ display:flex; max-width:1180px; margin:0 auto; align-items:flex-start; }
+  .sidebar{
+    width:220px; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto;
+    padding:28px 14px 28px 24px; border-right:1px solid var(--rule);
+  }
+  .sidebar-title{ font-family:var(--serif); font-weight:700; font-size:1rem; margin-bottom:14px; color:var(--ink); }
+  .sidebar a{
+    display:block; padding:6px 10px; margin:2px 0; border-radius:4px; text-decoration:none;
+    color:var(--ink-soft); font-size:.88rem; border-left:2px solid transparent;
+  }
+  .sidebar a:hover{ background:var(--paper-card); color:var(--ink); }
+  .sidebar a.active{ border-left-color:var(--teal); color:var(--teal); font-weight:600; background:var(--paper-card); }
+
+  main{ flex:1; min-width:0; padding:36px 40px 120px; max-width:820px; }
+
+  .hero{ margin-bottom:44px; }
+  .hero .kicker{ color:var(--ink-soft); font-size:.98rem; margin-bottom:6px; }
+  .hero h1{ margin-bottom:.2em; }
+  .hero .lede{ color:var(--ink-soft); font-size:1.05rem; max-width:60ch; }
+
+  section{ margin-bottom:56px; scroll-margin-top:20px; }
+  section > h2{ padding-bottom:10px; border-bottom:1px solid var(--rule); margin-bottom:18px; }
+
+  .callout{
+    background:var(--mustard-soft); border-left:3px solid var(--mustard);
+    padding:12px 16px; margin:16px 0; border-radius:0 4px 4px 0; font-size:.95rem;
+  }
+  .callout strong{ color:#8A5E1E; }
+  .tip{
+    background:var(--teal-soft); border-left:3px solid var(--teal);
+    padding:12px 16px; margin:16px 0; border-radius:0 4px 4px 0; font-size:.95rem;
+  }
+
+  .skeleton{
+    background:var(--paper-card); border:1px solid var(--rule); border-radius:4px;
+    padding:16px 20px; margin:16px 0; font-family:var(--mono); font-size:.92rem; line-height:2;
+    overflow-x:auto; white-space:pre;
+  }
+  .skeleton .kw{ color:var(--teal); font-weight:700; }
+  .skeleton .ph{ color:var(--mustard); }
+
+  /* ---- Console ---- */
+  .console{
+    background:var(--console-bg); border-radius:6px; margin:18px 0; overflow:hidden;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+  }
+  .console-topbar{
+    padding:9px 16px; font-size:.82rem; color:#9FB6AC; border-bottom:1px solid rgba(255,255,255,0.08);
+    font-family:var(--sans);
+  }
+  .console-input{
+    width:100%; background:transparent; border:none; color:var(--console-text);
+    font-family:var(--mono); font-size:.92rem; padding:14px 16px; resize:vertical;
+    min-height:52px; outline:none; line-height:1.6;
+  }
+  .console-actions{
+    display:flex; align-items:center; gap:12px; padding:0 16px 12px;
+  }
+  .run-btn{
+    background:var(--console-accent); color:#0F1A16; border:none; border-radius:4px;
+    padding:7px 16px; font-size:.85rem; font-weight:700; cursor:pointer; font-family:var(--sans);
+  }
+  .run-btn:hover{ filter:brightness(1.08); }
+  .console-hint{ color:#7C9389; font-size:.78rem; }
+  .console-result{
+    background:var(--console-panel); padding:14px 16px; border-top:1px solid rgba(255,255,255,0.06);
+    font-family:var(--mono); font-size:.85rem; color:var(--console-text); overflow-x:auto;
+  }
+  .console-result table{ border-collapse:collapse; width:100%; }
+  .console-result th, .console-result td{
+    text-align:left; padding:5px 12px 5px 0; border-bottom:1px solid rgba(255,255,255,0.08);
+    white-space:nowrap;
+  }
+  .console-result th{ color:var(--console-accent); font-weight:700; }
+  .console-result .null-val{ color:#6E8279; font-style:italic; }
+  .console-result .placeholder{ color:#6E8279; }
+  .console-error{ color:var(--console-error); }
+  .console-meta{ color:#6E8279; font-size:.78rem; margin-top:8px; }
+
+  /* ---- Schema quick ref ---- */
+  .schema-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+  @media (max-width:640px){ .schema-grid{ grid-template-columns:1fr; } }
+  .schema-card{ background:var(--paper-card); border:1px solid var(--rule); border-radius:4px; padding:12px 16px; }
+  .schema-card h4{ margin:0 0 8px; font-family:var(--mono); font-size:.88rem; color:var(--teal); }
+  .schema-card ul{ margin:0; padding-left:18px; font-size:.85rem; color:var(--ink-soft); }
+  .schema-card code{ color:var(--ink); }
+
+  /* ---- Quiz ---- */
+  .quiz-q{ background:var(--paper-card); border:1px solid var(--rule); border-radius:4px; padding:16px 18px; margin-bottom:14px; }
+  .quiz-q p.prompt{ font-weight:600; margin:0 0 10px; }
+  .quiz-opt{
+    display:block; width:100%; text-align:left; background:#fff; border:1px solid var(--rule);
+    border-radius:4px; padding:8px 12px; margin-bottom:6px; cursor:pointer; font-family:var(--sans);
+    font-size:.9rem; color:var(--ink);
+  }
+  .quiz-opt:hover{ border-color:var(--teal); }
+  .quiz-opt.correct{ background:var(--teal-soft); border-color:var(--teal); }
+  .quiz-opt.wrong{ background:#FBE4DC; border-color:var(--console-error); }
+  .quiz-explain{ font-size:.85rem; color:var(--ink-soft); margin-top:8px; padding-top:8px; border-top:1px dashed var(--rule); display:none; }
+  .quiz-score{ font-family:var(--serif); font-size:1.1rem; margin-top:20px; }
+
+  /* ---- Flashcards ---- */
+  .flash-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px){ .flash-grid{ grid-template-columns:1fr; } }
+  .flash{
+    background:var(--paper-card); border:1px solid var(--rule); border-radius:4px;
+    padding:14px 16px; cursor:pointer; min-height:64px; position:relative;
+  }
+  .flash .term{ font-weight:700; color:var(--teal); font-size:.92rem; }
+  .flash .def{ display:none; font-size:.85rem; color:var(--ink-soft); margin-top:8px; }
+  .flash.open .def{ display:block; }
+  .flash .hint{ font-size:.72rem; color:#9AA69E; position:absolute; top:14px; right:14px; }
+
+  table.static-tbl{ border-collapse:collapse; width:100%; margin:14px 0; font-size:.88rem; }
+  table.static-tbl th, table.static-tbl td{ border:1px solid var(--rule); padding:6px 10px; text-align:left; }
+  table.static-tbl th{ background:var(--paper-card); }
+
+  @media (max-width:900px){
+    .sidebar{ display:none; }
+    main{ padding:24px 20px 100px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-title">SQL 學習手冊</div>
+    <a href="#hero">主控台</a>
+    <a href="#skeleton">語法骨架</a>
+    <a href="#select-where">SELECT / WHERE</a>
+    <a href="#orderby">排序 ORDER BY</a>
+    <a href="#nullsec">NULL 處理</a>
+    <a href="#setops">集合運算</a>
+    <a href="#groupby">GROUP BY / HAVING</a>
+    <a href="#joinbasic">JOIN 基礎</a>
+    <a href="#joinspecial">特殊 JOIN</a>
+    <a href="#multijoin">多表 JOIN</a>
+    <a href="#selfjoin">Self-Join</a>
+    <a href="#functions">函數與計算機</a>
+    <a href="#quiz">互動測驗</a>
+    <a href="#flashcards">詞彙卡</a>
+    <a href="#schema">資料表結構</a>
+  </nav>
+
+  <main>
+    <div class="hero" id="hero">
+      <div class="kicker">給 SQL 新手的互動筆記</div>
+      <h1>邊寫邊跑，才記得住</h1>
+      <p class="lede">每個觀念下面都有一台真的能執行的 SQL 主控台。看到範例先自己猜答案，再按「執行」對答案 — 猜錯的地方，就是你該花時間搞懂的地方。</p>
+
+      <div class="console" data-default="SELECT * FROM COURSE;">
+        <div class="console-topbar">試試看：這是本筆記全程使用的範例資料表之一</div>
+        <textarea class="console-input" spellcheck="false">SELECT * FROM COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn">▶ 執行</button>
+          <span class="console-hint">Cmd / Ctrl + Enter 也可以執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder">先猜猜看這張表長怎樣，再按執行 →</span></div>
+      </div>
+      <p style="font-size:.88rem;color:var(--ink-soft)">往下拉到最後有「資料表結構」章節，隨時可以回去查欄位名稱。</p>
+    </div>
+
+    <section id="skeleton">
+      <h2>1. 語法骨架 — 先背順序，再談內容</h2>
+      <p>SELECT 敘述的子句永遠照這個順序排列，這個順序不能亂，也是新手最容易寫錯的地方：</p>
+      <div class="skeleton"><span class="kw">SELECT</span> <span class="ph">欄位</span>
+<span class="kw">FROM</span> <span class="ph">資料表</span>
+<span class="kw">WHERE</span>  <span class="ph">篩選單一列的條件</span>
+<span class="kw">GROUP BY</span> <span class="ph">分組欄位</span>
+<span class="kw">HAVING</span> <span class="ph">篩選整組的條件</span>
+<span class="kw">ORDER BY</span> <span class="ph">排序欄位</span>;</div>
+      <p>記憶方式：先決定資料從哪來(FROM)，再篩選單一列(WHERE)，然後分組(GROUP BY)，對整組再篩一次(HAVING)，最後才排序(ORDER BY)。</p>
+      <div class="callout"><strong>常見錯誤：</strong>把 WHERE 寫在 GROUP BY 後面，或用 WHERE 篩選 COUNT(*) 這種聚合結果 — WHERE 只能篩「原始的一列」，篩「整組」要用 HAVING。</div>
+    </section>
+
+    <section id="select-where">
+      <h2>2. SELECT / WHERE — 基本篩選</h2>
+      <p>SELECT 決定要看哪些欄位，WHERE 決定要哪些列。最基本的比較：</p>
+      <div class="console" data-default="SELECT title FROM COURSE WHERE credits = 6;">
+        <div class="console-topbar">範例：找出所有 6 學分的課</div>
+        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE credits = 6;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">先猜答案有幾筆，再執行</span></div>
+      </div>
+
+      <h3>用 IN 取代一堆 OR</h3>
+      <div class="console" data-default="SELECT title FROM COURSE WHERE credits IN (6, 12);">
+        <div class="console-topbar">等同於 credits = 6 OR credits = 12</div>
+        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE credits IN (6, 12);</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+
+      <h3>AND / OR 邏輯 — 新手最常錯的地方</h3>
+      <p>判斷口訣：同一個欄位、兩個互斥的值 → 用 <code>OR</code>；不同條件同時成立 → 才用 <code>AND</code>。</p>
+      <div class="console" data-default="SELECT title FROM COURSE WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');">
+        <div class="console-topbar">故意寫錯的例子：猜猜看會有幾筆結果？</div>
+        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">同一欄位不可能同時等於兩個值，猜猜結果</span></div>
+      </div>
+      <div class="callout"><strong>結果一定是 0 筆</strong> — offered_by 是同一個欄位，不可能同時是 Physics 又是 Mathematics。這裡應該用 OR 或 IN。</div>
+
+      <h3>LIKE 模糊比對</h3>
+      <div class="console" data-default="SELECT title FROM COURSE WHERE UPPER(title) LIKE '%DATA%';">
+        <div class="console-topbar">% 代表任意字元；UPPER() 讓比對不分大小寫</div>
+        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE UPPER(title) LIKE '%DATA%';</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+    </section>
+
+    <section id="orderby">
+      <h2>3. ORDER BY — 排序</h2>
+      <p>預設由小到大 (ASC)，要由大到小要加 DESC。可以同時排多個欄位，前面的欄位優先。</p>
+      <div class="console" data-default="SELECT cnum, title, credits FROM COURSE ORDER BY credits ASC, title DESC;">
+        <div class="console-topbar">先照 credits 由小排到大，credits 相同的再照 title 由大排到小</div>
+        <textarea class="console-input" spellcheck="false">SELECT cnum, title, credits FROM COURSE ORDER BY credits ASC, title DESC;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">猜猜看排序後第一筆是誰</span></div>
+      </div>
+      <p style="font-size:.88rem;color:var(--ink-soft)">也可以用欄位「位置」代替名稱，例如 <code>ORDER BY 2 DESC</code> 代表照 SELECT 清單中第 2 個欄位排序。</p>
+    </section>
+
+    <section id="nullsec">
+      <h2>4. NULL 處理 — 送分題但常常寫錯</h2>
+      <p>NULL 代表「沒有值 / 未知」，不是一個可以拿來比較的值，所以絕對不能寫 <code>= NULL</code>。</p>
+      <div class="console" data-default="SELECT title FROM COURSE WHERE offered_by = NULL;">
+        <div class="console-topbar">故意寫錯：這句話邏輯上永遠抓不到任何東西</div>
+        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE offered_by = NULL;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看，猜猜是不是空的</span></div>
+      </div>
+      <div class="console" data-default="SELECT title FROM COURSE WHERE offered_by IS NULL;">
+        <div class="console-topbar">正確寫法</div>
+        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE offered_by IS NULL;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+    </section>
+
+    <section id="setops">
+      <h2>5. 集合運算 — UNION / 模擬 INTERSECT / MINUS</h2>
+      <p><code>UNION</code> 會自動去除重複列；<code>UNION ALL</code> 不會去重複。MySQL 沒有 <code>INTERSECT</code> 跟 <code>MINUS</code>，要用子查詢搭配 <code>IN</code> / <code>NOT IN</code> 自己刻出來。</p>
+      <div class="console" data-default="SELECT credits FROM COURSE WHERE offered_by = 'Physics'&#10;UNION&#10;SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';">
+        <div class="console-topbar">UNION：兩系開的學分數，自動去重複</div>
+        <textarea class="console-input" spellcheck="false">SELECT credits FROM COURSE WHERE offered_by = 'Physics'
+UNION
+SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+      <h3>模擬 INTERSECT（兩邊都有）</h3>
+      <div class="console" data-default="SELECT DISTINCT credits FROM COURSE&#10;WHERE offered_by = 'Physics'&#10;  AND credits IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');">
+        <div class="console-topbar">IN 對應「且」的邏輯</div>
+        <textarea class="console-input" spellcheck="false">SELECT DISTINCT credits FROM COURSE
+WHERE offered_by = 'Physics'
+  AND credits IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+      <h3>模擬 MINUS（這邊有，那邊沒有）</h3>
+      <div class="console" data-default="SELECT DISTINCT credits FROM COURSE&#10;WHERE offered_by = 'Physics'&#10;  AND credits NOT IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');">
+        <div class="console-topbar">NOT IN 對應「且非」的邏輯</div>
+        <textarea class="console-input" spellcheck="false">SELECT DISTINCT credits FROM COURSE
+WHERE offered_by = 'Physics'
+  AND credits NOT IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+    </section>
+
+    <section id="groupby">
+      <h2>6. GROUP BY / HAVING — 分組統計</h2>
+      <p>GROUP BY 把相同值的列分成一組，通常搭配聚合函數 <code>COUNT / SUM / AVG / MAX / MIN</code> 對每組算出一個結果。</p>
+      <div class="console" data-default="SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by;">
+        <div class="console-topbar">每個系開了幾門課</div>
+        <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">猜猜每一列的 COUNT 是多少</span></div>
+      </div>
+      <div class="tip"><strong>WHERE 跟 HAVING 的差別：</strong>WHERE 在分組「之前」過濾原始列，不能用 COUNT/SUM；HAVING 在分組「之後」過濾整組，通常搭配聚合函數。</div>
+      <div class="console" data-default="SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by HAVING COUNT(*) > 1;">
+        <div class="console-topbar">只留下開課數量超過 1 門的系</div>
+        <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by HAVING COUNT(*) > 1;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">跟上面比較少了哪一列？</span></div>
+      </div>
+    </section>
+
+    <section id="joinbasic">
+      <h2>7. JOIN 基礎 — 把兩張表接起來</h2>
+      <p>當你要的欄位分散在兩張表時，需要用共同欄位把它們連起來。標準寫法用 <code>JOIN ... ON</code>：</p>
+      <div class="console" data-default="SELECT COURSE.title&#10;FROM COURSE JOIN DEPARTMENT&#10;ON DEPARTMENT.name = COURSE.offered_by&#10;WHERE DEPARTMENT.chair = 'Peter';">
+        <div class="console-topbar">找出系主任是 Peter 的系開的課</div>
+        <textarea class="console-input" spellcheck="false">SELECT COURSE.title
+FROM COURSE JOIN DEPARTMENT
+ON DEPARTMENT.name = COURSE.offered_by
+WHERE DEPARTMENT.chair = 'Peter';</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+      <div class="callout"><strong>常見錯誤：</strong>寫了 JOIN 卻忘記寫 ON 條件，會變成「笛卡兒積」— 兩張表的每一列互相配對，列數暴增，而且邏輯上通常是錯的。</div>
+      <div class="console" data-default="SELECT COURSE.title, DEPARTMENT.name FROM COURSE JOIN DEPARTMENT;">
+        <div class="console-topbar">忘記寫 ON：猜猜看會有幾筆結果</div>
+        <textarea class="console-input" spellcheck="false">SELECT COURSE.title, DEPARTMENT.name FROM COURSE JOIN DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">6 門課 x 3 個系 = ？</span></div>
+      </div>
+    </section>
+
+    <section id="joinspecial">
+      <h2>8. 特殊 JOIN</h2>
+      <table class="static-tbl">
+        <tr><th>類型</th><th>語法</th><th>何時用</th></tr>
+        <tr><td>CROSS JOIN</td><td><code>CROSS JOIN</code></td><td>無條件全配對（笛卡兒積）</td></tr>
+        <tr><td>NATURAL JOIN</td><td><code>NATURAL JOIN</code></td><td>兩表同名欄位自動配對，有風險</td></tr>
+        <tr><td>USING</td><td><code>JOIN B USING(col)</code></td><td>你指定同名欄位，比較安全</td></tr>
+      </table>
+      <div class="console" data-default="SELECT COUNT(*) FROM COURSE CROSS JOIN DEPARTMENT;">
+        <div class="console-topbar">CROSS JOIN：明確表示要全配對</div>
+        <textarea class="console-input" spellcheck="false">SELECT COUNT(*) FROM COURSE CROSS JOIN DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+      <p style="font-size:.88rem;color:var(--ink-soft)">這台主控台的 NATURAL JOIN / USING 支援比較陽春（僅供語法練習），實際考試以你老師教的寫法為準。</p>
+    </section>
+
+    <section id="multijoin">
+      <h2>9. 多表 JOIN</h2>
+      <p>三張表以上，先找哪兩張表有共同欄位，一對一對接起來，不要想著一次到位。</p>
+      <div class="console" data-default="SELECT STUDENT.name&#10;FROM COURSE JOIN ENROLMENT&#10;ON COURSE.cnum = ENROLMENT.cnum&#10;JOIN STUDENT&#10;ON ENROLMENT.snum = STUDENT.snum&#10;WHERE COURSE.title = 'C++';">
+        <div class="console-topbar">找出修過 C++ 這門課的學生姓名</div>
+        <textarea class="console-input" spellcheck="false">SELECT STUDENT.name
+FROM COURSE JOIN ENROLMENT
+ON COURSE.cnum = ENROLMENT.cnum
+JOIN STUDENT
+ON ENROLMENT.snum = STUDENT.snum
+WHERE COURSE.title = 'C++';</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+    </section>
+
+    <section id="selfjoin">
+      <h2>10. Self-Join — 跟自己 JOIN</h2>
+      <p>同一張表要跟自己 JOIN，必須給兩個不同的別名（alias）。下面用「員工 - 主管」的資料做示範：</p>
+      <div class="schema-card" style="margin-bottom:16px;">
+        <h4>EMPLOYEE</h4>
+        <table class="static-tbl">
+          <tr><th>enum</th><th>name</th><th>manager</th></tr>
+          <tr><td>10</td><td>John</td><td>NULL</td></tr>
+          <tr><td>20</td><td>Peter</td><td>10</td></tr>
+          <tr><td>30</td><td>Mary</td><td>10</td></tr>
+          <tr><td>40</td><td>Mike</td><td>20</td></tr>
+          <tr><td>50</td><td>Kate</td><td>20</td></tr>
+          <tr><td>60</td><td>Greg</td><td>50</td></tr>
+          <tr><td>70</td><td>Phil</td><td>50</td></tr>
+        </table>
+      </div>
+      <div class="console" data-default="SELECT E2.name&#10;FROM EMPLOYEE E1 JOIN EMPLOYEE E2&#10;ON E1.manager = E2.enum&#10;WHERE E1.enum = 40;">
+        <div class="console-topbar">找員工 40 號（Mike）的主管姓名</div>
+        <textarea class="console-input" spellcheck="false">SELECT E2.name
+FROM EMPLOYEE E1 JOIN EMPLOYEE E2
+ON E1.manager = E2.enum
+WHERE E1.enum = 40;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">先看資料表猜答案，再執行</span></div>
+      </div>
+      <div class="callout"><strong>記憶口訣：</strong>E1 是「自己」，E2 是「主管」，JOIN 條件固定是 <code>E1.manager = E2.enum</code>。要找「某人的主管」就 SELECT E2、WHERE 條件下在 E1；要找「某人管的下屬」就反過來。</div>
+      <div class="console" data-default="SELECT E1.name&#10;FROM EMPLOYEE E1 JOIN EMPLOYEE E2&#10;ON E1.manager = E2.enum&#10;WHERE E2.name = 'Kate';">
+        <div class="console-topbar">反過來：找 Kate 直接管的下屬</div>
+        <textarea class="console-input" spellcheck="false">SELECT E1.name
+FROM EMPLOYEE E1 JOIN EMPLOYEE E2
+ON E1.manager = E2.enum
+WHERE E2.name = 'Kate';</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">猜猜看有幾個人</span></div>
+      </div>
+    </section>
+
+    <section id="functions">
+      <h2>11. 常用函數 + SQL 當計算機</h2>
+      <div class="console" data-default="SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget FROM DEPARTMENT;">
+        <div class="console-topbar">IFNULL：budget 是 NULL 時當作 0，避免運算出錯</div>
+        <textarea class="console-input" spellcheck="false">SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget FROM DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT 30 * 90.30 AS total_pay FROM DUAL;">
+        <div class="console-topbar">SQL 可以直接當計算機用，DUAL 是一張假的虛擬表</div>
+        <textarea class="console-input" spellcheck="false">SELECT 30 * 90.30 AS total_pay FROM DUAL;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+      <p style="font-size:.88rem;color:var(--ink-soft)">下面這個框是空的，換你自己寫寫看：試著找出 total_staff_number 大於 12 的系名稱。</p>
+      <div class="console" data-default="SELECT name FROM DEPARTMENT WHERE ">
+        <div class="console-topbar">自由練習區</div>
+        <textarea class="console-input" spellcheck="false">SELECT name FROM DEPARTMENT WHERE </textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">寫完按執行</span></div>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>12. 互動測驗 — 測語法骨架，不是背知識</h2>
+      <p>選完會馬上顯示對錯跟解釋，全部答完看總分。</p>
+      <div id="quiz-container"></div>
+      <div class="quiz-score" id="quiz-score"></div>
+    </section>
+
+    <section id="flashcards">
+      <h2>13. 詞彙卡 — 點一下翻面</h2>
+      <div class="flash-grid" id="flash-container"></div>
+    </section>
+
+    <section id="schema">
+      <h2>14. 資料表結構速查</h2>
+      <p>本頁所有範例都跑在下面這幾張表上，隨時可以回來查欄位名稱跟資料內容。</p>
+      <div class="schema-grid">
+        <div class="schema-card"><h4>DEPARTMENT</h4><ul>
+          <li><code>name</code> 系名稱（主鍵）</li><li><code>code</code> 系代碼</li>
+          <li><code>total_staff_number</code> 教職員人數</li><li><code>chair</code> 系主任（可為 NULL）</li>
+          <li><code>budget</code> 預算</li>
+        </ul></div>
+        <div class="schema-card"><h4>COURSE</h4><ul>
+          <li><code>cnum</code> 課程代號（主鍵）</li><li><code>title</code> 課程名稱</li>
+          <li><code>credits</code> 學分數</li><li><code>offered_by</code> 開課系所（可為 NULL）</li>
+        </ul></div>
+        <div class="schema-card"><h4>EMPLOYEE</h4><ul>
+          <li><code>enum</code> 員工編號（主鍵）</li><li><code>name</code> 姓名</li>
+          <li><code>manager</code> 主管的員工編號（可為 NULL）</li>
+        </ul></div>
+        <div class="schema-card"><h4>STUDENT / ENROLMENT</h4><ul>
+          <li><code>STUDENT(snum, name, degree)</code></li>
+          <li><code>ENROLMENT(cnum, snum, edate, result)</code></li>
+        </ul></div>
+      </div>
+      <div class="console" data-default="SELECT * FROM DEPARTMENT;">
+        <div class="console-topbar">DEPARTMENT 全部內容</div>
+        <textarea class="console-input" spellcheck="false">SELECT * FROM DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT * FROM COURSE;">
+        <div class="console-topbar">COURSE 全部內容</div>
+        <textarea class="console-input" spellcheck="false">SELECT * FROM COURSE;</textarea>
+        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder">執行看看</span></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ============================================================
+// SQL Mini Engine（已用 node 測試過所有課程範例）
+// ============================================================
+const TABLES = {
+  DEPARTMENT: [
+    { name: 'Computer Science', code: 'CSCI1', total_staff_number: 20, chair: 'Peter', budget: 500000.0 },
+    { name: 'Physics', code: 'PHYS1', total_staff_number: 15, chair: 'Mary', budget: 300000.0 },
+    { name: 'Mathematics', code: 'MATH1', total_staff_number: 10, chair: null, budget: 200000.0 },
+  ],
+  COURSE: [
+    { cnum: 'CSCI111', title: 'C++', credits: 6, offered_by: 'Computer Science' },
+    { cnum: 'CSCI235', title: 'Databases', credits: 6, offered_by: 'Computer Science' },
+    { cnum: 'PHYS312', title: 'Relativity', credits: 6, offered_by: 'Physics' },
+    { cnum: 'MECH111', title: 'Mechanics', credits: 12, offered_by: 'Physics' },
+    { cnum: 'MATH111', title: 'Calculus', credits: 12, offered_by: 'Mathematics' },
+    { cnum: 'ARTS100', title: 'Unknown', credits: 6, offered_by: null },
+  ],
+  EMPLOYEE: [
+    { enum: 10, name: 'John', manager: null },
+    { enum: 20, name: 'Peter', manager: 10 },
+    { enum: 30, name: 'Mary', manager: 10 },
+    { enum: 40, name: 'Mike', manager: 20 },
+    { enum: 50, name: 'Kate', manager: 20 },
+    { enum: 60, name: 'Greg', manager: 50 },
+    { enum: 70, name: 'Phil', manager: 50 },
+  ],
+  STUDENT: [
+    { snum: 1, name: 'Alice', degree: 'BCompSc' },
+    { snum: 2, name: 'Bob', degree: 'BSc' },
+    { snum: 3, name: 'Chloe', degree: 'BCompSc' },
+  ],
+  ENROLMENT: [
+    { cnum: 'CSCI111', snum: 1, edate: '2024-01-01', result: 'Pass' },
+    { cnum: 'CSCI235', snum: 1, edate: '2024-01-01', result: 'Pass' },
+    { cnum: 'PHYS312', snum: 2, edate: '2024-01-01', result: 'Fail' },
+    { cnum: 'CSCI111', snum: 3, edate: '2024-01-01', result: 'Pass' },
+  ],
+  DUAL: [{ dummy: 'x' }],
+};
+
+function tokenize(str) {
+  const tokens = [];
+  let i = 0;
+  const isIdentStart = c => /[A-Za-z_]/.test(c);
+  const isIdentPart = c => /[A-Za-z0-9_.]/.test(c);
+  while (i < str.length) {
+    const c = str[i];
+    if (c === ' ') { i++; continue; }
+    if (c === "'") {
+      let j = i + 1, s = '';
+      while (j < str.length && str[j] !== "'") { s += str[j]; j++; }
+      tokens.push({ type: 'STRING', value: s });
+      i = j + 1; continue;
+    }
+    if (/[0-9]/.test(c)) {
+      let j = i;
+      while (j < str.length && /[0-9.]/.test(str[j])) j++;
+      tokens.push({ type: 'NUMBER', value: parseFloat(str.slice(i, j)) });
+      i = j; continue;
+    }
+    if (c === '(') { tokens.push({ type: 'LPAREN' }); i++; continue; }
+    if (c === ')') { tokens.push({ type: 'RPAREN' }); i++; continue; }
+    if (c === ',') { tokens.push({ type: 'COMMA' }); i++; continue; }
+    if ('<>=!'.includes(c)) {
+      if (str[i + 1] === '=') { tokens.push({ type: 'OP', value: c + '=' }); i += 2; continue; }
+      if (c === '<' && str[i + 1] === '>') { tokens.push({ type: 'OP', value: '<>' }); i += 2; continue; }
+      tokens.push({ type: 'OP', value: c }); i++; continue;
+    }
+    if ('+-*/'.includes(c)) { tokens.push({ type: 'OP', value: c }); i++; continue; }
+    if (isIdentStart(c)) {
+      let j = i;
+      while (j < str.length && isIdentPart(str[j])) j++;
+      tokens.push({ type: 'IDENT', value: str.slice(i, j) });
+      i = j; continue;
+    }
+    throw new Error('無法辨識的符號: "' + c + '"');
+  }
+  return tokens;
+}
+
+const AGG_FUNCS = ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX'];
+
+class ExprParser {
+  constructor(tokens) { this.tokens = tokens; this.pos = 0; }
+  peek() { return this.tokens[this.pos]; }
+  peekAhead(n) { return this.tokens[this.pos + n]; }
+  next() { return this.tokens[this.pos++]; }
+  peekType(t) { const p = this.peek(); return p && p.type === t; }
+  peekKeyword(kw) { const p = this.peek(); return p && p.type === 'IDENT' && p.value.toUpperCase() === kw; }
+  peekOp(op) { const p = this.peek(); return p && p.type === 'OP' && p.value === op; }
+  expectType(t) { if (!this.peekType(t)) throw new Error('SQL 語法錯誤，預期 ' + t); this.next(); }
+  expectKeyword(kw) { if (!this.peekKeyword(kw)) throw new Error('SQL 語法錯誤，預期關鍵字 ' + kw); this.next(); }
+
+  parseOr() { let left = this.parseAnd(); while (this.peekKeyword('OR')) { this.next(); const right = this.parseAnd(); left = { type: 'OR', left, right }; } return left; }
+  parseAnd() { let left = this.parseNot(); while (this.peekKeyword('AND')) { this.next(); const right = this.parseNot(); left = { type: 'AND', left, right }; } return left; }
+  parseNot() { if (this.peekKeyword('NOT')) { this.next(); const expr = this.parseNot(); return { type: 'NOT', expr }; } return this.parseComparison(); }
+  parseComparison() {
+    if (this.peekType('LPAREN')) {
+      const saved = this.pos; this.next();
+      const inner = this.parseOr();
+      if (this.peekType('RPAREN')) { this.next(); return inner; }
+      this.pos = saved;
+    }
+    let left = this.parseAdditive();
+    if (this.peekKeyword('IS')) {
+      this.next(); let neg = false;
+      if (this.peekKeyword('NOT')) { neg = true; this.next(); }
+      this.expectKeyword('NULL');
+      return { type: 'ISNULL', expr: left, negate: neg };
+    }
+    if (this.peekKeyword('NOT') && this.peekAhead(1) && this.peekAhead(1).type === 'IDENT' && this.peekAhead(1).value.toUpperCase() === 'IN') {
+      this.next(); this.next();
+      const list = this.parseValueList();
+      return { type: 'IN', expr: left, list, negate: true };
+    }
+    if (this.peekKeyword('IN')) { this.next(); const list = this.parseValueList(); return { type: 'IN', expr: left, list, negate: false }; }
+    if (this.peekKeyword('LIKE')) { this.next(); const pattern = this.parseAdditive(); return { type: 'LIKE', expr: left, pattern }; }
+    if (this.peekKeyword('BETWEEN')) { this.next(); const lo = this.parseAdditive(); this.expectKeyword('AND'); const hi = this.parseAdditive(); return { type: 'BETWEEN', expr: left, lo, hi }; }
+    if (this.peekType('OP') && ['=', '!=', '<>', '<', '>', '<=', '>='].includes(this.peek().value)) {
+      const op = this.next().value; const right = this.parseAdditive();
+      return { type: 'CMP', op, left, right };
+    }
+    return { type: 'TRUTHY', expr: left };
+  }
+  parseAdditive() { let left = this.parseMultiplicative(); while (this.peekOp('+') || this.peekOp('-')) { const op = this.next().value; const right = this.parseMultiplicative(); left = { type: 'ARITH', op, left, right }; } return left; }
+  parseMultiplicative() { let left = this.parseUnary(); while (this.peekOp('*') || this.peekOp('/')) { const op = this.next().value; const right = this.parseUnary(); left = { type: 'ARITH', op, left, right }; } return left; }
+  parseUnary() { if (this.peekOp('-')) { this.next(); const expr = this.parseUnary(); return { type: 'NEG', expr }; } return this.parsePrimary(); }
+  parsePrimary() {
+    const t = this.peek();
+    if (!t) throw new Error('條件式不完整');
+    if (t.type === 'STRING') { this.next(); return { type: 'LIT', value: t.value }; }
+    if (t.type === 'NUMBER') { this.next(); return { type: 'LIT', value: t.value }; }
+    if (t.type === 'LPAREN') { this.next(); const inner = this.parseAdditive(); this.expectType('RPAREN'); return inner; }
+    if (t.type === 'IDENT') {
+      const upper = t.value.toUpperCase();
+      if (AGG_FUNCS.includes(upper)) {
+        this.next(); this.expectType('LPAREN');
+        let arg;
+        if (upper === 'COUNT' && this.peekOp('*')) { this.next(); arg = { type: 'STAR' }; }
+        else { arg = this.parseAdditive(); }
+        this.expectType('RPAREN');
+        return { type: 'FUNC', name: upper, args: [arg] };
+      }
+      if (upper === 'UPPER' || upper === 'LOWER' || upper === 'LENGTH') {
+        this.next(); this.expectType('LPAREN'); const arg = this.parseAdditive(); this.expectType('RPAREN');
+        return { type: 'FUNC', name: upper, args: [arg] };
+      }
+      if (upper === 'IFNULL') {
+        this.next(); this.expectType('LPAREN'); const a1 = this.parseAdditive(); this.expectType('COMMA'); const a2 = this.parseAdditive(); this.expectType('RPAREN');
+        return { type: 'FUNC', name: 'IFNULL', args: [a1, a2] };
+      }
+      if (upper === 'SUBSTR') {
+        this.next(); this.expectType('LPAREN');
+        const args = [this.parseAdditive()];
+        while (this.peekType('COMMA')) { this.next(); args.push(this.parseAdditive()); }
+        this.expectType('RPAREN');
+        return { type: 'FUNC', name: 'SUBSTR', args };
+      }
+      this.next();
+      return { type: 'COL', name: t.value };
+    }
+    throw new Error('無法解析的條件片段');
+  }
+  parseValueList() {
+    this.expectType('LPAREN');
+    const values = [this.parseAdditive()];
+    while (this.peekType('COMMA')) { this.next(); values.push(this.parseAdditive()); }
+    this.expectType('RPAREN');
+    return values;
+  }
+}
+function parseBooleanExpr(text) { return new ExprParser(tokenize(text)).parseOr(); }
+function parseValueExpr(text) { return new ExprParser(tokenize(text)).parseAdditive(); }
+
+function resolveColumn(name, row) {
+  if (name.includes('.')) {
+    if (Object.prototype.hasOwnProperty.call(row, name)) return row[name];
+    throw new Error('找不到欄位: ' + name);
+  }
+  const matches = Object.keys(row).filter(k => k.slice(k.indexOf('.') + 1) === name);
+  if (matches.length === 0) throw new Error('找不到欄位: ' + name);
+  if (matches.length > 1) throw new Error('欄位名稱不明確，請加上表名前綴，例如 alias.' + name);
+  return row[matches[0]];
+}
+function likeMatch(value, pattern) {
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*').replace(/_/g, '.');
+  return new RegExp('^' + escaped + '$', 'i').test(value);
+}
+function applySimpleFunc(name, args) {
+  switch (name) {
+    case 'UPPER': return String(args[0] ?? '').toUpperCase();
+    case 'LOWER': return String(args[0] ?? '').toLowerCase();
+    case 'LENGTH': return String(args[0] ?? '').length;
+    case 'IFNULL': return (args[0] === null || args[0] === undefined) ? args[1] : args[0];
+    case 'SUBSTR': { const s = args[0], start = args[1], len = args[2]; const str = String(s ?? ''); const from = start - 1; return len !== undefined ? str.substr(from, len) : str.substr(from); }
+  }
+}
+function computeAggregate(name, argAst, rows) {
+  if (name === 'COUNT') {
+    if (argAst && argAst.type === 'STAR') return rows.length;
+    return rows.filter(r => { const v = evaluate(argAst, r, [r]); return v !== null && v !== undefined; }).length;
+  }
+  const vals = rows.map(r => evaluate(argAst, r, [r])).filter(v => v !== null && v !== undefined);
+  if (name === 'SUM') return vals.reduce((a, b) => a + b, 0);
+  if (name === 'AVG') return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  if (name === 'MAX') return vals.length ? Math.max(...vals) : null;
+  if (name === 'MIN') return vals.length ? Math.min(...vals) : null;
+}
+function truthy(v) { return !!v; }
+function evaluate(node, row, groupRows) {
+  groupRows = groupRows || [row];
+  switch (node.type) {
+    case 'AND': return truthy(evaluate(node.left, row, groupRows)) && truthy(evaluate(node.right, row, groupRows));
+    case 'OR': return truthy(evaluate(node.left, row, groupRows)) || truthy(evaluate(node.right, row, groupRows));
+    case 'NOT': return !truthy(evaluate(node.expr, row, groupRows));
+    case 'ISNULL': { const v = evaluate(node.expr, row, groupRows); const isNull = (v === null || v === undefined); return node.negate ? !isNull : isNull; }
+    case 'IN': { const v = evaluate(node.expr, row, groupRows); const list = node.list.map(n => evaluate(n, row, groupRows)); const found = list.some(x => x == v); return node.negate ? !found : found; }
+    case 'LIKE': { const v = evaluate(node.expr, row, groupRows); const p = evaluate(node.pattern, row, groupRows); return likeMatch(String(v ?? ''), String(p)); }
+    case 'BETWEEN': { const v = evaluate(node.expr, row, groupRows); const lo = evaluate(node.lo, row, groupRows); const hi = evaluate(node.hi, row, groupRows); return v >= lo && v <= hi; }
+    case 'CMP': {
+      const l = evaluate(node.left, row, groupRows), r = evaluate(node.right, row, groupRows);
+      if (l === null || r === null || l === undefined || r === undefined) return false;
+      switch (node.op) {
+        case '=': return l == r; case '!=': case '<>': return l != r;
+        case '>': return l > r; case '<': return l < r; case '>=': return l >= r; case '<=': return l <= r;
+      }
+    }
+    case 'ARITH': {
+      const l = evaluate(node.left, row, groupRows), r = evaluate(node.right, row, groupRows);
+      switch (node.op) { case '+': return l + r; case '-': return l - r; case '*': return l * r; case '/': return l / r; }
+    }
+    case 'NEG': return -evaluate(node.expr, row, groupRows);
+    case 'FUNC': {
+      const upperName = node.name.toUpperCase();
+      if (AGG_FUNCS.includes(upperName)) return computeAggregate(upperName, node.args[0], groupRows);
+      const args = node.args.map(a => evaluate(a, row, groupRows));
+      return applySimpleFunc(upperName, args);
+    }
+    case 'COL': return resolveColumn(node.name, row);
+    case 'LIT': return node.value;
+    case 'TRUTHY': return truthy(evaluate(node.expr, row, groupRows));
+    default: throw new Error('未知節點: ' + node.type);
+  }
+}
+
+function preprocessSubqueries(str) {
+  const re = /\bIN\s*\(\s*SELECT\b/i;
+  let m; let guard = 0;
+  while ((m = re.exec(str)) && guard++ < 20) {
+    const parenStart = str.indexOf('(', m.index);
+    let depth = 0, j = parenStart;
+    for (; j < str.length; j++) { if (str[j] === '(') depth++; else if (str[j] === ')') { depth--; if (depth === 0) break; } }
+    const subqueryText = str.slice(parenStart + 1, j);
+    const subResult = runQuery(subqueryText);
+    const colName = subResult.columns[0];
+    const values = subResult.rows.map(r => r[colName]);
+    const literal = '(' + (values.length ? values.map(v => typeof v === 'string' ? ("'" + v.replace(/'/g, "''") + "'") : (v === null ? 'NULL' : v)).join(', ') : 'NULL') + ')';
+    str = str.slice(0, parenStart) + literal + str.slice(j + 1);
+  }
+  return str;
+}
+
+function findTopLevelKeyword(str, keyword, fromIndex) {
+  fromIndex = fromIndex || 0;
+  let depth = 0, inQuote = false, quoteChar = '';
+  const kwUp = keyword.toUpperCase();
+  for (let i = fromIndex; i < str.length; i++) {
+    const c = str[i];
+    if (inQuote) { if (c === quoteChar) inQuote = false; continue; }
+    if (c === "'" || c === '"') { inQuote = true; quoteChar = c; continue; }
+    if (c === '(') { depth++; continue; }
+    if (c === ')') { depth--; continue; }
+    if (depth === 0) {
+      const remaining = str.slice(i, i + kwUp.length).toUpperCase();
+      if (remaining === kwUp) {
+        const before = i === 0 ? ' ' : str[i - 1];
+        const after = str[i + kwUp.length] || ' ';
+        if (/[\s(]/.test(before) && /[\s)]/.test(after)) return i;
+      }
+    }
+  }
+  return -1;
+}
+function findUnionSplit(str) {
+  let depth = 0, inQuote = false, quoteChar = '';
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if (inQuote) { if (c === quoteChar) inQuote = false; continue; }
+    if (c === "'" || c === '"') { inQuote = true; quoteChar = c; continue; }
+    if (c === '(') { depth++; continue; }
+    if (c === ')') { depth--; continue; }
+    if (depth === 0) {
+      if (/^UNION\s+ALL\b/i.test(str.slice(i))) {
+        const before = i === 0 ? ' ' : str[i - 1];
+        if (/[\s)]/.test(before)) return { index: i, len: str.slice(i).match(/^UNION\s+ALL/i)[0].length, all: true };
+      } else if (/^UNION\b/i.test(str.slice(i))) {
+        const before = i === 0 ? ' ' : str[i - 1];
+        if (/[\s)]/.test(before)) return { index: i, len: 5, all: false };
+      }
+    }
+  }
+  return null;
+}
+function splitTopLevelCommas(str) {
+  const parts = []; let depth = 0, inQuote = false, quoteChar = '', cur = '';
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if (inQuote) { cur += c; if (c === quoteChar) inQuote = false; continue; }
+    if (c === "'" || c === '"') { inQuote = true; quoteChar = c; cur += c; continue; }
+    if (c === '(') depth++; if (c === ')') depth--;
+    if (c === ',' && depth === 0) { parts.push(cur.trim()); cur = ''; continue; }
+    cur += c;
+  }
+  if (cur.trim()) parts.push(cur.trim());
+  return parts;
+}
+function wrapRows(rows, alias) { return rows.map(r => { const ctx = {}; for (const k in r) ctx[alias + '.' + k] = r[k]; return ctx; }); }
+function crossJoin(leftRows, rightRowsWrapped) { const out = []; for (const a of leftRows) for (const b of rightRowsWrapped) out.push(Object.assign({}, a, b)); return out; }
+function readIdentifier(str, pos) { const m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(str.slice(pos)); return m ? m[0] : null; }
+const RESERVED = new Set(['WHERE', 'GROUP', 'HAVING', 'ORDER', 'JOIN', 'NATURAL', 'CROSS', 'ON', 'USING', 'AS', 'AND', 'OR']);
+
+function parseFromClause(fromPart) {
+  let pos = 0; const str = fromPart;
+  function skipSpaces() { while (str[pos] === ' ') pos++; }
+  function readTableSource() {
+    skipSpaces();
+    if (str[pos] === '(') {
+      let depth = 0, start = pos;
+      for (let i = pos; i < str.length; i++) { if (str[i] === '(') depth++; else if (str[i] === ')') { depth--; if (depth === 0) { pos = i + 1; break; } } }
+      const inner = str.slice(start + 1, pos - 1);
+      skipSpaces();
+      if (/^AS\b/i.test(str.slice(pos))) { pos += 2; skipSpaces(); }
+      let alias = 'SUB';
+      const idm = readIdentifier(str, pos);
+      if (idm && !RESERVED.has(idm.toUpperCase())) { alias = idm; pos += idm.length; }
+      const sub = runQuery(inner);
+      return { rows: sub.rows, alias };
+    }
+    const tableName = readIdentifier(str, pos);
+    if (!tableName) throw new Error('無法解析 FROM 子句');
+    pos += tableName.length; skipSpaces();
+    if (/^AS\b/i.test(str.slice(pos))) { pos += 2; skipSpaces(); }
+    let alias = tableName;
+    const idm = readIdentifier(str, pos);
+    if (idm && !RESERVED.has(idm.toUpperCase())) { alias = idm; pos += idm.length; }
+    const tbl = TABLES[tableName.toUpperCase()];
+    if (!tbl) throw new Error('找不到資料表: ' + tableName);
+    return { rows: tbl, alias };
+  }
+  function peekKw() {
+    skipSpaces();
+    const rest = str.slice(pos);
+    if (/^,/.test(rest)) return 'COMMA';
+    if (/^NATURAL\s+JOIN\b/i.test(rest)) return 'NATURAL_JOIN';
+    if (/^CROSS\s+JOIN\b/i.test(rest)) return 'CROSS_JOIN';
+    if (/^JOIN\b/i.test(rest)) return 'JOIN';
+    return null;
+  }
+  function findClauseEnd() {
+    let depth = 0, inQuote = false, quoteChar = '';
+    for (let i = pos; i < str.length; i++) {
+      const c = str[i];
+      if (inQuote) { if (c === quoteChar) inQuote = false; continue; }
+      if (c === "'" || c === '"') { inQuote = true; quoteChar = c; continue; }
+      if (c === '(') { depth++; continue; }
+      if (c === ')') { depth--; continue; }
+      if (depth === 0) {
+        const rest = str.slice(i);
+        if (/^,/.test(rest)) return i;
+        if (/^(JOIN|NATURAL\s+JOIN|CROSS\s+JOIN)\b/i.test(rest)) { const before = str[i - 1]; if (/\s/.test(before)) return i; }
+      }
+    }
+    return str.length;
+  }
+
+  const first = readTableSource();
+  let combined = wrapRows(first.rows, first.alias);
+  let allWrappedTables = [first];
+
+  while (true) {
+    const kw = peekKw();
+    if (!kw) break;
+    if (kw === 'COMMA') { pos++; const next = readTableSource(); combined = crossJoin(combined, wrapRows(next.rows, next.alias)); allWrappedTables.push(next); continue; }
+    if (kw === 'JOIN') {
+      pos += 4;
+      const next = readTableSource();
+      skipSpaces();
+      if (/^ON\b/i.test(str.slice(pos))) {
+        pos += 2; skipSpaces();
+        const end = findClauseEnd();
+        const condText = str.slice(pos, end).trim();
+        pos = end;
+        const ast = parseBooleanExpr(condText);
+        const cross = crossJoin(combined, wrapRows(next.rows, next.alias));
+        combined = cross.filter(r => truthy(evaluate(ast, r, [r])));
+      } else if (/^USING\s*\(/i.test(str.slice(pos))) {
+        const m = /^USING\s*\(([^)]+)\)/i.exec(str.slice(pos));
+        pos += m[0].length;
+        const cols = m[1].split(',').map(s => s.trim());
+        const prevAlias = allWrappedTables[allWrappedTables.length - 1].alias;
+        const cross = crossJoin(combined, wrapRows(next.rows, next.alias));
+        combined = cross.filter(r => cols.every(c => r[prevAlias + '.' + c] === r[next.alias + '.' + c]));
+      } else {
+        combined = crossJoin(combined, wrapRows(next.rows, next.alias));
+      }
+      allWrappedTables.push(next);
+      continue;
+    }
+    if (kw === 'NATURAL_JOIN') {
+      pos += 13;
+      const next = readTableSource();
+      const prevCols = new Set(Object.keys(first.rows[0] || {}));
+      const nextCols = new Set(Object.keys(next.rows[0] || {}));
+      const common = [...prevCols].filter(c => nextCols.has(c));
+      const prevAlias = allWrappedTables[allWrappedTables.length - 1].alias;
+      const cross = crossJoin(combined, wrapRows(next.rows, next.alias));
+      combined = cross.filter(r => common.every(c => r[prevAlias + '.' + c] === r[next.alias + '.' + c]));
+      allWrappedTables.push(next);
+      continue;
+    }
+    if (kw === 'CROSS_JOIN') { pos += 10; const next = readTableSource(); combined = crossJoin(combined, wrapRows(next.rows, next.alias)); allWrappedTables.push(next); continue; }
+  }
+  return { rows: combined, tables: allWrappedTables };
+}
+
+function parseSelectItem(itemRaw) {
+  let item = itemRaw.trim();
+  if (item === '*') return { star: true };
+  let alias = null, exprText = item;
+  let m = /^(.*)\s+AS\s+([A-Za-z_]\w*)$/i.exec(item);
+  if (m) { exprText = m[1].trim(); alias = m[2]; }
+  else {
+    m = /^((?:COUNT|SUM|AVG|MIN|MAX)\s*\([^)]*\))\s+([A-Za-z_]\w*)$/i.exec(item);
+    if (m) { exprText = m[1].trim(); alias = m[2]; }
+  }
+  const ast = parseValueExpr(exprText);
+  let header = alias;
+  if (!header) {
+    if (ast.type === 'COL') header = ast.name.includes('.') ? ast.name.slice(ast.name.indexOf('.') + 1) : ast.name;
+    else header = exprText;
+  }
+  return { star: false, ast, header, isAgg: ast.type === 'FUNC' && AGG_FUNCS.includes(ast.name) };
+}
+
+function runQuery(sqlRaw) {
+  let sql = sqlRaw.replace(/\s+/g, ' ').trim().replace(/;\s*$/, '');
+  if (!sql) throw new Error('請輸入 SQL 語句');
+  const u = findUnionSplit(sql);
+  if (u) {
+    const left = sql.slice(0, u.index).trim();
+    const right = sql.slice(u.index + u.len).trim();
+    const L = runQuery(left), R = runQuery(right);
+    let rows = L.rows.concat(R.rows);
+    if (!u.all) { const seen = new Set(); const out = []; for (const r of rows) { const key = JSON.stringify(r); if (!seen.has(key)) { seen.add(key); out.push(r); } } rows = out; }
+    return { columns: L.columns, rows };
+  }
+  return runSingleSelect(sql);
+}
+function runSingleSelect(sqlIn) {
+  let sql = sqlIn.trim();
+  if (!/^SELECT\b/i.test(sql)) throw new Error('必須以 SELECT 開頭');
+  let selectStart = 6; let distinct = false;
+  const rest0 = sql.slice(selectStart);
+  if (/^\s+DISTINCT\b/i.test(rest0)) { distinct = true; selectStart += rest0.match(/^\s+DISTINCT\b/i)[0].length; }
+  const fromIdx = findTopLevelKeyword(sql, 'FROM', selectStart);
+  if (fromIdx === -1) throw new Error('缺少 FROM 子句');
+  const selectPart = sql.slice(selectStart, fromIdx).trim();
+  const whereIdx = findTopLevelKeyword(sql, 'WHERE', fromIdx);
+  const groupIdx = findTopLevelKeyword(sql, 'GROUP BY', fromIdx);
+  const havingIdx = findTopLevelKeyword(sql, 'HAVING', fromIdx);
+  const orderIdx = findTopLevelKeyword(sql, 'ORDER BY', fromIdx);
+  const markers = [
+    { name: 'WHERE', idx: whereIdx, len: 5 }, { name: 'GROUP BY', idx: groupIdx, len: 8 },
+    { name: 'HAVING', idx: havingIdx, len: 6 }, { name: 'ORDER BY', idx: orderIdx, len: 8 },
+  ].filter(m => m.idx !== -1).sort((a, b) => a.idx - b.idx);
+  const fromEnd = markers.length ? markers[0].idx : sql.length;
+  const fromPart = sql.slice(fromIdx + 4, fromEnd).trim();
+  function partAfter(name) {
+    const i = markers.findIndex(m => m.name === name);
+    if (i === -1) return null;
+    const marker = markers[i]; const end = (i + 1 < markers.length) ? markers[i + 1].idx : sql.length;
+    return sql.slice(marker.idx + marker.len, end).trim();
+  }
+  let wherePart = partAfter('WHERE'), groupPart = partAfter('GROUP BY'), havingPart = partAfter('HAVING'), orderPart = partAfter('ORDER BY');
+  if (wherePart) wherePart = preprocessSubqueries(wherePart);
+  if (havingPart) havingPart = preprocessSubqueries(havingPart);
+  const { rows: fromRows } = parseFromClause(fromPart);
+  let filtered = fromRows;
+  if (wherePart) { const ast = parseBooleanExpr(wherePart); filtered = fromRows.filter(r => truthy(evaluate(ast, r, [r]))); }
+  const selectItems = splitTopLevelCommas(selectPart).map(parseSelectItem);
+  const hasAgg = selectItems.some(it => it.isAgg);
+  let groups;
+  if (groupPart) {
+    const groupAsts = splitTopLevelCommas(groupPart).map(parseValueExpr);
+    const map = new Map();
+    for (const r of filtered) { const key = JSON.stringify(groupAsts.map(a => evaluate(a, r, [r]))); if (!map.has(key)) map.set(key, []); map.get(key).push(r); }
+    groups = [...map.values()];
+  } else if (hasAgg) { groups = filtered.length ? [filtered] : [[]]; }
+  else { groups = filtered.map(r => [r]); }
+  if (havingPart) { const ast = parseBooleanExpr(havingPart); groups = groups.filter(g => g.length && truthy(evaluate(ast, g[0], g))); }
+  let columns = [];
+  let outputRows = groups.map(g => {
+    const rep = g[0] || {}; const outRow = {};
+    for (const it of selectItems) {
+      if (it.star) {
+        const keys = Object.keys(rep);
+        const singleTable = new Set(keys.map(k => k.slice(0, k.indexOf('.')))).size <= 1;
+        for (const k of keys) { const bare = k.slice(k.indexOf('.') + 1); const headerName = singleTable ? bare : k; outRow[headerName] = rep[k]; if (!columns.includes(headerName)) columns.push(headerName); }
+      } else {
+        const val = evaluate(it.ast, rep, g);
+        outRow[it.header] = val;
+        if (!columns.includes(it.header)) columns.push(it.header);
+      }
+    }
+    return outRow;
+  });
+  if (distinct) { const seen = new Set(); const out = []; for (const r of outputRows) { const k = JSON.stringify(r); if (!seen.has(k)) { seen.add(k); out.push(r); } } outputRows = out; }
+  if (orderPart) {
+    const terms = splitTopLevelCommas(orderPart).map(t => {
+      const m = /^(.*?)(\s+(ASC|DESC))?$/i.exec(t.trim());
+      const exprText = m[1].trim(); const dir = (m[3] || 'ASC').toUpperCase();
+      if (/^\d+$/.test(exprText)) return { pos: parseInt(exprText, 10), dir };
+      return { name: exprText, dir };
+    });
+    outputRows.sort((a, b) => {
+      for (const term of terms) {
+        let va, vb;
+        if (term.pos) { va = Object.values(a)[term.pos - 1]; vb = Object.values(b)[term.pos - 1]; }
+        else { va = a[term.name]; vb = b[term.name]; }
+        if (va === vb) continue;
+        if (va === null || va === undefined) return term.dir === 'ASC' ? -1 : 1;
+        if (vb === null || vb === undefined) return term.dir === 'ASC' ? 1 : -1;
+        const cmp = va > vb ? 1 : (va < vb ? -1 : 0);
+        return term.dir === 'ASC' ? cmp : -cmp;
+      }
+      return 0;
+    });
+  }
+  return { columns, rows: outputRows };
+}
+
+// ============================================================
+// UI 綁定
+// ============================================================
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+function renderResult(el, result) {
+  if (!result.rows.length) { el.innerHTML = '<span class="placeholder">（沒有符合的資料列 — 0 rows）</span>'; return; }
+  let html = '<table><thead><tr>';
+  for (const c of result.columns) html += '<th>' + escapeHtml(c) + '</th>';
+  html += '</tr></thead><tbody>';
+  for (const row of result.rows) {
+    html += '<tr>';
+    for (const c of result.columns) {
+      const v = row[c];
+      html += '<td>' + (v === null || v === undefined ? '<span class="null-val">NULL</span>' : escapeHtml(v)) + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table><div class="console-meta">' + result.rows.length + ' row' + (result.rows.length > 1 ? 's' : '') + '</div>';
+  el.innerHTML = html;
+}
+
+document.querySelectorAll('.console').forEach(el => {
+  const ta = el.querySelector('.console-input');
+  const btn = el.querySelector('.run-btn');
+  const resultEl = el.querySelector('.console-result');
+  function run() {
+    try { const r = runQuery(ta.value); renderResult(resultEl, r); }
+    catch (e) { resultEl.innerHTML = '<div class="console-error">⚠ ' + escapeHtml(e.message) + '</div>'; }
+  }
+  btn.addEventListener('click', run);
+  ta.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); } });
+});
+
+// ---- Sidebar active highlight ----
+const sections = document.querySelectorAll('main section, main .hero');
+const navLinks = document.querySelectorAll('.sidebar a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => { if (window.scrollY >= sec.offsetTop - 100) current = sec.id; });
+  navLinks.forEach(a => { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
+});
+
+// ---- Quiz ----
+const QUIZ = [
+  { q: 'SELECT 敘述的子句正確順序是？', opts: ['SELECT→FROM→WHERE→GROUP BY→HAVING→ORDER BY', 'SELECT→FROM→GROUP BY→WHERE→HAVING→ORDER BY', 'SELECT→WHERE→FROM→HAVING→GROUP BY→ORDER BY'], correct: 0, explain: '順序固定：先決定資料來源(FROM)，篩單一列(WHERE)，分組(GROUP BY)，篩整組(HAVING)，最後排序(ORDER BY)。' },
+  { q: '想找「兩系都有開的學分數」，邏輯上要用？', opts: ['IN (子查詢)', 'NOT IN (子查詢)', 'UNION ALL'], correct: 0, explain: 'IN 對應「且」的邏輯（模擬 INTERSECT），NOT IN 對應「且非」的邏輯（模擬 MINUS）。' },
+  { q: '下列何者是找出 budget 為未知值的正確寫法？', opts: ["WHERE budget = NULL", "WHERE budget IS NULL", "WHERE budget <> NULL"], correct: 1, explain: 'NULL 是「未知」，不能用 = 比較，只能用 IS NULL / IS NOT NULL。' },
+  { q: 'WHERE 跟 HAVING 的差別，下列何者正確？', opts: ['WHERE 可以用 COUNT(*) 篩選', 'WHERE 篩單一列，HAVING 篩分組後的整組', '兩者完全可以互換'], correct: 1, explain: 'WHERE 在分組前作用在原始列，不能用聚合函數；HAVING 在分組後作用在整組，通常搭配聚合函數。' },
+  { q: '寫了 JOIN 但忘記寫 ON 條件會發生什麼事？', opts: ['SQL 語法錯誤，執行不了', '自動退化成 CROSS JOIN（笛卡兒積）', '系統會自動猜測連接欄位'], correct: 1, explain: 'JOIN 沒有 ON/USING 條件，等同於 CROSS JOIN，兩表每列互相配對，列數會暴增。' },
+  { q: 'Self-Join 找「員工40號的主管姓名」，E1代表自己、E2代表主管，正確寫法是？', opts: ["SELECT E2.name ... WHERE E1.enum = 40", "SELECT E1.name ... WHERE E2.enum = 40", "SELECT E2.name ... WHERE E2.enum = 40"], correct: 0, explain: 'WHERE 鎖定「自己」是40號（E1.enum=40），SELECT 輸出「主管」的名字（E2.name）。' },
+];
+const quizContainer = document.getElementById('quiz-container');
+let quizScore = 0, quizAnswered = 0;
+QUIZ.forEach((item, qi) => {
+  const div = document.createElement('div'); div.className = 'quiz-q';
+  const p = document.createElement('p'); p.className = 'prompt'; p.textContent = (qi + 1) + '. ' + item.q; div.appendChild(p);
+  const explainEl = document.createElement('div'); explainEl.className = 'quiz-explain'; explainEl.textContent = item.explain;
+  item.opts.forEach((optText, oi) => {
+    const b = document.createElement('button'); b.className = 'quiz-opt'; b.textContent = optText;
+    b.addEventListener('click', () => {
+      if (b.disabled) return;
+      const allBtns = div.querySelectorAll('.quiz-opt'); allBtns.forEach(x => x.disabled = true);
+      if (oi === item.correct) { b.classList.add('correct'); quizScore++; }
+      else { b.classList.add('wrong'); allBtns[item.correct].classList.add('correct'); }
+      explainEl.style.display = 'block';
+      quizAnswered++;
+      document.getElementById('quiz-score').textContent = '目前分數：' + quizScore + ' / ' + QUIZ.length + (quizAnswered === QUIZ.length ? '（全部答完了！）' : '');
+    });
+    div.appendChild(b);
+  });
+  div.appendChild(explainEl);
+  quizContainer.appendChild(div);
+});
+
+// ---- Flashcards ----
+const FLASH = [
+  { term: 'Boolean 判斷口訣', def: '同一欄位互斥值 → OR / IN；不同條件同時成立 → AND。絕不能對同一欄位用 AND 接兩個互斥值。' },
+  { term: 'NULL 語意', def: 'NULL 代表「未知」，不是值，不能用 = 比較，只能用 IS NULL / IS NOT NULL。' },
+  { term: 'WHERE vs HAVING', def: 'WHERE 過濾分組前的原始列；HAVING 過濾分組後的整組，通常搭配聚合函數。' },
+  { term: 'CROSS JOIN', def: 'JOIN 沒寫 ON/USING 時的預設行為：兩表每一列互相配對，產生笛卡兒積。' },
+  { term: 'Self-Join', def: '同一張表跟自己 JOIN，一定要給兩個不同 alias，例如 E1、E2。' },
+  { term: 'UNION vs UNION ALL', def: 'UNION 自動去除重複列；UNION ALL 保留所有重複列，不去重。' },
+  { term: 'MySQL 沒有的集合運算', def: 'MySQL 不支援 INTERSECT / MINUS，要用 IN / NOT IN 子查詢自己模擬。' },
+  { term: 'ANSI JOIN vs 逗號式', def: 'ANSI 標準用 JOIN...ON；逗號式（FROM A, B WHERE...）能跑但不是標準寫法。' },
+  { term: 'DISTINCT', def: '放在 SELECT 後面，用來消除結果中重複的整列資料。' },
+  { term: 'Inline View', def: '把一個 SELECT 查詢包在括號裡當成暫時的表，放在 FROM 子句中並給別名使用。' },
+];
+const flashContainer = document.getElementById('flash-container');
+FLASH.forEach(item => {
+  const div = document.createElement('div'); div.className = 'flash';
+  div.innerHTML = '<span class="hint">點擊翻面</span><div class="term">' + escapeHtml(item.term) + '</div><div class="def">' + escapeHtml(item.def) + '</div>';
+  div.addEventListener('click', () => div.classList.toggle('open'));
+  flashContainer.appendChild(div);
+});
+</script>
+</body>
+</html>
