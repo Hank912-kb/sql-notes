@@ -20,6 +20,11 @@
     --console-text:#DCEAE3;
     --console-accent:#6FD8AE;
     --console-error:#E2896B;
+    --hl-ddl:#E58FD8;
+    --hl-clause:#6FD8AE;
+    --hl-logic:#F0B86E;
+    --hl-func:#7EC8E3;
+    --hl-string:#C9D97A;
     --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Noto Serif TC', serif;
     --sans: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Segoe UI', 'Microsoft JhengHei', sans-serif;
     --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Cascadia Code', monospace;
@@ -44,6 +49,14 @@
     padding:28px 14px 28px 24px; border-right:1px solid var(--rule);
   }
   .sidebar-title{ font-family:var(--serif); font-weight:700; font-size:1rem; margin-bottom:14px; color:var(--ink); }
+  .lang-toggle{
+    display:flex; margin-bottom:18px; border:1px solid var(--rule); border-radius:6px; overflow:hidden;
+  }
+  .lang-toggle button{
+    flex:1; background:var(--paper-card); border:none; padding:6px 4px; font-size:.78rem; font-family:var(--sans);
+    color:var(--ink-soft); cursor:pointer;
+  }
+  .lang-toggle button.active{ background:var(--teal); color:#fff; font-weight:700; }
   .sidebar a{
     display:block; padding:6px 10px; margin:2px 0; border-radius:4px; text-decoration:none;
     color:var(--ink-soft); font-size:.88rem; border-left:2px solid transparent;
@@ -78,6 +91,11 @@
   }
   .skeleton .kw{ color:var(--teal); font-weight:700; }
   .skeleton .ph{ color:var(--mustard); }
+  .skeleton .hl-clause{ color:var(--teal); }
+  .skeleton .hl-ddl{ color:#A6348C; }
+  .skeleton .hl-logic{ color:#8A5E1E; }
+  .skeleton .hl-func{ color:#2C6E8F; }
+  .skeleton .hl-string{ color:#4B564E; font-weight:400; }
 
   /* ---- Console ---- */
   .console{
@@ -88,24 +106,51 @@
     padding:9px 16px; font-size:.82rem; color:#9FB6AC; border-bottom:1px solid rgba(255,255,255,0.08);
     font-family:var(--sans);
   }
-  .console-input{
-    width:100%; background:transparent; border:none; color:var(--console-text);
-    font-family:var(--mono); font-size:.92rem; padding:14px 16px; resize:vertical;
-    min-height:52px; outline:none; line-height:1.6;
+  /* ---- 語法上色輸入框（textarea 疊在同排版的 <pre> 上面，文字透明只留游標） ---- */
+  .console-code-wrap{ display:grid; align-items:start; }
+  .console-code-wrap > .console-highlight,
+  .console-code-wrap > .console-input{
+    grid-area:1 / 1; width:100%; box-sizing:border-box;
+    font-family:var(--mono); font-size:.96rem; line-height:1.65; padding:18px 18px; margin:0;
   }
+  .console-highlight{
+    color:var(--console-text); white-space:pre-wrap; word-wrap:break-word; word-break:break-word;
+    overflow:hidden; pointer-events:none; max-height:520px;
+  }
+  .console-input{
+    background:transparent; border:none; color:transparent; caret-color:var(--console-text);
+    resize:vertical; outline:none; position:relative; z-index:1;
+    min-height:104px; max-height:520px; overflow-y:auto;
+  }
+  .hl-ddl{ color:var(--hl-ddl); font-weight:700; }
+  .hl-clause{ color:var(--hl-clause); font-weight:700; }
+  .hl-logic{ color:var(--hl-logic); font-weight:700; }
+  .hl-func{ color:var(--hl-func); }
+  .hl-string{ color:var(--hl-string); }
   .console-actions{
-    display:flex; align-items:center; gap:12px; padding:0 16px 12px;
+    display:flex; align-items:center; gap:12px; padding:0 18px 14px;
   }
   .run-btn{
     background:var(--console-accent); color:#0F1A16; border:none; border-radius:4px;
     padding:7px 16px; font-size:.85rem; font-weight:700; cursor:pointer; font-family:var(--sans);
   }
   .run-btn:hover{ filter:brightness(1.08); }
+  .reset-btn{
+    background:transparent; color:#9FB6AC; border:1px solid rgba(255,255,255,0.18); border-radius:4px;
+    padding:6px 14px; font-size:.82rem; font-weight:600; cursor:pointer; font-family:var(--sans);
+  }
+  .reset-btn:hover{ color:var(--console-text); border-color:rgba(255,255,255,0.4); }
   .console-hint{ color:#7C9389; font-size:.78rem; }
   .console-result{
-    background:var(--console-panel); padding:14px 16px; border-top:1px solid rgba(255,255,255,0.06);
-    font-family:var(--mono); font-size:.85rem; color:var(--console-text); overflow-x:auto;
+    background:var(--console-panel); padding:16px 18px; border-top:1px solid rgba(255,255,255,0.06);
+    font-family:var(--mono); font-size:.88rem; color:var(--console-text); overflow-x:auto;
+    max-height:420px; overflow-y:auto;
   }
+  .sandbox-stmt{ margin-bottom:14px; padding-bottom:14px; border-bottom:1px dashed rgba(255,255,255,0.08); }
+  .sandbox-stmt:last-child{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
+  .sandbox-stmt-code{ display:block; white-space:pre-wrap; color:#9FB6AC; }
+  .sandbox-stmt-code::before{ content:"▸ "; color:var(--console-accent); }
+  .sandbox-msg{ color:var(--console-accent); margin-top:6px; font-size:.85rem; }
   .console-result table{ border-collapse:collapse; width:100%; }
   .console-result th, .console-result td{
     text-align:left; padding:5px 12px 5px 0; border-bottom:1px solid rgba(255,255,255,0.08);
@@ -165,227 +210,375 @@
 
 <div class="layout">
   <nav class="sidebar" id="sidebar">
-    <div class="sidebar-title">SQL 學習手冊</div>
-    <a href="#hero">主控台</a>
-    <a href="#skeleton">語法骨架</a>
-    <a href="#select-where">SELECT / WHERE</a>
-    <a href="#orderby">排序 ORDER BY</a>
-    <a href="#nullsec">NULL 處理</a>
-    <a href="#setops">集合運算</a>
-    <a href="#groupby">GROUP BY / HAVING</a>
-    <a href="#joinbasic">JOIN 基礎</a>
-    <a href="#joinspecial">特殊 JOIN</a>
-    <a href="#multijoin">多表 JOIN</a>
-    <a href="#selfjoin">Self-Join</a>
-    <a href="#functions">函數與計算機</a>
-    <a href="#quiz">互動測驗</a>
-    <a href="#flashcards">詞彙卡</a>
-    <a href="#schema">資料表結構</a>
+    <div class="sidebar-title" data-en="SQL Interactive Notes">SQL 學習手冊</div>
+    <div class="lang-toggle">
+      <button id="lang-zh" class="active" type="button">中文</button>
+      <button id="lang-en" type="button">EN</button>
+    </div>
+    <a href="#hero" data-en="Console">主控台</a>
+    <a href="#intro" data-en="SQL Overview">SQL 語言總覽</a>
+    <a href="#ddl" data-en="DDL">資料定義 DDL</a>
+    <a href="#dml" data-en="DML">資料操作 DML</a>
+    <a href="#skeleton" data-en="Syntax Skeleton">語法骨架</a>
+    <a href="#select-where" data-en="SELECT / WHERE">SELECT / WHERE</a>
+    <a href="#orderby" data-en="ORDER BY">排序 ORDER BY</a>
+    <a href="#nullsec" data-en="NULL Handling">NULL 處理</a>
+    <a href="#setops" data-en="Set Operations">集合運算</a>
+    <a href="#groupby" data-en="GROUP BY / HAVING">GROUP BY / HAVING</a>
+    <a href="#joinbasic" data-en="JOIN Basics">JOIN 基礎</a>
+    <a href="#joinspecial" data-en="Special JOINs">特殊 JOIN</a>
+    <a href="#multijoin" data-en="Multi-table JOIN">多表 JOIN</a>
+    <a href="#selfjoin" data-en="Self-Join">Self-Join</a>
+    <a href="#outerjoin" data-en="OUTER JOIN">外部 JOIN</a>
+    <a href="#nested" data-en="Nested / EXISTS">巢狀查詢 / EXISTS</a>
+    <a href="#views" data-en="Views / WITH">View 與 WITH</a>
+    <a href="#advanceddml" data-en="Advanced DDL/DML">進階 DDL/DML</a>
+    <a href="#functions" data-en="Functions & Calculator">函數與計算機</a>
+    <a href="#quiz" data-en="Quiz">互動測驗</a>
+    <a href="#flashcards" data-en="Flashcards">詞彙卡</a>
+    <a href="#schema" data-en="Schema Reference">資料表結構</a>
   </nav>
 
   <main>
     <div class="hero" id="hero">
-      <div class="kicker">給 SQL 新手的互動筆記</div>
-      <h1>邊寫邊跑，才記得住</h1>
-      <p class="lede">每個觀念下面都有一台真的能執行的 SQL 主控台。看到範例先自己猜答案，再按「執行」對答案 — 猜錯的地方，就是你該花時間搞懂的地方。</p>
+      <div class="kicker" data-en="Interactive notes for SQL beginners">給 SQL 新手的互動筆記</div>
+      <h1 data-en="Write it, run it, remember it">邊寫邊跑，才記得住</h1>
+      <p class="lede" data-en="Every concept below has a real, runnable SQL console. Guess the answer before you hit &quot;Run&quot; — wherever you guessed wrong is exactly where you need to spend time.">每個觀念下面都有一台真的能執行的 SQL 主控台。看到範例先自己猜答案，再按「執行」對答案 — 猜錯的地方，就是你該花時間搞懂的地方。</p>
 
       <div class="console" data-default="SELECT * FROM COURSE;">
-        <div class="console-topbar">試試看：這是本筆記全程使用的範例資料表之一</div>
+        <div class="console-topbar" data-en="Try it: one of the sample tables used throughout these notes">試試看：這是本筆記全程使用的範例資料表之一</div>
         <textarea class="console-input" spellcheck="false">SELECT * FROM COURSE;</textarea>
         <div class="console-actions">
-          <button class="run-btn">▶ 執行</button>
-          <span class="console-hint">Cmd / Ctrl + Enter 也可以執行</span>
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <span class="console-hint" data-en="Cmd / Ctrl + Enter also runs it">Cmd / Ctrl + Enter 也可以執行</span>
         </div>
-        <div class="console-result"><span class="placeholder">先猜猜看這張表長怎樣，再按執行 →</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess what this table looks like, then hit Run →">先猜猜看這張表長怎樣，再按執行 →</span></div>
       </div>
-      <p style="font-size:.88rem;color:var(--ink-soft)">往下拉到最後有「資料表結構」章節，隨時可以回去查欄位名稱。</p>
+      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="Scroll to the bottom for the &quot;Schema Reference&quot; section — come back any time to look up column names.">往下拉到最後有「資料表結構」章節，隨時可以回去查欄位名稱。</p>
     </div>
 
+    <section id="intro">
+      <h2 data-en="1. SQL Overview">1. SQL 語言總覽</h2>
+      <p data-en="SQL (Structured Query Language) was defined by IBM in the early 1970s under the name SEQUEL, first implemented in IBM's System R, and standardized by ANSI/ISO in 1986. It is a declarative, command-based language shared by nearly every relational database.">SQL（結構化查詢語言）由 IBM 在 1970 年代初期定義，最早叫做 SEQUEL，第一個實作是 IBM 的 System R，1986 年成為 ANSI/ISO 標準。它是一種宣告式、以指令為單位的語言，幾乎所有關聯式資料庫都在用。</p>
+      <h3 data-en="Five families of SQL statements">SQL 語句的五大類</h3>
+      <table class="static-tbl">
+        <tr><th data-en="Category">分類</th><th data-en="Examples">代表語句</th><th data-en="Purpose">用途</th></tr>
+        <tr><td data-en="DDL — Data Definition">DDL 資料定義</td><td><code>CREATE TABLE, ALTER TABLE, DROP TABLE</code></td><td data-en="Define / change the shape of tables">定義、變更資料表的結構</td></tr>
+        <tr><td data-en="DML — Data Manipulation">DML 資料操作</td><td><code>INSERT, UPDATE, DELETE</code></td><td data-en="Change the rows inside a table">改變資料表裡的內容</td></tr>
+        <tr><td data-en="Data Query">資料查詢</td><td><code>SELECT, WITH</code></td><td data-en="Read data back out">把資料查出來</td></tr>
+        <tr><td data-en="DCL — Access Control">DCL 存取控制</td><td><code>GRANT, REVOKE</code></td><td data-en="Control who can do what">控制誰能做什麼</td></tr>
+        <tr><td data-en="System Administration">系統管理</td><td><code>CREATE DATABASE, CREATE TABLESPACE</code></td><td data-en="Manage the database server itself">管理資料庫伺服器本身</td></tr>
+      </table>
+      <h3 data-en="Formatting rules">格式規則</h3>
+      <p data-en="Keywords and table names are NOT case-sensitive — SELECT/select/Select all work the same. String literals (the values inside quotes) ARE case-sensitive.">關鍵字跟資料表名稱「不分大小寫」— SELECT / select / Select 效果一樣。但字串字面值（引號裡的值）「會分大小寫」。</p>
+      <div class="console" data-default="select title from course where credits = 6;">
+        <div class="console-topbar" data-en="Keywords in any case still work">關鍵字不管大小寫都能跑</div>
+        <textarea class="console-input" spellcheck="false">select title from course where credits = 6;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT title FROM COURSE WHERE offered_by = 'physics';">
+        <div class="console-topbar" data-en="But string literal case does matter — guess how many rows this returns">但字串字面值的大小寫有差 — 猜猜看這句會有幾筆</div>
+        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE offered_by = 'physics';</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Real value is 'Physics' with a capital P — guess first, then run">實際的值是大寫開頭的 'Physics'，先猜再執行</span></div>
+      </div>
+      <div class="callout"><strong data-en="Common mistake:">常見錯誤：</strong><span data-en="Every SQL statement ends with a semicolon. Forget it in a real client and it just waits for you to keep typing on a new line — it hasn't run yet.">SQL 語句一定要用分號結尾。如果忘記加分號，在真正的資料庫命令列裡它只會換行等你繼續打字，不會被執行。</span></div>
+    </section>
+
+    <section id="ddl">
+      <h2 data-en="2. Data Definition Language (DDL) — CREATE / ALTER / DROP TABLE">2. 資料定義語言 DDL — CREATE / ALTER / DROP TABLE</h2>
+      <p data-en="DDL statements define the shape of a table: its columns, their types, and the constraints on them.">DDL 語句用來定義資料表的結構：有哪些欄位、每個欄位是什麼型別、有什麼限制條件。</p>
+      <div class="skeleton skeleton-code">CREATE TABLE DEPARTMENT(
+  name VARCHAR(50) NOT NULL,
+  code CHAR(5) NOT NULL,
+  total_staff_number DECIMAL(2) NOT NULL,
+  chair VARCHAR(50) NULL,
+  budget DECIMAL(9,1) NOT NULL,
+  CONSTRAINT dept_pkey PRIMARY KEY(name),
+  CONSTRAINT dept_ckey1 UNIQUE(code)
+);</div>
+      <p data-en="Common column types: VARCHAR(size) variable-length string · CHAR(size) fixed-length string · INTEGER whole numbers · DECIMAL(M,D) exact-precision numbers · DATE / TIME / DATETIME dates and times.">常見的欄位型別：<code>VARCHAR(size)</code> 變動長度字串、<code>CHAR(size)</code> 固定長度字串、<code>INTEGER</code> 整數、<code>DECIMAL(M,D)</code> 精確位數的數字、<code>DATE / TIME / DATETIME</code> 日期時間。</p>
+      <p data-en="ALTER TABLE changes an existing table's definition: add/drop a column, change a type, add/drop a constraint, or rename the table. DROP TABLE permanently deletes both the table and its data.">ALTER TABLE 用來變更既有資料表的定義：新增或刪除欄位、改型別、新增或刪除限制條件、幫資料表改名。DROP TABLE 則會把整張表連同資料一起永久刪除。</p>
+      <div class="callout"><strong data-en="Try it yourself:">動手做做看：</strong><span data-en="The sandbox console below has its own private copy of DEPARTMENT/COURSE — anything you CREATE, ALTER, or DROP here only affects this console, and never touches the tables used elsewhere on this page. Write several statements separated by semicolons and hit Run to execute them in order; use Reset to start over.">下面這台「沙盒主控台」有自己獨立的一份 DEPARTMENT / COURSE 複本 — 在這裡 CREATE、ALTER、DROP 只會影響這台主控台，不會動到頁面其他地方用的資料表。可以一次寫好幾句、用分號隔開，按執行會依序跑完；按重置可以重新開始。</span></div>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="ALTER TABLE DEPARTMENT ADD COLUMN category VARCHAR(20);
+SELECT name, category FROM DEPARTMENT;
+ALTER TABLE DEPARTMENT DROP COLUMN category;
+DROP TABLE COURSE;
+SELECT * FROM COURSE;">
+        <div class="console-topbar" data-en="DDL sandbox — seeded with a private copy of DEPARTMENT / COURSE">DDL 沙盒 — 已載入獨立的 DEPARTMENT / COURSE 複本</div>
+        <textarea class="console-input" spellcheck="false">ALTER TABLE DEPARTMENT ADD COLUMN category VARCHAR(20);
+SELECT name, category FROM DEPARTMENT;
+ALTER TABLE DEPARTMENT DROP COLUMN category;
+DROP TABLE COURSE;
+SELECT * FROM COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="The last line drops COURSE — guess what the final SELECT shows, then run">最後一行把 COURSE 刪掉了，猜猜最後那個 SELECT 會顯示什麼</span></div>
+      </div>
+    </section>
+
+    <section id="dml">
+      <h2 data-en="3. Data Manipulation Language (DML) — INSERT / UPDATE / DELETE">3. 資料操作語言 DML — INSERT / UPDATE / DELETE</h2>
+      <p data-en="INSERT adds a new row, UPDATE changes rows that match a condition, and DELETE removes rows that match a condition. All three can be undone with ROLLBACK until COMMIT is executed — but they never remove the table itself.">INSERT 新增一列，UPDATE 修改符合條件的列，DELETE 刪除符合條件的列。這三個在 COMMIT 之前都能用 ROLLBACK 復原 — 但它們都不會把資料表本身刪掉。</p>
+      <div class="skeleton skeleton-code">INSERT INTO DEPARTMENT
+VALUES ('Chemistry', 'CHEM', 8, NULL, 90000.0);
+
+UPDATE DEPARTMENT
+SET total_staff_number = total_staff_number + 1
+WHERE name = 'Physics';
+
+DELETE FROM COURSE
+WHERE cnum = 'CSCI235';</div>
+      <div class="tip"><span data-en="INSERT without a column list must supply a value for every column in table order. Giving an explicit column list — INSERT INTO T(col1,col2) VALUES(...) — lets you skip columns (they become NULL) and reorder them freely.">不指定欄位清單的 INSERT，值的順序必須跟資料表欄位順序完全一樣。明確列出欄位清單 — <code>INSERT INTO T(col1,col2) VALUES(...)</code> — 就可以跳過某些欄位（會變成 NULL）或改變順序。</span></div>
+      <div class="callout"><strong data-en="This mini-engine's limit:">這個迷你引擎的限制：</strong><span data-en="Real MySQL would reject a DELETE/UPDATE that violates a foreign key (e.g. deleting a department that still has courses) unless ON DELETE CASCADE is set. This sandbox doesn't enforce foreign keys, so it always lets the statement through — keep that in mind when comparing to what your real database would do.">真正的 MySQL 如果違反外鍵限制（例如刪除還有課程的系所），在沒有 ON DELETE CASCADE 的情況下會直接報錯拒絕。這個沙盒不會檢查外鍵，所以語句一定會被接受 — 跟真正資料庫的行為比較時要記得這點。</span></div>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="INSERT INTO DEPARTMENT VALUES ('Chemistry', 'CHEM', 8, NULL, 90000.0);
+SELECT * FROM DEPARTMENT;
+UPDATE DEPARTMENT SET total_staff_number = total_staff_number + 1 WHERE name = 'Physics';
+DELETE FROM COURSE WHERE cnum = 'CSCI235';
+SELECT * FROM COURSE;">
+        <div class="console-topbar" data-en="DML sandbox — seeded with a private copy of DEPARTMENT / COURSE">DML 沙盒 — 已載入獨立的 DEPARTMENT / COURSE 複本</div>
+        <textarea class="console-input" spellcheck="false">INSERT INTO DEPARTMENT VALUES ('Chemistry', 'CHEM', 8, NULL, 90000.0);
+SELECT * FROM DEPARTMENT;
+UPDATE DEPARTMENT SET total_staff_number = total_staff_number + 1 WHERE name = 'Physics';
+DELETE FROM COURSE WHERE cnum = 'CSCI235';
+SELECT * FROM COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Try writing your own INSERT/UPDATE/DELETE below">可以自己改寫下面的 INSERT/UPDATE/DELETE 試試看</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Run it and see how the two SELECT snapshots differ">執行看看，比較前後兩次 SELECT 的差異</span></div>
+      </div>
+    </section>
+
     <section id="skeleton">
-      <h2>1. 語法骨架 — 先背順序，再談內容</h2>
-      <p>SELECT 敘述的子句永遠照這個順序排列，這個順序不能亂，也是新手最容易寫錯的地方：</p>
-      <div class="skeleton"><span class="kw">SELECT</span> <span class="ph">欄位</span>
-<span class="kw">FROM</span> <span class="ph">資料表</span>
-<span class="kw">WHERE</span>  <span class="ph">篩選單一列的條件</span>
-<span class="kw">GROUP BY</span> <span class="ph">分組欄位</span>
-<span class="kw">HAVING</span> <span class="ph">篩選整組的條件</span>
-<span class="kw">ORDER BY</span> <span class="ph">排序欄位</span>;</div>
-      <p>記憶方式：先決定資料從哪來(FROM)，再篩選單一列(WHERE)，然後分組(GROUP BY)，對整組再篩一次(HAVING)，最後才排序(ORDER BY)。</p>
-      <div class="callout"><strong>常見錯誤：</strong>把 WHERE 寫在 GROUP BY 後面，或用 WHERE 篩選 COUNT(*) 這種聚合結果 — WHERE 只能篩「原始的一列」，篩「整組」要用 HAVING。</div>
+      <h2 data-en="4. Syntax Skeleton — memorize the order first">4. 語法骨架 — 先背順序，再談內容</h2>
+      <p data-en="A SELECT statement's clauses always come in this fixed order — this is the single most common beginner mistake:">SELECT 敘述的子句永遠照這個順序排列，這個順序不能亂，也是新手最容易寫錯的地方：</p>
+      <div class="skeleton"><span class="kw">SELECT</span> <span class="ph" data-en="columns">欄位</span>
+<span class="kw">FROM</span> <span class="ph" data-en="table">資料表</span>
+<span class="kw">WHERE</span>  <span class="ph" data-en="filter a single row">篩選單一列的條件</span>
+<span class="kw">GROUP BY</span> <span class="ph" data-en="grouping columns">分組欄位</span>
+<span class="kw">HAVING</span> <span class="ph" data-en="filter a whole group">篩選整組的條件</span>
+<span class="kw">ORDER BY</span> <span class="ph" data-en="sort columns">排序欄位</span>;</div>
+      <p data-en="How to remember it: decide where the data comes from (FROM), filter single rows (WHERE), group them (GROUP BY), filter the groups (HAVING), then finally sort (ORDER BY).">記憶方式：先決定資料從哪來(FROM)，再篩選單一列(WHERE)，然後分組(GROUP BY)，對整組再篩一次(HAVING)，最後才排序(ORDER BY)。</p>
+      <div class="callout"><strong data-en="Common mistake:">常見錯誤：</strong><span data-en="Writing WHERE after GROUP BY, or using WHERE to filter an aggregate result like COUNT(*) — WHERE can only filter &quot;a single raw row&quot;; to filter &quot;a whole group&quot; you need HAVING.">把 WHERE 寫在 GROUP BY 後面，或用 WHERE 篩選 COUNT(*) 這種聚合結果 — WHERE 只能篩「原始的一列」，篩「整組」要用 HAVING。</span></div>
     </section>
 
     <section id="select-where">
-      <h2>2. SELECT / WHERE — 基本篩選</h2>
-      <p>SELECT 決定要看哪些欄位，WHERE 決定要哪些列。最基本的比較：</p>
+      <h2 data-en="5. SELECT / WHERE — basic filtering">5. SELECT / WHERE — 基本篩選</h2>
+      <p data-en="SELECT decides which columns you see, WHERE decides which rows. The simplest comparison:">SELECT 決定要看哪些欄位，WHERE 決定要哪些列。最基本的比較：</p>
       <div class="console" data-default="SELECT title FROM COURSE WHERE credits = 6;">
-        <div class="console-topbar">範例：找出所有 6 學分的課</div>
+        <div class="console-topbar" data-en="Example: find every 6-credit course">範例：找出所有 6 學分的課</div>
         <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE credits = 6;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">先猜答案有幾筆，再執行</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess how many rows come back, then run">先猜答案有幾筆，再執行</span></div>
       </div>
 
-      <h3>用 IN 取代一堆 OR</h3>
+      <h3 data-en="DISTINCT — remove duplicate rows">DISTINCT — 去除重複的列</h3>
+      <p data-en="DISTINCT goes right after SELECT and removes fully-duplicate rows from the result.">DISTINCT 放在 SELECT 後面，會把結果中完全重複的列去掉。</p>
+      <div class="console" data-default="SELECT credits FROM COURSE;">
+        <div class="console-topbar" data-en="Without DISTINCT: credits appear once per course, duplicates included">沒有 DISTINCT：每門課的學分各出現一次，會有重複</div>
+        <textarea class="console-input" spellcheck="false">SELECT credits FROM COURSE;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT DISTINCT credits FROM COURSE;">
+        <div class="console-topbar" data-en="With DISTINCT: guess how many distinct credit values there are">加上 DISTINCT：猜猜看學分數共有幾種不同的值</div>
+        <textarea class="console-input" spellcheck="false">SELECT DISTINCT credits FROM COURSE;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+
+      <h3 data-en="Use IN instead of a pile of ORs">用 IN 取代一堆 OR</h3>
       <div class="console" data-default="SELECT title FROM COURSE WHERE credits IN (6, 12);">
-        <div class="console-topbar">等同於 credits = 6 OR credits = 12</div>
+        <div class="console-topbar" data-en="Equivalent to credits = 6 OR credits = 12">等同於 credits = 6 OR credits = 12</div>
         <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE credits IN (6, 12);</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
 
-      <h3>AND / OR 邏輯 — 新手最常錯的地方</h3>
-      <p>判斷口訣：同一個欄位、兩個互斥的值 → 用 <code>OR</code>；不同條件同時成立 → 才用 <code>AND</code>。</p>
+      <h3 data-en="AND / OR logic — the #1 beginner mistake">AND / OR 邏輯 — 新手最常錯的地方</h3>
+      <p data-en="Rule of thumb: same column, two mutually-exclusive values → use OR; two different conditions that must both hold → use AND.">判斷口訣：同一個欄位、兩個互斥的值 → 用 <code>OR</code>；不同條件同時成立 → 才用 <code>AND</code>。</p>
       <div class="console" data-default="SELECT title FROM COURSE WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');">
-        <div class="console-topbar">故意寫錯的例子：猜猜看會有幾筆結果？</div>
+        <div class="console-topbar" data-en="A deliberately wrong example — guess how many rows come back">故意寫錯的例子：猜猜看會有幾筆結果？</div>
         <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">同一欄位不可能同時等於兩個值，猜猜結果</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="One column can't equal two values at once — guess the result">同一欄位不可能同時等於兩個值，猜猜結果</span></div>
       </div>
-      <div class="callout"><strong>結果一定是 0 筆</strong> — offered_by 是同一個欄位，不可能同時是 Physics 又是 Mathematics。這裡應該用 OR 或 IN。</div>
+      <div class="callout"><strong data-en="The result is always 0 rows">結果一定是 0 筆</strong><span data-en=" — offered_by is a single column; it can never be both Physics and Mathematics at the same time. This should use OR or IN instead."> — offered_by 是同一個欄位，不可能同時是 Physics 又是 Mathematics。這裡應該用 OR 或 IN。</span></div>
 
-      <h3>LIKE 模糊比對</h3>
+      <h3 data-en="LIKE — fuzzy pattern matching">LIKE 模糊比對</h3>
       <div class="console" data-default="SELECT title FROM COURSE WHERE UPPER(title) LIKE '%DATA%';">
-        <div class="console-topbar">% 代表任意字元；UPPER() 讓比對不分大小寫</div>
+        <div class="console-topbar" data-en="% matches any characters; UPPER() makes the match case-insensitive">% 代表任意字元；UPPER() 讓比對不分大小寫</div>
         <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE UPPER(title) LIKE '%DATA%';</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
     </section>
 
     <section id="orderby">
-      <h2>3. ORDER BY — 排序</h2>
-      <p>預設由小到大 (ASC)，要由大到小要加 DESC。可以同時排多個欄位，前面的欄位優先。</p>
+      <h2 data-en="6. ORDER BY — sorting">6. ORDER BY — 排序</h2>
+      <p data-en="Defaults to ascending (ASC); add DESC for descending. You can sort by several columns at once — earlier columns take priority.">預設由小到大 (ASC)，要由大到小要加 DESC。可以同時排多個欄位，前面的欄位優先。</p>
       <div class="console" data-default="SELECT cnum, title, credits FROM COURSE ORDER BY credits ASC, title DESC;">
-        <div class="console-topbar">先照 credits 由小排到大，credits 相同的再照 title 由大排到小</div>
+        <div class="console-topbar" data-en="Sort by credits ascending first, then by title descending within ties">先照 credits 由小排到大，credits 相同的再照 title 由大排到小</div>
         <textarea class="console-input" spellcheck="false">SELECT cnum, title, credits FROM COURSE ORDER BY credits ASC, title DESC;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">猜猜看排序後第一筆是誰</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess which row comes out first, then run">猜猜看排序後第一筆是誰</span></div>
       </div>
-      <p style="font-size:.88rem;color:var(--ink-soft)">也可以用欄位「位置」代替名稱，例如 <code>ORDER BY 2 DESC</code> 代表照 SELECT 清單中第 2 個欄位排序。</p>
+      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="You can also sort by column &quot;position&quot; instead of name — e.g. ORDER BY 2 DESC sorts by the 2nd column in the SELECT list.">也可以用欄位「位置」代替名稱，例如 <code>ORDER BY 2 DESC</code> 代表照 SELECT 清單中第 2 個欄位排序。</p>
     </section>
 
     <section id="nullsec">
-      <h2>4. NULL 處理 — 送分題但常常寫錯</h2>
-      <p>NULL 代表「沒有值 / 未知」，不是一個可以拿來比較的值，所以絕對不能寫 <code>= NULL</code>。</p>
+      <h2 data-en="7. Handling NULL — an easy point that's easy to lose">7. NULL 處理 — 送分題但常常寫錯</h2>
+      <p data-en="NULL means &quot;no value / unknown&quot; — it's not a value you can compare against, so &quot;= NULL&quot; must never be written.">NULL 代表「沒有值 / 未知」，不是一個可以拿來比較的值，所以絕對不能寫 <code>= NULL</code>。</p>
       <div class="console" data-default="SELECT title FROM COURSE WHERE offered_by = NULL;">
-        <div class="console-topbar">故意寫錯：這句話邏輯上永遠抓不到任何東西</div>
+        <div class="console-topbar" data-en="Deliberately wrong: this can logically never match anything">故意寫錯：這句話邏輯上永遠抓不到任何東西</div>
         <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE offered_by = NULL;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看，猜猜是不是空的</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it and guess whether it's empty">執行看看，猜猜是不是空的</span></div>
       </div>
       <div class="console" data-default="SELECT title FROM COURSE WHERE offered_by IS NULL;">
-        <div class="console-topbar">正確寫法</div>
+        <div class="console-topbar" data-en="The correct way to write it">正確寫法</div>
         <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE offered_by IS NULL;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
     </section>
 
     <section id="setops">
-      <h2>5. 集合運算 — UNION / 模擬 INTERSECT / MINUS</h2>
-      <p><code>UNION</code> 會自動去除重複列；<code>UNION ALL</code> 不會去重複。MySQL 沒有 <code>INTERSECT</code> 跟 <code>MINUS</code>，要用子查詢搭配 <code>IN</code> / <code>NOT IN</code> 自己刻出來。</p>
+      <h2 data-en="8. Set Operations — UNION / simulating INTERSECT / MINUS">8. 集合運算 — UNION / 模擬 INTERSECT / MINUS</h2>
+      <p><code>UNION</code><span data-en=" automatically removes duplicate rows; UNION ALL keeps every duplicate. MySQL has no INTERSECT or MINUS — you build them yourself with a subquery plus IN / NOT IN."> 會自動去除重複列；<code>UNION ALL</code> 不會去重複。MySQL 沒有 <code>INTERSECT</code> 跟 <code>MINUS</code>，要用子查詢搭配 <code>IN</code> / <code>NOT IN</code> 自己刻出來。</span></p>
       <div class="console" data-default="SELECT credits FROM COURSE WHERE offered_by = 'Physics'&#10;UNION&#10;SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';">
-        <div class="console-topbar">UNION：兩系開的學分數，自動去重複</div>
+        <div class="console-topbar" data-en="UNION: credits offered by either department, duplicates removed automatically">UNION：兩系開的學分數，自動去重複</div>
         <textarea class="console-input" spellcheck="false">SELECT credits FROM COURSE WHERE offered_by = 'Physics'
 UNION
 SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
-      <h3>模擬 INTERSECT（兩邊都有）</h3>
+      <h3 data-en="Simulating INTERSECT (in both)">模擬 INTERSECT（兩邊都有）</h3>
       <div class="console" data-default="SELECT DISTINCT credits FROM COURSE&#10;WHERE offered_by = 'Physics'&#10;  AND credits IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');">
-        <div class="console-topbar">IN 對應「且」的邏輯</div>
+        <div class="console-topbar" data-en="IN maps to &quot;and&quot; logic">IN 對應「且」的邏輯</div>
         <textarea class="console-input" spellcheck="false">SELECT DISTINCT credits FROM COURSE
 WHERE offered_by = 'Physics'
   AND credits IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
-      <h3>模擬 MINUS（這邊有，那邊沒有）</h3>
+      <h3 data-en="Simulating MINUS (here, but not there)">模擬 MINUS（這邊有，那邊沒有）</h3>
       <div class="console" data-default="SELECT DISTINCT credits FROM COURSE&#10;WHERE offered_by = 'Physics'&#10;  AND credits NOT IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');">
-        <div class="console-topbar">NOT IN 對應「且非」的邏輯</div>
+        <div class="console-topbar" data-en="NOT IN maps to &quot;and not&quot; logic">NOT IN 對應「且非」的邏輯</div>
         <textarea class="console-input" spellcheck="false">SELECT DISTINCT credits FROM COURSE
 WHERE offered_by = 'Physics'
   AND credits NOT IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
     </section>
 
     <section id="groupby">
-      <h2>6. GROUP BY / HAVING — 分組統計</h2>
-      <p>GROUP BY 把相同值的列分成一組，通常搭配聚合函數 <code>COUNT / SUM / AVG / MAX / MIN</code> 對每組算出一個結果。</p>
+      <h2 data-en="9. GROUP BY / HAVING — grouped statistics">9. GROUP BY / HAVING — 分組統計</h2>
+      <p data-en="GROUP BY collects rows with equal values into groups, usually paired with an aggregate function COUNT / SUM / AVG / MAX / MIN that reduces each group to one number.">GROUP BY 把相同值的列分成一組，通常搭配聚合函數 <code>COUNT / SUM / AVG / MAX / MIN</code> 對每組算出一個結果。</p>
       <div class="console" data-default="SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by;">
-        <div class="console-topbar">每個系開了幾門課</div>
+        <div class="console-topbar" data-en="How many courses does each department offer?">每個系開了幾門課</div>
         <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">猜猜每一列的 COUNT 是多少</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess each row's COUNT">猜猜每一列的 COUNT 是多少</span></div>
       </div>
-      <div class="tip"><strong>WHERE 跟 HAVING 的差別：</strong>WHERE 在分組「之前」過濾原始列，不能用 COUNT/SUM；HAVING 在分組「之後」過濾整組，通常搭配聚合函數。</div>
+      <div class="tip"><strong data-en="WHERE vs. HAVING:">WHERE 跟 HAVING 的差別：</strong><span data-en=" WHERE filters raw rows &quot;before&quot; grouping and can't use COUNT/SUM; HAVING filters whole groups &quot;after&quot; grouping and is usually paired with an aggregate function.">WHERE 在分組「之前」過濾原始列，不能用 COUNT/SUM；HAVING 在分組「之後」過濾整組，通常搭配聚合函數。</span></div>
       <div class="console" data-default="SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by HAVING COUNT(*) > 1;">
-        <div class="console-topbar">只留下開課數量超過 1 門的系</div>
+        <div class="console-topbar" data-en="Keep only departments offering more than 1 course">只留下開課數量超過 1 門的系</div>
         <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by HAVING COUNT(*) > 1;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">跟上面比較少了哪一列？</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Which row disappeared compared to above?">跟上面比較少了哪一列？</span></div>
       </div>
     </section>
 
     <section id="joinbasic">
-      <h2>7. JOIN 基礎 — 把兩張表接起來</h2>
-      <p>當你要的欄位分散在兩張表時，需要用共同欄位把它們連起來。標準寫法用 <code>JOIN ... ON</code>：</p>
+      <h2 data-en="10. JOIN Basics — connecting two tables">10. JOIN 基礎 — 把兩張表接起來</h2>
+      <p data-en="When the columns you need are spread across two tables, connect them with a shared column. The standard way is JOIN ... ON:">當你要的欄位分散在兩張表時，需要用共同欄位把它們連起來。標準寫法用 <code>JOIN ... ON</code>：</p>
       <div class="console" data-default="SELECT COURSE.title&#10;FROM COURSE JOIN DEPARTMENT&#10;ON DEPARTMENT.name = COURSE.offered_by&#10;WHERE DEPARTMENT.chair = 'Peter';">
-        <div class="console-topbar">找出系主任是 Peter 的系開的課</div>
+        <div class="console-topbar" data-en="Find the courses offered by the department chaired by Peter">找出系主任是 Peter 的系開的課</div>
         <textarea class="console-input" spellcheck="false">SELECT COURSE.title
 FROM COURSE JOIN DEPARTMENT
 ON DEPARTMENT.name = COURSE.offered_by
 WHERE DEPARTMENT.chair = 'Peter';</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
-      <div class="callout"><strong>常見錯誤：</strong>寫了 JOIN 卻忘記寫 ON 條件，會變成「笛卡兒積」— 兩張表的每一列互相配對，列數暴增，而且邏輯上通常是錯的。</div>
+      <div class="callout"><strong data-en="Common mistake:">常見錯誤：</strong><span data-en=" writing JOIN but forgetting the ON condition turns it into a &quot;Cartesian product&quot; — every row of one table paired with every row of the other, row count explodes, and the logic is almost always wrong.">寫了 JOIN 卻忘記寫 ON 條件，會變成「笛卡兒積」— 兩張表的每一列互相配對，列數暴增，而且邏輯上通常是錯的。</span></div>
       <div class="console" data-default="SELECT COURSE.title, DEPARTMENT.name FROM COURSE JOIN DEPARTMENT;">
-        <div class="console-topbar">忘記寫 ON：猜猜看會有幾筆結果</div>
+        <div class="console-topbar" data-en="Forgot the ON clause — guess how many rows come back">忘記寫 ON：猜猜看會有幾筆結果</div>
         <textarea class="console-input" spellcheck="false">SELECT COURSE.title, DEPARTMENT.name FROM COURSE JOIN DEPARTMENT;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">6 門課 x 3 個系 = ？</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="6 courses x 3 departments = ?">6 門課 x 3 個系 = ？</span></div>
       </div>
     </section>
 
     <section id="joinspecial">
-      <h2>8. 特殊 JOIN</h2>
+      <h2 data-en="11. Special JOINs — NATURAL JOIN / USING / CROSS JOIN">11. 特殊 JOIN — NATURAL JOIN / USING / CROSS JOIN</h2>
       <table class="static-tbl">
-        <tr><th>類型</th><th>語法</th><th>何時用</th></tr>
-        <tr><td>CROSS JOIN</td><td><code>CROSS JOIN</code></td><td>無條件全配對（笛卡兒積）</td></tr>
-        <tr><td>NATURAL JOIN</td><td><code>NATURAL JOIN</code></td><td>兩表同名欄位自動配對，有風險</td></tr>
-        <tr><td>USING</td><td><code>JOIN B USING(col)</code></td><td>你指定同名欄位，比較安全</td></tr>
+        <tr><th data-en="Type">類型</th><th data-en="Syntax">語法</th><th data-en="When to use">何時用</th></tr>
+        <tr><td>CROSS JOIN</td><td><code>CROSS JOIN</code></td><td data-en="Pair every row with every row, no condition (Cartesian product)">無條件全配對（笛卡兒積）</td></tr>
+        <tr><td>NATURAL JOIN</td><td><code>NATURAL JOIN</code></td><td data-en="Auto-matches same-named columns in both tables — risky">兩表同名欄位自動配對，有風險</td></tr>
+        <tr><td>USING</td><td><code>JOIN B USING(col)</code></td><td data-en="You name the shared column yourself — safer">你指定同名欄位，比較安全</td></tr>
       </table>
       <div class="console" data-default="SELECT COUNT(*) FROM COURSE CROSS JOIN DEPARTMENT;">
-        <div class="console-topbar">CROSS JOIN：明確表示要全配對</div>
+        <div class="console-topbar" data-en="CROSS JOIN: explicitly asking for every pairing">CROSS JOIN：明確表示要全配對</div>
         <textarea class="console-input" spellcheck="false">SELECT COUNT(*) FROM COURSE CROSS JOIN DEPARTMENT;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
-      <p style="font-size:.88rem;color:var(--ink-soft)">這台主控台的 NATURAL JOIN / USING 支援比較陽春（僅供語法練習），實際考試以你老師教的寫法為準。</p>
+      <p data-en="NATURAL JOIN and USING need two tables that actually share a column name — DEPARTMENT/COURSE don't (name vs. offered_by), so here are two small dedicated tables: STAFF(enum, ename, dname) and OFFICE(dname, chair), sharing the column dname.">NATURAL JOIN 跟 USING 需要兩張表真的有同名欄位 — DEPARTMENT/COURSE 並沒有（name 跟 offered_by 不同名），所以這裡用兩張專門示範的小表：STAFF(enum, ename, dname) 跟 OFFICE(dname, chair)，共用 dname 這個欄位。</p>
+      <div class="console" data-default="SELECT ename FROM STAFF NATURAL JOIN OFFICE WHERE chair = 'Peter';">
+        <div class="console-topbar" data-en="NATURAL JOIN: auto-matches on the shared column dname">NATURAL JOIN：自動用同名欄位 dname 配對</div>
+        <textarea class="console-input" spellcheck="false">SELECT ename FROM STAFF NATURAL JOIN OFFICE WHERE chair = 'Peter';</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Find staff in the department chaired by Peter">找出系主任是 Peter 那個系的員工</span></div>
+      </div>
+      <div class="console" data-default="SELECT ename FROM STAFF JOIN OFFICE USING(dname) WHERE chair = 'Mary';">
+        <div class="console-topbar" data-en="USING: you name the shared column explicitly">USING：由你明確指定同名欄位</div>
+        <textarea class="console-input" spellcheck="false">SELECT ename FROM STAFF JOIN OFFICE USING(dname) WHERE chair = 'Mary';</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="callout"><strong data-en="Risk of NATURAL JOIN:">NATURAL JOIN 的風險：</strong><span data-en=" if the two tables happen to share a column name you didn't intend as a join key, NATURAL JOIN will silently match on it too — that's why USING(col), where you name the column yourself, is the safer habit.">如果兩張表剛好有一個你不是故意要拿來當連接鍵的同名欄位，NATURAL JOIN 也會悄悄拿它來配對 — 這就是為什麼自己指定欄位的 USING(col) 是比較安全的習慣。</span></div>
     </section>
 
     <section id="multijoin">
-      <h2>9. 多表 JOIN</h2>
-      <p>三張表以上，先找哪兩張表有共同欄位，一對一對接起來，不要想著一次到位。</p>
+      <h2 data-en="12. Multi-table JOIN">12. 多表 JOIN</h2>
+      <p data-en="With three or more tables, find which two tables share a column and connect them one pair at a time — don't try to do it all in one step.">三張表以上，先找哪兩張表有共同欄位，一對一對接起來，不要想著一次到位。</p>
       <div class="console" data-default="SELECT STUDENT.name&#10;FROM COURSE JOIN ENROLMENT&#10;ON COURSE.cnum = ENROLMENT.cnum&#10;JOIN STUDENT&#10;ON ENROLMENT.snum = STUDENT.snum&#10;WHERE COURSE.title = 'C++';">
-        <div class="console-topbar">找出修過 C++ 這門課的學生姓名</div>
+        <div class="console-topbar" data-en="Find the names of students who took C++">找出修過 C++ 這門課的學生姓名</div>
         <textarea class="console-input" spellcheck="false">SELECT STUDENT.name
 FROM COURSE JOIN ENROLMENT
 ON COURSE.cnum = ENROLMENT.cnum
 JOIN STUDENT
 ON ENROLMENT.snum = STUDENT.snum
 WHERE COURSE.title = 'C++';</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <h3 data-en="Same query, using an inline view">同一題，改用 inline view 寫法</h3>
+      <p data-en="You can also join the first two tables inside parentheses as a temporary named result (an &quot;inline view&quot;), then join that with the third table — useful once the join gets long. (Name the inline view's columns explicitly rather than using * — this mini-engine keeps table prefixes on a multi-table SELECT *, which would clash with the outer alias.)">也可以先把前兩張表的 JOIN 包在括號裡當成一個暫時的具名結果（「inline view」），再跟第三張表接起來 — 當 JOIN 越寫越長的時候特別好用。（inline view 裡面請明確列出欄位名稱，不要用 * — 這個迷你引擎在多表 SELECT * 時會保留表名前綴，會跟外層別名對不起來。）</p>
+      <div class="console" data-default="SELECT STUDENT.name&#10;FROM ( SELECT ENROLMENT.snum FROM COURSE JOIN ENROLMENT ON COURSE.cnum = ENROLMENT.cnum WHERE COURSE.title = 'C++' ) CE&#10;JOIN STUDENT&#10;ON CE.snum = STUDENT.snum;">
+        <div class="console-topbar" data-en="The parenthesized part becomes a temporary table named CE">括號裡的部分變成一張暫時的表 CE</div>
+        <textarea class="console-input" spellcheck="false">SELECT STUDENT.name
+FROM ( SELECT ENROLMENT.snum FROM COURSE JOIN ENROLMENT ON COURSE.cnum = ENROLMENT.cnum WHERE COURSE.title = 'C++' ) CE
+JOIN STUDENT
+ON CE.snum = STUDENT.snum;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Same answer as above — run it to check">答案應該跟上面一樣，執行看看</span></div>
       </div>
     </section>
 
     <section id="selfjoin">
-      <h2>10. Self-Join — 跟自己 JOIN</h2>
-      <p>同一張表要跟自己 JOIN，必須給兩個不同的別名（alias）。下面用「員工 - 主管」的資料做示範：</p>
+      <h2 data-en="13. Self-Join — joining a table with itself">13. Self-Join — 跟自己 JOIN</h2>
+      <p data-en="Joining a table with itself requires two different aliases. Here's a demo using &quot;employee - manager&quot; data:">同一張表要跟自己 JOIN，必須給兩個不同的別名（alias）。下面用「員工 - 主管」的資料做示範：</p>
       <div class="schema-card" style="margin-bottom:16px;">
         <h4>EMPLOYEE</h4>
         <table class="static-tbl">
@@ -400,94 +593,253 @@ WHERE COURSE.title = 'C++';</textarea>
         </table>
       </div>
       <div class="console" data-default="SELECT E2.name&#10;FROM EMPLOYEE E1 JOIN EMPLOYEE E2&#10;ON E1.manager = E2.enum&#10;WHERE E1.enum = 40;">
-        <div class="console-topbar">找員工 40 號（Mike）的主管姓名</div>
+        <div class="console-topbar" data-en="Find the manager's name of employee #40 (Mike)">找員工 40 號（Mike）的主管姓名</div>
         <textarea class="console-input" spellcheck="false">SELECT E2.name
 FROM EMPLOYEE E1 JOIN EMPLOYEE E2
 ON E1.manager = E2.enum
 WHERE E1.enum = 40;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">先看資料表猜答案，再執行</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess from the table above first, then run">先看資料表猜答案，再執行</span></div>
       </div>
-      <div class="callout"><strong>記憶口訣：</strong>E1 是「自己」，E2 是「主管」，JOIN 條件固定是 <code>E1.manager = E2.enum</code>。要找「某人的主管」就 SELECT E2、WHERE 條件下在 E1；要找「某人管的下屬」就反過來。</div>
+      <div class="callout"><strong data-en="Memory trick:">記憶口訣：</strong><span data-en=" E1 is &quot;yourself&quot;, E2 is &quot;the manager&quot;, and the JOIN condition is always E1.manager = E2.enum. To find &quot;someone's manager&quot;, SELECT E2 and put the WHERE condition on E1; to find &quot;who someone manages&quot;, flip it around.">E1 是「自己」，E2 是「主管」，JOIN 條件固定是 <code>E1.manager = E2.enum</code>。要找「某人的主管」就 SELECT E2、WHERE 條件下在 E1；要找「某人管的下屬」就反過來。</span></div>
       <div class="console" data-default="SELECT E1.name&#10;FROM EMPLOYEE E1 JOIN EMPLOYEE E2&#10;ON E1.manager = E2.enum&#10;WHERE E2.name = 'Kate';">
-        <div class="console-topbar">反過來：找 Kate 直接管的下屬</div>
+        <div class="console-topbar" data-en="Flipped: find everyone Kate directly manages">反過來：找 Kate 直接管的下屬</div>
         <textarea class="console-input" spellcheck="false">SELECT E1.name
 FROM EMPLOYEE E1 JOIN EMPLOYEE E2
 ON E1.manager = E2.enum
 WHERE E2.name = 'Kate';</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">猜猜看有幾個人</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess how many people, then run">猜猜看有幾個人</span></div>
+      </div>
+    </section>
+
+    <section id="outerjoin">
+      <h2 data-en="14. OUTER JOIN — LEFT / RIGHT / FULL">14. 外部 JOIN — LEFT / RIGHT / FULL</h2>
+      <p data-en="A plain JOIN drops any row from either side that finds no match. An OUTER JOIN keeps the unmatched rows anyway, padding the missing side with NULL.">一般的 JOIN 會把兩邊配對不到的列都丟掉。OUTER JOIN 則會把配對不到的那一邊也保留下來，缺的欄位用 NULL 補上。</p>
+      <table class="static-tbl">
+        <tr><th data-en="Type">類型</th><th data-en="Keeps">保留哪一邊</th></tr>
+        <tr><td>LEFT (OUTER) JOIN</td><td data-en="Every row from the left table, even with no match on the right">左邊資料表的每一列，就算右邊配對不到也保留</td></tr>
+        <tr><td>RIGHT (OUTER) JOIN</td><td data-en="Every row from the right table, even with no match on the left">右邊資料表的每一列，就算左邊配對不到也保留</td></tr>
+        <tr><td>FULL (OUTER) JOIN</td><td data-en="Every row from both sides — union of LEFT and RIGHT">兩邊的每一列都保留 — 等於 LEFT 加上 RIGHT 的聯集</td></tr>
+      </table>
+      <div class="console" data-default="SELECT name, title FROM DEPARTMENT LEFT OUTER JOIN COURSE ON name = offered_by;">
+        <div class="console-topbar" data-en="LEFT JOIN: department names, plus the titles of courses each offers">LEFT JOIN：系名稱，加上每個系開的課名</div>
+        <textarea class="console-input" spellcheck="false">SELECT name, title FROM DEPARTMENT LEFT OUTER JOIN COURSE ON name = offered_by;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <p data-en="In this dataset every department offers at least one course, so nothing shows up as NULL yet. Add an extra condition to see a department come up empty:">在這份資料裡每個系都至少開了一門課，所以現在還看不到 NULL。加一個額外條件，讓某個系「配對不到」看看：</p>
+      <div class="console" data-default="SELECT name, title FROM DEPARTMENT LEFT OUTER JOIN COURSE ON name = offered_by AND credits = 999;">
+        <div class="console-topbar" data-en="No course has 999 credits, so every department is now unmatched">沒有課是 999 學分，所以現在每個系都配對不到</div>
+        <textarea class="console-input" spellcheck="false">SELECT name, title FROM DEPARTMENT LEFT OUTER JOIN COURSE ON name = offered_by AND credits = 999;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess: still 3 departments, but title is...?">猜猜看：還是 3 個系，但 title 會是？</span></div>
+      </div>
+      <div class="console" data-default="SELECT name, title FROM DEPARTMENT RIGHT OUTER JOIN COURSE ON name = offered_by;">
+        <div class="console-topbar" data-en="RIGHT JOIN: the course with no department (offered_by is NULL) is kept, with name padded as NULL">RIGHT JOIN：沒有系所的那門課（offered_by 是 NULL）會被保留，name 補 NULL</div>
+        <textarea class="console-input" spellcheck="false">SELECT name, title FROM DEPARTMENT RIGHT OUTER JOIN COURSE ON name = offered_by;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Find the 'Unknown' course in the results">在結果裡找找看那門叫 'Unknown' 的課</span></div>
+      </div>
+      <div class="tip"><span data-en="MySQL doesn't actually implement FULL OUTER JOIN — in a real MySQL you'd write it as a UNION of a LEFT JOIN and a RIGHT JOIN. This page's mini-engine accepts the FULL OUTER JOIN keyword directly, purely to make the concept easier to try.">MySQL 實際上沒有 FULL OUTER JOIN 這個語法 — 在真正的 MySQL 裡要自己用 LEFT JOIN 加 RIGHT JOIN 的 UNION 模擬。這個頁面的迷你引擎直接支援 FULL OUTER JOIN 關鍵字，單純是為了方便你先理解概念。</span></div>
+      <div class="console" data-default="SELECT name, title FROM DEPARTMENT FULL OUTER JOIN COURSE ON name = offered_by;">
+        <div class="console-topbar" data-en="FULL OUTER JOIN: everything from both sides">FULL OUTER JOIN：兩邊全部都保留</div>
+        <textarea class="console-input" spellcheck="false">SELECT name, title FROM DEPARTMENT FULL OUTER JOIN COURSE ON name = offered_by;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <h3 data-en="Grouping revisited: include zero-count groups">分組補充：把「0 筆」的組也算進來</h3>
+      <p data-en="Plain GROUP BY only shows groups that already have at least one row. To also list departments with zero courses, LEFT JOIN first so every department survives, then COUNT a course column (not COUNT(*), which would count the padded NULL row as 1).">單純的 GROUP BY 只會顯示已經有資料的組。想要把「開課數是 0」的系也列出來，要先用 LEFT JOIN 讓每個系都保留下來，再用 COUNT 某個課程欄位（不要用 COUNT(*)，那會把補進來的 NULL 那列也算成 1 筆）。</p>
+      <div class="console" data-default="SELECT name, count(title) AS total_courses&#10;FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;ON DEPARTMENT.name = COURSE.offered_by&#10;GROUP BY name;">
+        <div class="console-topbar" data-en="Every department appears, even one with 0 courses">每個系都會出現，就算開課數是 0</div>
+        <textarea class="console-input" spellcheck="false">SELECT name, count(title) AS total_courses
+FROM DEPARTMENT LEFT OUTER JOIN COURSE
+ON DEPARTMENT.name = COURSE.offered_by
+GROUP BY name;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+    </section>
+
+    <section id="nested">
+      <h2 data-en="15. Nested Queries and EXISTS">15. 巢狀查詢與 EXISTS</h2>
+      <p data-en="A nested query embeds another SELECT inside WHERE, SELECT, or FROM. You've already used this pattern with IN (SELECT ...). EXISTS is a different, often more natural, way to ask the same kind of question: &quot;does at least one matching row exist?&quot;">巢狀查詢就是把另一個 SELECT 包在 WHERE、SELECT 或 FROM 裡面。前面用過的 IN (SELECT ...) 就是這種寫法。EXISTS 是另一種、通常更直覺的問法：「至少有一列符合條件存在嗎？」</p>
+      <div class="console" data-default="SELECT chair FROM DEPARTMENT WHERE EXISTS (SELECT * FROM COURSE WHERE credits = 12 AND offered_by = DEPARTMENT.name);">
+        <div class="console-topbar" data-en="Correlated subquery: find chairs of departments that offer a 12-credit course">相關子查詢：找出開了 12 學分課程的系主任</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair FROM DEPARTMENT WHERE EXISTS (SELECT * FROM COURSE WHERE credits = 12 AND offered_by = DEPARTMENT.name);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="callout"><strong data-en="What makes it &quot;correlated&quot;:">為什麼叫「相關」子查詢：</strong><span data-en=" the inner SELECT references DEPARTMENT.name, a column from the outer query's table. The inner query is re-evaluated once per outer row — it can't be computed on its own the way an ordinary subquery can.">內層的 SELECT 引用了 DEPARTMENT.name — 這是外層查詢那張表的欄位。內層查詢會「針對外層每一列各跑一次」，不像一般子查詢可以先獨立算完再代進去。</span></div>
+      <div class="console" data-default="SELECT name FROM DEPARTMENT WHERE NOT EXISTS (SELECT * FROM COURSE WHERE offered_by = DEPARTMENT.name AND credits = 6);">
+        <div class="console-topbar" data-en="NOT EXISTS: departments that offer no 6-credit course at all">NOT EXISTS：完全沒有開 6 學分課程的系</div>
+        <textarea class="console-input" spellcheck="false">SELECT name FROM DEPARTMENT WHERE NOT EXISTS (SELECT * FROM COURSE WHERE offered_by = DEPARTMENT.name AND credits = 6);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess which department this is, then run">猜猜看是哪個系，再執行</span></div>
+      </div>
+      <p data-en="EXISTS / NOT EXISTS is the classic way to phrase &quot;an ANTIJOIN&quot; — find rows in one table that have no matching row at all in another.">EXISTS / NOT EXISTS 是寫「ANTIJOIN」的經典寫法 — 找出一張表裡「在另一張表完全找不到對應資料」的那些列。</p>
+    </section>
+
+    <section id="views">
+      <h2 data-en="16. Views and the WITH Clause">16. View 與 WITH 子句</h2>
+      <p data-en="An inline view is a SELECT wrapped in parentheses and used as if it were a table — you've already used it inside FROM. The WITH clause lets you name one or more inline views up front and reuse them, which keeps a complex query readable.">Inline view 就是把一個 SELECT 包在括號裡，當成一張表來用 — 前面在 FROM 子句裡已經用過。WITH 子句可以先把一個或多個 inline view 取名字放在前面，後面重複使用，讓複雜的查詢維持可讀性。</p>
+      <div class="console" data-default="WITH DEPT_COURSE AS (&#10;  SELECT name, cnum FROM DEPARTMENT LEFT OUTER JOIN COURSE ON DEPARTMENT.name = COURSE.offered_by&#10;),&#10;DC_COUNT AS (&#10;  SELECT name, COUNT(cnum) AS total_courses FROM DEPT_COURSE GROUP BY name&#10;)&#10;SELECT name FROM DC_COUNT WHERE total_courses > 1;">
+        <div class="console-topbar" data-en="Two chained CTEs: first join+select, then group+count on top of it">兩個串接的 CTE：先做 JOIN+SELECT，再對它做 GROUP BY+COUNT</div>
+        <textarea class="console-input" spellcheck="false">WITH DEPT_COURSE AS (
+  SELECT name, cnum FROM DEPARTMENT LEFT OUTER JOIN COURSE ON DEPARTMENT.name = COURSE.offered_by
+),
+DC_COUNT AS (
+  SELECT name, COUNT(cnum) AS total_courses FROM DEPT_COURSE GROUP BY name
+)
+SELECT name FROM DC_COUNT WHERE total_courses > 1;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <p data-en="Note the comma between CTE definitions, and no comma before the final SELECT.">注意 CTE 定義之間要用逗號隔開，最後的 SELECT 前面不加逗號。</p>
+      <h3 data-en="Relational views (CREATE VIEW)">關聯式 View（CREATE VIEW）</h3>
+      <p data-en="A relational view is a stored, named SELECT statement — a &quot;virtual table&quot; with no storage of its own; every time you query it, its definition is substituted in and re-run. Its logic is exactly the inline-view/WITH pattern above, just saved permanently under a name.">關聯式 View 就是把一個具名的 SELECT 儲存起來 — 一張沒有自己儲存空間的「虛擬表」，每次查詢它就會把定義代進去重新跑一次。它的邏輯跟上面的 inline view / WITH 完全一樣，只是永久存了一個名字。</p>
+      <div class="skeleton skeleton-code">CREATE VIEW VDEPT(name, total_courses) AS
+( SELECT name, count(COURSE.cnum)
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by
+  GROUP BY DEPARTMENT.name );
+
+SELECT name FROM VDEPT WHERE total_courses > 1;</div>
+      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="This mini-engine doesn't implement persistent CREATE VIEW — but the WITH-clause console above runs the exact same logic, so you can try it there.">這個迷你引擎沒有實作永久性的 CREATE VIEW — 但上面那台 WITH 子句主控台跑的是完全一樣的邏輯，可以在那裡試試看。</p>
+    </section>
+
+    <section id="advanceddml">
+      <h2 data-en="17. Advanced DDL / DML">17. 進階 DDL / DML</h2>
+      <p data-en="TRUNCATE TABLE removes every row from a table permanently and fast — unlike DELETE, it can't be rolled back and it has no WHERE clause.">TRUNCATE TABLE 會把一張表的所有資料永久且快速地清空 — 跟 DELETE 不同，它不能被 ROLLBACK，也沒有 WHERE 子句。</p>
+      <p data-en="CREATE TABLE ... AS (SELECT ...) creates a brand new table and fills it with a query's result in one step. INSERT INTO ... (SELECT ...) does the same into an already-existing table. DELETE and UPDATE can also carry a subquery in their WHERE clause, including a correlated one.">CREATE TABLE ... AS (SELECT ...) 可以一次建立一張新表，並把查詢結果灌進去。INSERT INTO ... (SELECT ...) 則是把查詢結果灌進「已經存在」的表。DELETE 跟 UPDATE 的 WHERE 子句裡也可以放子查詢，包括相關子查詢。</p>
+      <div class="skeleton skeleton-code">CREATE TABLE DCNT AS (
+  SELECT name, COUNT(cnum) totc
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by GROUP BY name
+);
+
+DELETE FROM DEPARTMENT
+WHERE NOT EXISTS ( SELECT 1 FROM COURSE WHERE COURSE.offered_by = DEPARTMENT.name );</div>
+      <div class="callout"><strong data-en="Try it yourself:">動手做做看：</strong><span data-en="Another private sandbox below, seeded with DEPARTMENT/COURSE — build a summary table with CREATE TABLE ... AS, then TRUNCATE it.">下面又是一台獨立的沙盒，載入了 DEPARTMENT/COURSE 複本 — 用 CREATE TABLE ... AS 建一張彙總表，再把它 TRUNCATE 掉。</span></div>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE TABLE DCNT AS (
+  SELECT name, COUNT(cnum) AS total_courses
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by GROUP BY name
+);
+SELECT * FROM DCNT;
+TRUNCATE TABLE DCNT;
+SELECT * FROM DCNT;">
+        <div class="console-topbar" data-en="Advanced DDL/DML sandbox">進階 DDL/DML 沙盒</div>
+        <textarea class="console-input" spellcheck="false">CREATE TABLE DCNT AS (
+  SELECT name, COUNT(cnum) AS total_courses
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by GROUP BY name
+);
+SELECT * FROM DCNT;
+TRUNCATE TABLE DCNT;
+SELECT * FROM DCNT;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Try a DELETE ... WHERE NOT EXISTS (...) too">也可以試試看 DELETE ... WHERE NOT EXISTS (...)</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Run it and watch DCNT get created, then emptied">執行看看，觀察 DCNT 先被建立，再被清空</span></div>
       </div>
     </section>
 
     <section id="functions">
-      <h2>11. 常用函數 + SQL 當計算機</h2>
+      <h2 data-en="18. Common Functions + SQL as a Calculator">18. 常用函數 + SQL 當計算機</h2>
       <div class="console" data-default="SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget FROM DEPARTMENT;">
-        <div class="console-topbar">IFNULL：budget 是 NULL 時當作 0，避免運算出錯</div>
+        <div class="console-topbar" data-en="IFNULL: treat a NULL budget as 0 so the math doesn't break">IFNULL：budget 是 NULL 時當作 0，避免運算出錯</div>
         <textarea class="console-input" spellcheck="false">SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget FROM DEPARTMENT;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
+      <h3 data-en="CONCAT / INSTR — string building and searching">CONCAT / INSTR — 字串拼接與搜尋</h3>
+      <p data-en="CONCAT(a, b, ...) joins strings together. INSTR(str, sub) returns the 1-based position where sub first appears in str (0 if not found) — handy together with SUBSTR.">CONCAT(a, b, ...) 把多個字串接在一起。INSTR(str, sub) 回傳 sub 第一次出現在 str 裡的位置（從 1 算起，找不到回傳 0）— 常常跟 SUBSTR 搭配使用。</p>
+      <div class="console" data-default="SELECT CONCAT('Number: ', enum) AS label FROM EMPLOYEE WHERE enum = 10;">
+        <div class="console-topbar" data-en="CONCAT: build a label string">CONCAT：組出一個標籤字串</div>
+        <textarea class="console-input" spellcheck="false">SELECT CONCAT('Number: ', enum) AS label FROM EMPLOYEE WHERE enum = 10;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT SUBSTR('Hello world', INSTR('Hello world','e'), 5) AS x FROM DUAL;">
+        <div class="console-topbar" data-en="INSTR finds where 'e' is, then SUBSTR cuts 5 characters from there">INSTR 先找出 'e' 在哪裡，再用 SUBSTR 從那裡切 5 個字元</div>
+        <textarea class="console-input" spellcheck="false">SELECT SUBSTR('Hello world', INSTR('Hello world','e'), 5) AS x FROM DUAL;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess the resulting substring, then run">先猜切出來的子字串，再執行</span></div>
+      </div>
+      <h3 data-en="SQL as a calculator">SQL 當計算機</h3>
       <div class="console" data-default="SELECT 30 * 90.30 AS total_pay FROM DUAL;">
-        <div class="console-topbar">SQL 可以直接當計算機用，DUAL 是一張假的虛擬表</div>
+        <div class="console-topbar" data-en="SQL can be used as a plain calculator; DUAL is a fake, single-row placeholder table">SQL 可以直接當計算機用，DUAL 是一張假的虛擬表</div>
         <textarea class="console-input" spellcheck="false">SELECT 30 * 90.30 AS total_pay FROM DUAL;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
-      <p style="font-size:.88rem;color:var(--ink-soft)">下面這個框是空的，換你自己寫寫看：試著找出 total_staff_number 大於 12 的系名稱。</p>
+      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="The box below is empty — your turn: find the department names where total_staff_number is greater than 12.">下面這個框是空的，換你自己寫寫看：試著找出 total_staff_number 大於 12 的系名稱。</p>
       <div class="console" data-default="SELECT name FROM DEPARTMENT WHERE ">
-        <div class="console-topbar">自由練習區</div>
+        <div class="console-topbar" data-en="Free practice area">自由練習區</div>
         <textarea class="console-input" spellcheck="false">SELECT name FROM DEPARTMENT WHERE </textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">寫完按執行</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Finish writing it, then run">寫完按執行</span></div>
       </div>
     </section>
 
     <section id="quiz">
-      <h2>12. 互動測驗 — 測語法骨架，不是背知識</h2>
-      <p>選完會馬上顯示對錯跟解釋，全部答完看總分。</p>
+      <h2 data-en="19. Interactive Quiz — testing the syntax skeleton, not rote facts">19. 互動測驗 — 測語法骨架，不是背知識</h2>
+      <p data-en="Pick an answer to see right away whether it's correct, with an explanation; check your total score once you've answered them all.">選完會馬上顯示對錯跟解釋，全部答完看總分。</p>
       <div id="quiz-container"></div>
       <div class="quiz-score" id="quiz-score"></div>
     </section>
 
     <section id="flashcards">
-      <h2>13. 詞彙卡 — 點一下翻面</h2>
+      <h2 data-en="20. Flashcards — click to flip">20. 詞彙卡 — 點一下翻面</h2>
       <div class="flash-grid" id="flash-container"></div>
     </section>
 
     <section id="schema">
-      <h2>14. 資料表結構速查</h2>
-      <p>本頁所有範例都跑在下面這幾張表上，隨時可以回來查欄位名稱跟資料內容。</p>
+      <h2 data-en="21. Schema Quick Reference">21. 資料表結構速查</h2>
+      <p data-en="Every example on this page runs against the tables below — come back here any time to look up column names and sample data.">本頁所有範例都跑在下面這幾張表上，隨時可以回來查欄位名稱跟資料內容。</p>
       <div class="schema-grid">
         <div class="schema-card"><h4>DEPARTMENT</h4><ul>
-          <li><code>name</code> 系名稱（主鍵）</li><li><code>code</code> 系代碼</li>
-          <li><code>total_staff_number</code> 教職員人數</li><li><code>chair</code> 系主任（可為 NULL）</li>
-          <li><code>budget</code> 預算</li>
+          <li><code>name</code> <span data-en="department name (primary key)">系名稱（主鍵）</span></li><li><code>code</code> <span data-en="department code">系代碼</span></li>
+          <li><code>total_staff_number</code> <span data-en="staff count">教職員人數</span></li><li><code>chair</code> <span data-en="chairperson (may be NULL)">系主任（可為 NULL）</span></li>
+          <li><code>budget</code> <span data-en="budget">預算</span></li>
         </ul></div>
         <div class="schema-card"><h4>COURSE</h4><ul>
-          <li><code>cnum</code> 課程代號（主鍵）</li><li><code>title</code> 課程名稱</li>
-          <li><code>credits</code> 學分數</li><li><code>offered_by</code> 開課系所（可為 NULL）</li>
+          <li><code>cnum</code> <span data-en="course number (primary key)">課程代號（主鍵）</span></li><li><code>title</code> <span data-en="course title">課程名稱</span></li>
+          <li><code>credits</code> <span data-en="credit points">學分數</span></li><li><code>offered_by</code> <span data-en="offering department (may be NULL)">開課系所（可為 NULL）</span></li>
         </ul></div>
         <div class="schema-card"><h4>EMPLOYEE</h4><ul>
-          <li><code>enum</code> 員工編號（主鍵）</li><li><code>name</code> 姓名</li>
-          <li><code>manager</code> 主管的員工編號（可為 NULL）</li>
+          <li><code>enum</code> <span data-en="employee number (primary key)">員工編號（主鍵）</span></li><li><code>name</code> <span data-en="name">姓名</span></li>
+          <li><code>manager</code> <span data-en="manager's employee number (may be NULL)">主管的員工編號（可為 NULL）</span></li>
         </ul></div>
         <div class="schema-card"><h4>STUDENT / ENROLMENT</h4><ul>
           <li><code>STUDENT(snum, name, degree)</code></li>
           <li><code>ENROLMENT(cnum, snum, edate, result)</code></li>
         </ul></div>
+        <div class="schema-card"><h4 data-en="STAFF / OFFICE (for NATURAL JOIN / USING demos)">STAFF / OFFICE（示範 NATURAL JOIN / USING 用）</h4><ul>
+          <li><code>STAFF(enum, ename, dname)</code></li>
+          <li><code>OFFICE(dname, chair)</code></li>
+        </ul></div>
       </div>
       <div class="console" data-default="SELECT * FROM DEPARTMENT;">
-        <div class="console-topbar">DEPARTMENT 全部內容</div>
+        <div class="console-topbar" data-en="Full contents of DEPARTMENT">DEPARTMENT 全部內容</div>
         <textarea class="console-input" spellcheck="false">SELECT * FROM DEPARTMENT;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
       <div class="console" data-default="SELECT * FROM COURSE;">
-        <div class="console-topbar">COURSE 全部內容</div>
+        <div class="console-topbar" data-en="Full contents of COURSE">COURSE 全部內容</div>
         <textarea class="console-input" spellcheck="false">SELECT * FROM COURSE;</textarea>
-        <div class="console-actions"><button class="run-btn">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder">執行看看</span></div>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT * FROM STAFF NATURAL JOIN OFFICE;">
+        <div class="console-topbar" data-en="STAFF joined with OFFICE">STAFF 跟 OFFICE 接起來的內容</div>
+        <textarea class="console-input" spellcheck="false">SELECT * FROM STAFF NATURAL JOIN OFFICE;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
     </section>
 
@@ -533,6 +885,15 @@ const TABLES = {
     { cnum: 'CSCI111', snum: 3, edate: '2024-01-01', result: 'Pass' },
   ],
   DUAL: [{ dummy: 'x' }],
+  STAFF: [
+    { enum: 1, ename: 'Alice', dname: 'Computer Science' },
+    { enum: 2, ename: 'Bob', dname: 'Physics' },
+    { enum: 3, ename: 'Carl', dname: 'Computer Science' },
+  ],
+  OFFICE: [
+    { dname: 'Computer Science', chair: 'Peter' },
+    { dname: 'Physics', chair: 'Mary' },
+  ],
 };
 
 function tokenize(str) {
@@ -646,13 +1007,18 @@ class ExprParser {
         this.next(); this.expectType('LPAREN'); const a1 = this.parseAdditive(); this.expectType('COMMA'); const a2 = this.parseAdditive(); this.expectType('RPAREN');
         return { type: 'FUNC', name: 'IFNULL', args: [a1, a2] };
       }
-      if (upper === 'SUBSTR') {
+      if (upper === 'SUBSTR' || upper === 'CONCAT') {
         this.next(); this.expectType('LPAREN');
         const args = [this.parseAdditive()];
         while (this.peekType('COMMA')) { this.next(); args.push(this.parseAdditive()); }
         this.expectType('RPAREN');
-        return { type: 'FUNC', name: 'SUBSTR', args };
+        return { type: 'FUNC', name: upper, args };
       }
+      if (upper === 'INSTR') {
+        this.next(); this.expectType('LPAREN'); const a1 = this.parseAdditive(); this.expectType('COMMA'); const a2 = this.parseAdditive(); this.expectType('RPAREN');
+        return { type: 'FUNC', name: 'INSTR', args: [a1, a2] };
+      }
+      if (upper === 'NULL') { this.next(); return { type: 'LIT', value: null }; }
       this.next();
       return { type: 'COL', name: t.value };
     }
@@ -690,6 +1056,8 @@ function applySimpleFunc(name, args) {
     case 'LENGTH': return String(args[0] ?? '').length;
     case 'IFNULL': return (args[0] === null || args[0] === undefined) ? args[1] : args[0];
     case 'SUBSTR': { const s = args[0], start = args[1], len = args[2]; const str = String(s ?? ''); const from = start - 1; return len !== undefined ? str.substr(from, len) : str.substr(from); }
+    case 'CONCAT': return args.map(a => String(a ?? '')).join('');
+    case 'INSTR': { const s = String(args[0] ?? ''); const sub = String(args[1] ?? ''); return s.indexOf(sub) + 1; }
   }
 }
 function computeAggregate(name, argAst, rows) {
@@ -736,8 +1104,57 @@ function evaluate(node, row, groupRows) {
     case 'COL': return resolveColumn(node.name, row);
     case 'LIT': return node.value;
     case 'TRUTHY': return truthy(evaluate(node.expr, row, groupRows));
+    case 'EXISTS': { const found = existsCheck(node.text, row); return node.negate ? !found : found; }
     default: throw new Error('未知節點: ' + node.type);
   }
+}
+
+// 相關子查詢 (correlated subquery) 用於 EXISTS / NOT EXISTS：
+// 把外層那一列 (outerRow, 已經是 alias.col 形式) 併入內層查詢的每一列，
+// 這樣內層 WHERE 條件裡引用外層表名的欄位 (例如 offered_by = DEPARTMENT.name) 就能被解析到。
+function existsCheck(subqueryText, outerRow) {
+  let sql = subqueryText.replace(/\s+/g, ' ').trim();
+  const fromIdx = findTopLevelKeyword(sql, 'FROM', 0);
+  if (fromIdx === -1) throw new Error('EXISTS 子查詢缺少 FROM 子句');
+  const whereIdx = findTopLevelKeyword(sql, 'WHERE', fromIdx);
+  const fromPart = sql.slice(fromIdx + 4, whereIdx === -1 ? sql.length : whereIdx).trim();
+  const wherePart = whereIdx === -1 ? null : sql.slice(whereIdx + 5).trim();
+  const { rows } = parseFromClause(fromPart);
+  if (!wherePart) return rows.length > 0;
+  const ast = parseBooleanExpr(wherePart);
+  return rows.some(r => { const merged = Object.assign({}, outerRow, r); return truthy(evaluate(ast, merged, [merged])); });
+}
+
+// 在字串層面把 EXISTS(...) / NOT EXISTS(...) 換成佔位識別字，
+// 讓一般的 tokenizer/parser 可以正常處理，之後再用 resolveExists() 把 AST 節點換回 EXISTS。
+function preprocessExists(str) {
+  const subqueries = [];
+  const re = /\b(NOT\s+)?EXISTS\s*\(/i;
+  let m; let guard = 0;
+  let result = str;
+  while ((m = re.exec(result)) && guard++ < 20) {
+    const isNot = !!m[1];
+    const parenStart = result.indexOf('(', m.index);
+    let depth = 0, j = parenStart;
+    for (; j < result.length; j++) { if (result[j] === '(') depth++; else if (result[j] === ')') { depth--; if (depth === 0) break; } }
+    const subqueryText = result.slice(parenStart + 1, j);
+    const idx = subqueries.length;
+    subqueries.push({ text: subqueryText, negate: isNot });
+    const placeholder = (isNot ? 'EXISTSNEG' : 'EXISTSPOS') + idx + 'X';
+    result = result.slice(0, m.index) + placeholder + result.slice(j + 1);
+  }
+  return { text: result, subqueries };
+}
+function resolveExists(node, subqueries) {
+  if (!node || typeof node !== 'object') return node;
+  if (node.type === 'TRUTHY' && node.expr && node.expr.type === 'COL') {
+    const mm = /^EXISTS(POS|NEG)(\d+)X$/.exec(node.expr.name);
+    if (mm) { const idx = parseInt(mm[2], 10); return { type: 'EXISTS', negate: subqueries[idx].negate, text: subqueries[idx].text }; }
+  }
+  for (const key of ['left', 'right', 'expr', 'lo', 'hi', 'pattern']) { if (node[key]) node[key] = resolveExists(node[key], subqueries); }
+  if (node.list) node.list = node.list.map(n => resolveExists(n, subqueries));
+  if (node.args) node.args = node.args.map(n => resolveExists(n, subqueries));
+  return node;
 }
 
 function preprocessSubqueries(str) {
@@ -814,7 +1231,7 @@ function splitTopLevelCommas(str) {
 function wrapRows(rows, alias) { return rows.map(r => { const ctx = {}; for (const k in r) ctx[alias + '.' + k] = r[k]; return ctx; }); }
 function crossJoin(leftRows, rightRowsWrapped) { const out = []; for (const a of leftRows) for (const b of rightRowsWrapped) out.push(Object.assign({}, a, b)); return out; }
 function readIdentifier(str, pos) { const m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(str.slice(pos)); return m ? m[0] : null; }
-const RESERVED = new Set(['WHERE', 'GROUP', 'HAVING', 'ORDER', 'JOIN', 'NATURAL', 'CROSS', 'ON', 'USING', 'AS', 'AND', 'OR']);
+const RESERVED = new Set(['WHERE', 'GROUP', 'HAVING', 'ORDER', 'JOIN', 'NATURAL', 'CROSS', 'LEFT', 'RIGHT', 'FULL', 'OUTER', 'ON', 'USING', 'AS', 'AND', 'OR']);
 
 function parseFromClause(fromPart) {
   let pos = 0; const str = fromPart;
@@ -847,12 +1264,17 @@ function parseFromClause(fromPart) {
   function peekKw() {
     skipSpaces();
     const rest = str.slice(pos);
-    if (/^,/.test(rest)) return 'COMMA';
-    if (/^NATURAL\s+JOIN\b/i.test(rest)) return 'NATURAL_JOIN';
-    if (/^CROSS\s+JOIN\b/i.test(rest)) return 'CROSS_JOIN';
-    if (/^JOIN\b/i.test(rest)) return 'JOIN';
+    let m;
+    if (/^,/.test(rest)) return { kind: 'COMMA', len: 1 };
+    if (m = /^LEFT\s+(OUTER\s+)?JOIN\b/i.exec(rest)) return { kind: 'LEFT_JOIN', len: m[0].length };
+    if (m = /^RIGHT\s+(OUTER\s+)?JOIN\b/i.exec(rest)) return { kind: 'RIGHT_JOIN', len: m[0].length };
+    if (m = /^FULL\s+(OUTER\s+)?JOIN\b/i.exec(rest)) return { kind: 'FULL_JOIN', len: m[0].length };
+    if (m = /^NATURAL\s+JOIN\b/i.exec(rest)) return { kind: 'NATURAL_JOIN', len: m[0].length };
+    if (m = /^CROSS\s+JOIN\b/i.exec(rest)) return { kind: 'CROSS_JOIN', len: m[0].length };
+    if (m = /^JOIN\b/i.exec(rest)) return { kind: 'JOIN', len: m[0].length };
     return null;
   }
+  const JOIN_KW_RE = /^(LEFT\s+(OUTER\s+)?JOIN|RIGHT\s+(OUTER\s+)?JOIN|FULL\s+(OUTER\s+)?JOIN|NATURAL\s+JOIN|CROSS\s+JOIN|JOIN)\b/i;
   function findClauseEnd() {
     let depth = 0, inQuote = false, quoteChar = '';
     for (let i = pos; i < str.length; i++) {
@@ -864,10 +1286,37 @@ function parseFromClause(fromPart) {
       if (depth === 0) {
         const rest = str.slice(i);
         if (/^,/.test(rest)) return i;
-        if (/^(JOIN|NATURAL\s+JOIN|CROSS\s+JOIN)\b/i.test(rest)) { const before = str[i - 1]; if (/\s/.test(before)) return i; }
+        if (JOIN_KW_RE.test(rest)) { const before = str[i - 1]; if (/\s/.test(before)) return i; }
       }
     }
     return str.length;
+  }
+  // 組出 outer join 缺角時要補的 NULL 樣板（某一側所有 alias.col 欄位都是 null）
+  function nullTemplate(rows) {
+    const tmpl = {};
+    if (rows.length) { for (const k in rows[0]) tmpl[k] = null; }
+    return tmpl;
+  }
+  // mode: 'inner' | 'left' | 'right' | 'full'
+  function performJoin(leftRows, rightRowsWrapped, condFn, mode) {
+    const matched = [];
+    const usedLeftIdx = new Set(), usedRightIdx = new Set();
+    leftRows.forEach((lrow, li) => {
+      rightRowsWrapped.forEach((rrow, ri) => {
+        const combinedRow = Object.assign({}, lrow, rrow);
+        if (condFn(combinedRow)) { matched.push(combinedRow); usedLeftIdx.add(li); usedRightIdx.add(ri); }
+      });
+    });
+    const result = matched;
+    if (mode === 'left' || mode === 'full') {
+      const rightNull = nullTemplate(rightRowsWrapped);
+      leftRows.forEach((lrow, li) => { if (!usedLeftIdx.has(li)) result.push(Object.assign({}, lrow, rightNull)); });
+    }
+    if (mode === 'right' || mode === 'full') {
+      const leftNull = nullTemplate(leftRows);
+      rightRowsWrapped.forEach((rrow, ri) => { if (!usedRightIdx.has(ri)) result.push(Object.assign({}, leftNull, rrow)); });
+    }
+    return result;
   }
 
   const first = readTableSource();
@@ -877,34 +1326,34 @@ function parseFromClause(fromPart) {
   while (true) {
     const kw = peekKw();
     if (!kw) break;
-    if (kw === 'COMMA') { pos++; const next = readTableSource(); combined = crossJoin(combined, wrapRows(next.rows, next.alias)); allWrappedTables.push(next); continue; }
-    if (kw === 'JOIN') {
-      pos += 4;
+    if (kw.kind === 'COMMA') { pos++; const next = readTableSource(); combined = crossJoin(combined, wrapRows(next.rows, next.alias)); allWrappedTables.push(next); continue; }
+    if (kw.kind === 'JOIN' || kw.kind === 'LEFT_JOIN' || kw.kind === 'RIGHT_JOIN' || kw.kind === 'FULL_JOIN') {
+      pos += kw.len;
       const next = readTableSource();
       skipSpaces();
+      const rightWrapped = wrapRows(next.rows, next.alias);
+      const mode = kw.kind === 'LEFT_JOIN' ? 'left' : kw.kind === 'RIGHT_JOIN' ? 'right' : kw.kind === 'FULL_JOIN' ? 'full' : 'inner';
       if (/^ON\b/i.test(str.slice(pos))) {
         pos += 2; skipSpaces();
         const end = findClauseEnd();
         const condText = str.slice(pos, end).trim();
         pos = end;
         const ast = parseBooleanExpr(condText);
-        const cross = crossJoin(combined, wrapRows(next.rows, next.alias));
-        combined = cross.filter(r => truthy(evaluate(ast, r, [r])));
+        combined = performJoin(combined, rightWrapped, r => truthy(evaluate(ast, r, [r])), mode);
       } else if (/^USING\s*\(/i.test(str.slice(pos))) {
         const m = /^USING\s*\(([^)]+)\)/i.exec(str.slice(pos));
         pos += m[0].length;
         const cols = m[1].split(',').map(s => s.trim());
         const prevAlias = allWrappedTables[allWrappedTables.length - 1].alias;
-        const cross = crossJoin(combined, wrapRows(next.rows, next.alias));
-        combined = cross.filter(r => cols.every(c => r[prevAlias + '.' + c] === r[next.alias + '.' + c]));
+        combined = performJoin(combined, rightWrapped, r => cols.every(c => r[prevAlias + '.' + c] === r[next.alias + '.' + c]), mode);
       } else {
-        combined = crossJoin(combined, wrapRows(next.rows, next.alias));
+        combined = mode === 'inner' ? crossJoin(combined, rightWrapped) : performJoin(combined, rightWrapped, () => true, mode);
       }
       allWrappedTables.push(next);
       continue;
     }
-    if (kw === 'NATURAL_JOIN') {
-      pos += 13;
+    if (kw.kind === 'NATURAL_JOIN') {
+      pos += kw.len;
       const next = readTableSource();
       const prevCols = new Set(Object.keys(first.rows[0] || {}));
       const nextCols = new Set(Object.keys(next.rows[0] || {}));
@@ -915,7 +1364,7 @@ function parseFromClause(fromPart) {
       allWrappedTables.push(next);
       continue;
     }
-    if (kw === 'CROSS_JOIN') { pos += 10; const next = readTableSource(); combined = crossJoin(combined, wrapRows(next.rows, next.alias)); allWrappedTables.push(next); continue; }
+    if (kw.kind === 'CROSS_JOIN') { pos += kw.len; const next = readTableSource(); combined = crossJoin(combined, wrapRows(next.rows, next.alias)); allWrappedTables.push(next); continue; }
   }
   return { rows: combined, tables: allWrappedTables };
 }
@@ -939,9 +1388,45 @@ function parseSelectItem(itemRaw) {
   return { star: false, ast, header, isAgg: ast.type === 'FUNC' && AGG_FUNCS.includes(ast.name) };
 }
 
+// 解析開頭的 WITH name AS (...), name2 AS (...) 子句，回傳 { ctes:[{name,body}], rest }
+// rest 是拿掉 WITH 定義之後剩下的最終 SELECT 語句文字。
+function stripLeadingWith(sql) {
+  if (!/^WITH\s/i.test(sql)) return null;
+  let s = sql.replace(/^WITH\s+/i, '');
+  const ctes = [];
+  while (true) {
+    const m = /^([A-Za-z_]\w*)\s+AS\s*\(/i.exec(s);
+    if (!m) throw new Error('WITH 子句語法錯誤，預期 "名稱 AS (SELECT ...)"');
+    const name = m[1];
+    const parenStart = m[0].length - 1;
+    let depth = 0, j = parenStart;
+    for (; j < s.length; j++) { if (s[j] === '(') depth++; else if (s[j] === ')') { depth--; if (depth === 0) break; } }
+    const body = s.slice(parenStart + 1, j);
+    ctes.push({ name, body });
+    s = s.slice(j + 1).trim();
+    if (s[0] === ',') { s = s.slice(1).trim(); continue; }
+    break;
+  }
+  return { ctes, rest: s };
+}
 function runQuery(sqlRaw) {
   let sql = sqlRaw.replace(/\s+/g, ' ').trim().replace(/;\s*$/, '');
   if (!sql) throw new Error('請輸入 SQL 語句');
+  const withParsed = stripLeadingWith(sql);
+  if (withParsed) {
+    const addedKeys = [];
+    try {
+      for (const cte of withParsed.ctes) {
+        const result = runQuery(cte.body);
+        const key = cte.name.toUpperCase();
+        TABLES[key] = result.rows.map(r => Object.assign({}, r));
+        addedKeys.push(key);
+      }
+      return runQuery(withParsed.rest);
+    } finally {
+      addedKeys.forEach(k => delete TABLES[k]);
+    }
+  }
   const u = findUnionSplit(sql);
   if (u) {
     const left = sql.slice(0, u.index).trim();
@@ -979,11 +1464,12 @@ function runSingleSelect(sqlIn) {
     return sql.slice(marker.idx + marker.len, end).trim();
   }
   let wherePart = partAfter('WHERE'), groupPart = partAfter('GROUP BY'), havingPart = partAfter('HAVING'), orderPart = partAfter('ORDER BY');
-  if (wherePart) wherePart = preprocessSubqueries(wherePart);
-  if (havingPart) havingPart = preprocessSubqueries(havingPart);
+  let whereExists = null, havingExists = null;
+  if (wherePart) { const ex = preprocessExists(wherePart); wherePart = preprocessSubqueries(ex.text); whereExists = ex.subqueries; }
+  if (havingPart) { const ex = preprocessExists(havingPart); havingPart = preprocessSubqueries(ex.text); havingExists = ex.subqueries; }
   const { rows: fromRows } = parseFromClause(fromPart);
   let filtered = fromRows;
-  if (wherePart) { const ast = parseBooleanExpr(wherePart); filtered = fromRows.filter(r => truthy(evaluate(ast, r, [r]))); }
+  if (wherePart) { let ast = parseBooleanExpr(wherePart); if (whereExists && whereExists.length) ast = resolveExists(ast, whereExists); filtered = fromRows.filter(r => truthy(evaluate(ast, r, [r]))); }
   const selectItems = splitTopLevelCommas(selectPart).map(parseSelectItem);
   const hasAgg = selectItems.some(it => it.isAgg);
   let groups;
@@ -994,7 +1480,7 @@ function runSingleSelect(sqlIn) {
     groups = [...map.values()];
   } else if (hasAgg) { groups = filtered.length ? [filtered] : [[]]; }
   else { groups = filtered.map(r => [r]); }
-  if (havingPart) { const ast = parseBooleanExpr(havingPart); groups = groups.filter(g => g.length && truthy(evaluate(ast, g[0], g))); }
+  if (havingPart) { let ast = parseBooleanExpr(havingPart); if (havingExists && havingExists.length) ast = resolveExists(ast, havingExists); groups = groups.filter(g => g.length && truthy(evaluate(ast, g[0], g))); }
   let columns = [];
   let outputRows = groups.map(g => {
     const rep = g[0] || {}; const outRow = {};
@@ -1037,12 +1523,246 @@ function runSingleSelect(sqlIn) {
 }
 
 // ============================================================
+// DDL / DML 沙盒（每個 sandbox console 有自己獨立的一份資料表複本，
+// 執行 CREATE/DROP/ALTER/INSERT/UPDATE/DELETE/TRUNCATE 只會影響那一份複本，
+// 不會影響頁面上其他主控台使用的共用 TABLES）
+// ============================================================
+function cloneStore(names) {
+  const store = {};
+  names.forEach(n => { store[n] = (TABLES[n] || []).map(r => Object.assign({}, r)); });
+  return store;
+}
+// 在 store 的內容暫時取代全域 TABLES 的狀況下執行 fn()，執行完畢還原全域 TABLES。
+// 這讓 DDL/DML 沙盒可以直接沿用同一套 SELECT 引擎 (runQuery)，而不用把 tables 參數
+// 一路往下傳到每個函式裡。
+function withScopedTables(store, fn) {
+  const savedKeys = Object.keys(TABLES);
+  const savedVals = savedKeys.map(k => TABLES[k]);
+  savedKeys.forEach(k => delete TABLES[k]);
+  Object.keys(store).forEach(k => { if (k !== '__cols') TABLES[k] = store[k]; });
+  try { return fn(); }
+  finally {
+    Object.keys(TABLES).forEach(k => delete TABLES[k]);
+    savedKeys.forEach((k, i) => { TABLES[k] = savedVals[i]; });
+  }
+}
+// 從 str[openIdx] (必須是 '(') 開始取出成對括號內的內容，回傳 {content, end}（end 是右括號之後的位置）
+function extractParen(str, openIdx) {
+  let depth = 0, j = openIdx;
+  for (; j < str.length; j++) { if (str[j] === '(') depth++; else if (str[j] === ')') { depth--; if (depth === 0) break; } }
+  return { content: str.slice(openIdx + 1, j), end: j + 1 };
+}
+function splitStatements(script) {
+  const parts = []; let depth = 0, inQuote = false, quoteChar = '', cur = '';
+  for (let i = 0; i < script.length; i++) {
+    const c = script[i];
+    if (inQuote) { cur += c; if (c === quoteChar) inQuote = false; continue; }
+    if (c === "'" || c === '"') { inQuote = true; quoteChar = c; cur += c; continue; }
+    if (c === '(') depth++; if (c === ')') depth--;
+    if (c === ';' && depth === 0) { if (cur.trim()) parts.push(cur.trim()); cur = ''; continue; }
+    cur += c;
+  }
+  if (cur.trim()) parts.push(cur.trim());
+  return parts;
+}
+// 執行單一句 DDL/DML（或 SELECT）語句，直接修改 store。回傳 {message} 或 {result:{columns,rows}}。
+function execOne(stmt, store) {
+  const s = stmt.replace(/\s+/g, ' ').trim();
+  if (!s) return null;
+  let m;
+  if (m = /^CREATE\s+TABLE\s+([A-Za-z_]\w*)\s+AS\s*\(([\s\S]*)\)$/i.exec(s)) {
+    const tname = m[1].toUpperCase();
+    const result = withScopedTables(store, () => runQuery(m[2]));
+    store[tname] = result.rows.map(r => Object.assign({}, r));
+    return { message: `已建立資料表 ${m[1]}，並存入子查詢的 ${store[tname].length} 筆結果。` };
+  }
+  if (m = /^CREATE\s+TABLE\s+([A-Za-z_]\w*)\s*\(([\s\S]*)\)$/i.exec(s)) {
+    const tname = m[1].toUpperCase();
+    const cols = splitTopLevelCommas(m[2]).filter(c => !/^CONSTRAINT\b/i.test(c.trim()));
+    const colNames = cols.map(c => c.trim().split(/\s+/)[0]);
+    store[tname] = [];
+    store.__cols = store.__cols || {}; store.__cols[tname] = colNames;
+    return { message: `已建立空資料表 ${m[1]}（欄位：${colNames.join(', ')}）。` };
+  }
+  if (m = /^DROP\s+TABLE\s+([A-Za-z_]\w*)$/i.exec(s)) {
+    const tname = m[1].toUpperCase();
+    if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
+    delete store[tname];
+    return { message: `已刪除資料表 ${m[1]}。` };
+  }
+  if (m = /^TRUNCATE\s+TABLE\s+([A-Za-z_]\w*)$/i.exec(s)) {
+    const tname = m[1].toUpperCase();
+    if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
+    store[tname] = [];
+    return { message: `已清空資料表 ${m[1]} 的所有資料列。` };
+  }
+  if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+ADD\s+(?:COLUMN\s+)?([A-Za-z_]\w*)\b/i.exec(s)) {
+    const tname = m[1].toUpperCase(), col = m[2];
+    if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
+    store[tname].forEach(r => { if (!(col in r)) r[col] = null; });
+    store.__cols = store.__cols || {}; store.__cols[tname] = store.__cols[tname] || []; store.__cols[tname].push(col);
+    return { message: `已新增欄位 ${col} 到 ${m[1]}（既有資料列該欄位為 NULL）。` };
+  }
+  if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+DROP\s+(?:COLUMN\s+)?([A-Za-z_]\w*)\b/i.exec(s)) {
+    const tname = m[1].toUpperCase(), col = m[2];
+    if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
+    store[tname].forEach(r => { delete r[col]; });
+    return { message: `已刪除欄位 ${col}。` };
+  }
+  if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+RENAME\s+TO\s+([A-Za-z_]\w*)$/i.exec(s)) {
+    const oldT = m[1].toUpperCase(), newT = m[2].toUpperCase();
+    if (!store[oldT]) throw new Error('資料表不存在: ' + m[1]);
+    store[newT] = store[oldT]; delete store[oldT];
+    return { message: `已將資料表 ${m[1]} 更名為 ${m[2]}。` };
+  }
+  if (/^ALTER\s+TABLE\b/i.test(s)) {
+    return { message: '（這個頁面的迷你引擎接受這個 ALTER TABLE 語法，但不會真的去檢查限制條件 — 這裡示範的重點是語法本身。）' };
+  }
+  if (m = /^INSERT\s+INTO\s+([A-Za-z_]\w*)\s*/i.exec(s)) {
+    const tname = m[1].toUpperCase();
+    if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
+    let rest = s.slice(m[0].length).trim();
+    let explicitCols = null;
+    if (rest[0] === '(') {
+      // 可能是欄位清單 "(col1,col2)"，也可能是包在括號裡的子查詢 "( SELECT ... )"
+      const paren = extractParen(rest, 0);
+      const inner = paren.content.trim();
+      if (/^SELECT\b/i.test(inner)) {
+        const result = withScopedTables(store, () => runQuery(inner));
+        const targetCols = (store.__cols && store.__cols[tname]) || result.columns;
+        result.rows.forEach(r => { const row = {}; targetCols.forEach((c, i) => { row[c] = r[result.columns[i]]; }); store[tname].push(row); });
+        return { message: `已從子查詢新增 ${result.rows.length} 筆資料到 ${m[1]}。` };
+      }
+      explicitCols = inner.split(',').map(c => c.trim());
+      rest = rest.slice(paren.end).trim();
+    }
+    if (/^VALUES\s*\(/i.test(rest)) {
+      const vmm = /^VALUES\s*\(([\s\S]*)\)$/i.exec(rest);
+      if (!vmm) throw new Error('INSERT ... VALUES 語法錯誤');
+      const cols = explicitCols || (store.__cols && store.__cols[tname]) || (store[tname][0] ? Object.keys(store[tname][0]) : null);
+      if (!cols) throw new Error('無法判斷欄位順序，請明確列出欄位名稱，例如 INSERT INTO T(col1,col2) VALUES(...)');
+      const values = splitTopLevelCommas(vmm[1]).map(v => evaluate(parseValueExpr(v.trim()), {}, [{}]));
+      const row = {}; cols.forEach((c, i) => { row[c] = values[i] === undefined ? null : values[i]; });
+      store[tname].push(row);
+      return { message: `已新增 1 筆資料到 ${m[1]}。` };
+    }
+    if (/^SELECT\b/i.test(rest)) {
+      const result = withScopedTables(store, () => runQuery(rest));
+      const targetCols = explicitCols || (store.__cols && store.__cols[tname]) || result.columns;
+      result.rows.forEach(r => { const row = {}; targetCols.forEach((c, i) => { row[c] = r[result.columns[i]]; }); store[tname].push(row); });
+      return { message: `已從子查詢新增 ${result.rows.length} 筆資料到 ${m[1]}。` };
+    }
+    throw new Error('無法解析的 INSERT 語法：' + rest.slice(0, 40));
+  }
+  if (m = /^UPDATE\s+([A-Za-z_]\w*)\s+SET\s+/i.exec(s)) {
+    const tname = m[1].toUpperCase();
+    if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
+    const after = s.slice(m[0].length);
+    const whereIdx = findTopLevelKeyword(after, 'WHERE', 0);
+    const setText = whereIdx === -1 ? after : after.slice(0, whereIdx);
+    const whereText = whereIdx === -1 ? null : after.slice(whereIdx + 5).trim();
+    const setParts = splitTopLevelCommas(setText).map(p => { const idx = p.indexOf('='); return { col: p.slice(0, idx).trim(), ast: parseValueExpr(p.slice(idx + 1).trim()) }; });
+    const whereAst = whereText ? parseBooleanExpr(whereText) : null;
+    let count = 0;
+    store[tname].forEach(row => {
+      if (!whereAst || truthy(evaluate(whereAst, row, [row]))) { setParts.forEach(sp => { row[sp.col] = evaluate(sp.ast, row, [row]); }); count++; }
+    });
+    return { message: `已更新 ${count} 筆資料。` };
+  }
+  if (m = /^DELETE\s+FROM\s+([A-Za-z_]\w*)/i.exec(s)) {
+    const tname = m[1].toUpperCase();
+    if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
+    const after = s.slice(m[0].length);
+    const whereIdx = findTopLevelKeyword(after, 'WHERE', 0);
+    const whereText = whereIdx === -1 ? null : after.slice(whereIdx + 5).trim();
+    const whereAst = whereText ? parseBooleanExpr(whereText) : null;
+    const before = store[tname].length;
+    store[tname] = store[tname].filter(row => whereAst ? !truthy(evaluate(whereAst, row, [row])) : false);
+    return { message: `已刪除 ${before - store[tname].length} 筆資料。` };
+  }
+  if (/^(SELECT|WITH)\b/i.test(s)) {
+    const result = withScopedTables(store, () => runQuery(s));
+    return { result };
+  }
+  throw new Error('這個沙盒目前不支援這個語法：' + s.slice(0, 40));
+}
+// 依序執行每一句語句；某一句出錯時，把錯誤記在那一句自己身上，
+// 前面已經成功的語句結果會保留，不會被後面的錯誤整個蓋掉。
+// 但出錯之後就不再繼續執行後面的語句（跟大部分 SQL 命令列工具一樣）。
+function runScript(script, store) {
+  const stmts = splitStatements(script);
+  if (!stmts.length) throw new Error('請輸入至少一句 SQL 語句');
+  const results = [];
+  for (const st of stmts) {
+    try { results.push({ stmt: st, out: execOne(st, store) }); }
+    catch (e) { results.push({ stmt: st, out: { error: e.message } }); break; }
+  }
+  return results;
+}
+// ============================================================
+
+// ============================================================
 // UI 綁定
 // ============================================================
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
-function renderResult(el, result) {
-  if (!result.rows.length) { el.innerHTML = '<span class="placeholder">（沒有符合的資料列 — 0 rows）</span>'; return; }
+// ---- SQL 語法上色 ----
+// 把 SQL 語句依照類型分色，幫助辨認：
+//   hl-ddl    資料定義 / 資料操作動詞 (CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, TRUNCATE ...)
+//   hl-clause 查詢子句關鍵字 (SELECT, FROM, WHERE, JOIN, GROUP BY ...)
+//   hl-logic  邏輯 / 條件關鍵字 (AND, OR, NOT, IN, IS NULL, LIKE, EXISTS ...)
+//   hl-func   函數名稱 (COUNT, UPPER, SUBSTR, CONCAT ...)
+//   hl-string 字串常值
+const HL_GROUPS = [
+  { cls: 'hl-ddl', words: ['CREATE TABLE', 'CREATE VIEW', 'DROP TABLE', 'ALTER TABLE', 'TRUNCATE TABLE', 'ADD COLUMN', 'DROP COLUMN', 'RENAME TO', 'PRIMARY KEY', 'FOREIGN KEY', 'NOT NULL', 'REFERENCES', 'CONSTRAINT', 'UNIQUE', 'CHECK', 'INSERT INTO', 'DELETE FROM', 'CREATE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'TABLE', 'VIEW', 'TRUNCATE', 'INSERT', 'DELETE', 'UPDATE', 'SET', 'VALUES', 'DEFAULT', 'CASCADE'] },
+  { cls: 'hl-clause', words: ['LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN', 'NATURAL JOIN', 'CROSS JOIN', 'GROUP BY', 'ORDER BY', 'UNION ALL', 'SELECT', 'FROM', 'WHERE', 'JOIN', 'ON', 'USING', 'HAVING', 'UNION', 'WITH', 'OUTER', 'INTO'] },
+  { cls: 'hl-logic', words: ['IS NOT NULL', 'IS NULL', 'NOT IN', 'NOT EXISTS', 'NOT', 'AND', 'OR', 'IN', 'IS', 'NULL', 'LIKE', 'BETWEEN', 'EXISTS', 'DISTINCT', 'AS', 'ASC', 'DESC'] },
+  { cls: 'hl-func', words: ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'UPPER', 'LOWER', 'SUBSTR', 'CONCAT', 'INSTR', 'IFNULL', 'LENGTH', 'DUAL'] },
+];
+const HL_MAP = new Map();
+HL_GROUPS.forEach(g => g.words.forEach(w => HL_MAP.set(w.toUpperCase(), g.cls)));
+const HL_REGEX = new RegExp('\\b(' + [...HL_MAP.keys()].sort((a, b) => b.length - a.length).map(w => w.replace(/ /g, '\\s+')).join('|') + ')\\b', 'gi');
+function highlightSQL(text) {
+  const stringRe = /'[^']*'/g;
+  let lastIndex = 0, m, out = '';
+  while ((m = stringRe.exec(text))) {
+    out += highlightKeywords(text.slice(lastIndex, m.index));
+    out += '<span class="hl-string">' + escapeHtml(m[0]) + '</span>';
+    lastIndex = m.index + m[0].length;
+  }
+  out += highlightKeywords(text.slice(lastIndex));
+  return out;
+}
+function highlightKeywords(chunk) {
+  return escapeHtml(chunk).replace(HL_REGEX, m => {
+    const cls = HL_MAP.get(m.toUpperCase().replace(/\s+/g, ' '));
+    return cls ? '<span class="' + cls + '">' + m + '</span>' : m;
+  });
+}
+
+// ---- 幫每個 SQL 輸入框套上「語法上色 + 自動長高」----
+// 做法：在 textarea 底下墊一層一模一樣排版、但文字上色的 <pre>，textarea 本身文字變透明，
+// 只留游標可見，看起來就像整個輸入框都有語法上色。
+function enhanceCodeInput(ta) {
+  const wrap = document.createElement('div');
+  wrap.className = 'console-code-wrap';
+  const pre = document.createElement('pre');
+  pre.className = 'console-highlight';
+  pre.setAttribute('aria-hidden', 'true');
+  ta.parentNode.insertBefore(wrap, ta);
+  wrap.appendChild(pre);
+  wrap.appendChild(ta);
+  function sync() { pre.innerHTML = highlightSQL(ta.value) + '\n'; }
+  function autoResize() { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+  function refresh() { sync(); autoResize(); }
+  ta.addEventListener('input', refresh);
+  ta.addEventListener('scroll', () => { pre.scrollTop = ta.scrollTop; });
+  refresh();
+  return { refresh };
+}
+
+function resultToHTML(result) {
+  if (!result.rows.length) return '<span class="placeholder">（沒有符合的資料列 — 0 rows）</span>';
   let html = '<table><thead><tr>';
   for (const c of result.columns) html += '<th>' + escapeHtml(c) + '</th>';
   html += '</tr></thead><tbody>';
@@ -1055,18 +1775,62 @@ function renderResult(el, result) {
     html += '</tr>';
   }
   html += '</tbody></table><div class="console-meta">' + result.rows.length + ' row' + (result.rows.length > 1 ? 's' : '') + '</div>';
-  el.innerHTML = html;
+  return html;
 }
+function renderResult(el, result) { el.innerHTML = resultToHTML(result); }
 
-document.querySelectorAll('.console').forEach(el => {
+// ---- 靜態語法示範區塊（非互動，只需要上色，不需要 textarea 疊層） ----
+document.querySelectorAll('.skeleton.skeleton-code').forEach(el => {
+  el.innerHTML = highlightSQL(el.textContent);
+});
+
+// ---- 一般唯讀主控台（單一 SELECT / WITH ... SELECT / UNION 等） ----
+document.querySelectorAll('.console:not(.sandbox)').forEach(el => {
   const ta = el.querySelector('.console-input');
   const btn = el.querySelector('.run-btn');
   const resultEl = el.querySelector('.console-result');
+  enhanceCodeInput(ta);
   function run() {
     try { const r = runQuery(ta.value); renderResult(resultEl, r); }
     catch (e) { resultEl.innerHTML = '<div class="console-error">⚠ ' + escapeHtml(e.message) + '</div>'; }
   }
   btn.addEventListener('click', run);
+  ta.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); } });
+});
+
+// ---- DDL/DML 沙盒主控台（可執行多句語句，每台有自己獨立的一份資料表複本） ----
+document.querySelectorAll('.console.sandbox').forEach(el => {
+  const ta = el.querySelector('.console-input');
+  const btn = el.querySelector('.run-btn');
+  const resetBtn = el.querySelector('.reset-btn');
+  const resultEl = el.querySelector('.console-result');
+  const seedNames = (el.dataset.seed || '').split(',').map(s => s.trim()).filter(Boolean);
+  const defaultScript = el.dataset.default || ta.value;
+  const codeInput = enhanceCodeInput(ta);
+  let store = cloneStore(seedNames);
+  function renderTranscript(steps) {
+    let html = '';
+    steps.forEach(st => {
+      html += '<div class="sandbox-stmt"><span class="sandbox-stmt-code">' + highlightSQL(st.stmt) + ';</span>';
+      if (st.out && st.out.message) html += '<div class="sandbox-msg">✓ ' + escapeHtml(st.out.message) + '</div>';
+      if (st.out && st.out.result) html += resultToHTML(st.out.result);
+      if (st.out && st.out.error) html += '<div class="console-error">⚠ ' + escapeHtml(st.out.error) + '</div>';
+      html += '</div>';
+    });
+    resultEl.innerHTML = html || '<span class="placeholder">（沒有輸出）</span>';
+  }
+  function run() {
+    try { const steps = runScript(ta.value, store); renderTranscript(steps); }
+    catch (e) { resultEl.innerHTML = '<div class="console-error">⚠ ' + escapeHtml(e.message) + '</div>'; }
+  }
+  function reset() {
+    store = cloneStore(seedNames);
+    ta.value = defaultScript;
+    codeInput.refresh();
+    resultEl.innerHTML = '<span class="placeholder">已重置資料，可以重新開始。</span>';
+  }
+  btn.addEventListener('click', run);
+  if (resetBtn) resetBtn.addEventListener('click', reset);
   ta.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); } });
 });
 
@@ -1079,58 +1843,136 @@ window.addEventListener('scroll', () => {
   navLinks.forEach(a => { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
 });
 
+// ============================================================
+// 語言切換（繁體中文 / English）
+// ============================================================
+let currentLang = 'zh';
+
 // ---- Quiz ----
 const QUIZ = [
-  { q: 'SELECT 敘述的子句正確順序是？', opts: ['SELECT→FROM→WHERE→GROUP BY→HAVING→ORDER BY', 'SELECT→FROM→GROUP BY→WHERE→HAVING→ORDER BY', 'SELECT→WHERE→FROM→HAVING→GROUP BY→ORDER BY'], correct: 0, explain: '順序固定：先決定資料來源(FROM)，篩單一列(WHERE)，分組(GROUP BY)，篩整組(HAVING)，最後排序(ORDER BY)。' },
-  { q: '想找「兩系都有開的學分數」，邏輯上要用？', opts: ['IN (子查詢)', 'NOT IN (子查詢)', 'UNION ALL'], correct: 0, explain: 'IN 對應「且」的邏輯（模擬 INTERSECT），NOT IN 對應「且非」的邏輯（模擬 MINUS）。' },
-  { q: '下列何者是找出 budget 為未知值的正確寫法？', opts: ["WHERE budget = NULL", "WHERE budget IS NULL", "WHERE budget <> NULL"], correct: 1, explain: 'NULL 是「未知」，不能用 = 比較，只能用 IS NULL / IS NOT NULL。' },
-  { q: 'WHERE 跟 HAVING 的差別，下列何者正確？', opts: ['WHERE 可以用 COUNT(*) 篩選', 'WHERE 篩單一列，HAVING 篩分組後的整組', '兩者完全可以互換'], correct: 1, explain: 'WHERE 在分組前作用在原始列，不能用聚合函數；HAVING 在分組後作用在整組，通常搭配聚合函數。' },
-  { q: '寫了 JOIN 但忘記寫 ON 條件會發生什麼事？', opts: ['SQL 語法錯誤，執行不了', '自動退化成 CROSS JOIN（笛卡兒積）', '系統會自動猜測連接欄位'], correct: 1, explain: 'JOIN 沒有 ON/USING 條件，等同於 CROSS JOIN，兩表每列互相配對，列數會暴增。' },
-  { q: 'Self-Join 找「員工40號的主管姓名」，E1代表自己、E2代表主管，正確寫法是？', opts: ["SELECT E2.name ... WHERE E1.enum = 40", "SELECT E1.name ... WHERE E2.enum = 40", "SELECT E2.name ... WHERE E2.enum = 40"], correct: 0, explain: 'WHERE 鎖定「自己」是40號（E1.enum=40），SELECT 輸出「主管」的名字（E2.name）。' },
+  { correct: 0,
+    zh: { q: 'SELECT 敘述的子句正確順序是？', opts: ['SELECT→FROM→WHERE→GROUP BY→HAVING→ORDER BY', 'SELECT→FROM→GROUP BY→WHERE→HAVING→ORDER BY', 'SELECT→WHERE→FROM→HAVING→GROUP BY→ORDER BY'], explain: '順序固定：先決定資料來源(FROM)，篩單一列(WHERE)，分組(GROUP BY)，篩整組(HAVING)，最後排序(ORDER BY)。' },
+    en: { q: 'What is the correct clause order of a SELECT statement?', opts: ['SELECT→FROM→WHERE→GROUP BY→HAVING→ORDER BY', 'SELECT→FROM→GROUP BY→WHERE→HAVING→ORDER BY', 'SELECT→WHERE→FROM→HAVING→GROUP BY→ORDER BY'], explain: 'The order is fixed: pick the data source (FROM), filter single rows (WHERE), group them (GROUP BY), filter groups (HAVING), then sort (ORDER BY).' } },
+  { correct: 0,
+    zh: { q: '想找「兩系都有開的學分數」，邏輯上要用？', opts: ['IN (子查詢)', 'NOT IN (子查詢)', 'UNION ALL'], explain: 'IN 對應「且」的邏輯（模擬 INTERSECT），NOT IN 對應「且非」的邏輯（模擬 MINUS）。' },
+    en: { q: 'To find "credit values offered by both departments", which should you use?', opts: ['IN (subquery)', 'NOT IN (subquery)', 'UNION ALL'], explain: 'IN maps to "and" logic (simulating INTERSECT); NOT IN maps to "and not" logic (simulating MINUS).' } },
+  { correct: 1,
+    zh: { q: '下列何者是找出 budget 為未知值的正確寫法？', opts: ['WHERE budget = NULL', 'WHERE budget IS NULL', 'WHERE budget <> NULL'], explain: 'NULL 是「未知」，不能用 = 比較，只能用 IS NULL / IS NOT NULL。' },
+    en: { q: 'Which is the correct way to find rows where budget is unknown?', opts: ['WHERE budget = NULL', 'WHERE budget IS NULL', 'WHERE budget <> NULL'], explain: 'NULL means "unknown" — it can\'t be compared with =, only with IS NULL / IS NOT NULL.' } },
+  { correct: 1,
+    zh: { q: 'WHERE 跟 HAVING 的差別，下列何者正確？', opts: ['WHERE 可以用 COUNT(*) 篩選', 'WHERE 篩單一列，HAVING 篩分組後的整組', '兩者完全可以互換'], explain: 'WHERE 在分組前作用在原始列，不能用聚合函數；HAVING 在分組後作用在整組，通常搭配聚合函數。' },
+    en: { q: 'Which correctly describes the difference between WHERE and HAVING?', opts: ['WHERE can filter using COUNT(*)', 'WHERE filters single rows; HAVING filters whole groups after grouping', 'They are fully interchangeable'], explain: 'WHERE acts on raw rows before grouping and can\'t use aggregate functions; HAVING acts on whole groups after grouping, usually with an aggregate function.' } },
+  { correct: 1,
+    zh: { q: '寫了 JOIN 但忘記寫 ON 條件會發生什麼事？', opts: ['SQL 語法錯誤，執行不了', '自動退化成 CROSS JOIN（笛卡兒積）', '系統會自動猜測連接欄位'], explain: 'JOIN 沒有 ON/USING 條件，等同於 CROSS JOIN，兩表每列互相配對，列數會暴增。' },
+    en: { q: 'What happens if you write JOIN but forget the ON condition?', opts: ['It\'s a syntax error and won\'t run', 'It silently degrades into a CROSS JOIN (Cartesian product)', 'The system auto-guesses the join column'], explain: 'A JOIN with no ON/USING condition is equivalent to CROSS JOIN — every row of one table pairs with every row of the other, and the row count explodes.' } },
+  { correct: 0,
+    zh: { q: 'Self-Join 找「員工40號的主管姓名」，E1代表自己、E2代表主管，正確寫法是？', opts: ["SELECT E2.name ... WHERE E1.enum = 40", "SELECT E1.name ... WHERE E2.enum = 40", "SELECT E2.name ... WHERE E2.enum = 40"], explain: 'WHERE 鎖定「自己」是40號（E1.enum=40），SELECT 輸出「主管」的名字（E2.name）。' },
+    en: { q: 'A self-join finds "the manager\'s name of employee #40", with E1 = self and E2 = manager. Which is correct?', opts: ["SELECT E2.name ... WHERE E1.enum = 40", "SELECT E1.name ... WHERE E2.enum = 40", "SELECT E2.name ... WHERE E2.enum = 40"], explain: 'WHERE pins down "yourself" as #40 (E1.enum=40), and SELECT outputs the "manager"\'s name (E2.name).' } },
+  { correct: 1,
+    zh: { q: '用 LEFT OUTER JOIN 接 DEPARTMENT 跟 COURSE 之後，某個系完全沒開課，它在結果裡會怎樣？', opts: ['整個系從結果裡消失', '這個系還在，COURSE 相關欄位補上 NULL', '整個查詢會直接報錯'], explain: 'LEFT OUTER JOIN 一定保留左邊（DEPARTMENT）的每一列，配對不到就用 NULL 補右邊的欄位。' },
+    en: { q: 'After a LEFT OUTER JOIN of DEPARTMENT to COURSE, a department that offers no courses at all appears in the result as...?', opts: ['It disappears entirely from the result', 'It still appears, with the COURSE columns padded as NULL', 'The whole query errors out'], explain: 'LEFT OUTER JOIN always keeps every row from the left table (DEPARTMENT); if there\'s no match, the right side\'s columns are padded with NULL.' } },
+  { correct: 0,
+    zh: { q: '在相關子查詢（correlated subquery）裡，內層 SELECT 引用外層表的欄位，例如 offered_by = DEPARTMENT.name，這代表什麼？', opts: ['內層查詢會針對外層每一列各重新算一次', '外層跟內層互不相干，先算內層再代進外層', '這種寫法一定是語法錯誤'], explain: '「相關」的意思就是內層要用外層當下那一列的值才能算，所以沒辦法像一般子查詢一樣先獨立算完。' },
+    en: { q: 'In a correlated subquery, the inner SELECT references an outer-table column, e.g. offered_by = DEPARTMENT.name. What does that mean?', opts: ['The inner query is re-evaluated once per outer row', 'The inner and outer queries are independent; the inner one is just computed first', 'This is always a syntax error'], explain: '"Correlated" means the inner query needs the outer row\'s current value to be evaluated, so it can\'t be computed once and reused like an ordinary subquery.' } },
+  { correct: 2,
+    zh: { q: 'DDL 跟 DML 的差別是？', opts: ['DDL 改資料內容，DML 改資料表結構', '兩者完全一樣，只是名稱不同', 'DDL（CREATE/ALTER/DROP）改資料表結構，DML（INSERT/UPDATE/DELETE）改資料內容'], explain: 'DDL = Data Definition Language，定義「表長什麼樣子」；DML = Data Manipulation Language，操作「表裡有什麼資料」。' },
+    en: { q: 'What is the difference between DDL and DML?', opts: ['DDL changes data content, DML changes table structure', 'They are exactly the same, just different names', 'DDL (CREATE/ALTER/DROP) changes table structure; DML (INSERT/UPDATE/DELETE) changes data content'], explain: 'DDL = Data Definition Language, defines "what the table looks like"; DML = Data Manipulation Language, operates on "what data is in the table".' } },
+  { correct: 1,
+    zh: { q: 'TRUNCATE TABLE 跟不加 WHERE 的 DELETE FROM 有什麼差別？', opts: ['完全一樣，隨便用哪個都行', 'TRUNCATE 是 DDL、無法用 ROLLBACK 復原且速度較快；DELETE 是 DML、可以 ROLLBACK', 'TRUNCATE 只能刪一部分資料'], explain: 'TRUNCATE TABLE 是 DDL 語句，執行後無法復原，也不會保留還原用的資訊，因此比 DELETE 快很多。' },
+    en: { q: 'What is the difference between TRUNCATE TABLE and a DELETE FROM with no WHERE?', opts: ['They are identical, use whichever', 'TRUNCATE is DDL, cannot be undone with ROLLBACK, and is faster; DELETE is DML and can be rolled back', 'TRUNCATE can only delete part of the data'], explain: 'TRUNCATE TABLE is a DDL statement — it can\'t be undone and keeps no rollback information, which is why it\'s much faster than DELETE.' } },
+  { correct: 0,
+    zh: { q: '一個關聯式 View（CREATE VIEW）本質上是什麼？', opts: ['一個存起來的、有名字的 SELECT 敘述，每次查詢時重新算', '一份真正另外複製、永久儲存的資料', '一種特殊的索引'], explain: 'View 不佔額外的儲存空間，每次被用到就把它的定義代進去重新執行一次，本質上跟 inline view / WITH 子句是同一件事。' },
+    en: { q: 'What is a relational view (CREATE VIEW) fundamentally?', opts: ['A stored, named SELECT statement, re-evaluated every time it\'s queried', 'A separately copied, permanently stored set of data', 'A special kind of index'], explain: 'A view occupies no extra storage — every time it\'s used, its definition is substituted in and re-run. It\'s fundamentally the same idea as an inline view / WITH clause.' } },
 ];
 const quizContainer = document.getElementById('quiz-container');
 let quizScore = 0, quizAnswered = 0;
-QUIZ.forEach((item, qi) => {
-  const div = document.createElement('div'); div.className = 'quiz-q';
-  const p = document.createElement('p'); p.className = 'prompt'; p.textContent = (qi + 1) + '. ' + item.q; div.appendChild(p);
-  const explainEl = document.createElement('div'); explainEl.className = 'quiz-explain'; explainEl.textContent = item.explain;
-  item.opts.forEach((optText, oi) => {
-    const b = document.createElement('button'); b.className = 'quiz-opt'; b.textContent = optText;
-    b.addEventListener('click', () => {
-      if (b.disabled) return;
-      const allBtns = div.querySelectorAll('.quiz-opt'); allBtns.forEach(x => x.disabled = true);
-      if (oi === item.correct) { b.classList.add('correct'); quizScore++; }
-      else { b.classList.add('wrong'); allBtns[item.correct].classList.add('correct'); }
-      explainEl.style.display = 'block';
-      quizAnswered++;
-      document.getElementById('quiz-score').textContent = '目前分數：' + quizScore + ' / ' + QUIZ.length + (quizAnswered === QUIZ.length ? '（全部答完了！）' : '');
+function renderQuiz() {
+  quizContainer.innerHTML = '';
+  quizScore = 0; quizAnswered = 0;
+  QUIZ.forEach((item, qi) => {
+    const t = item[currentLang];
+    const div = document.createElement('div'); div.className = 'quiz-q';
+    const p = document.createElement('p'); p.className = 'prompt'; p.textContent = (qi + 1) + '. ' + t.q; div.appendChild(p);
+    const explainEl = document.createElement('div'); explainEl.className = 'quiz-explain'; explainEl.textContent = t.explain;
+    t.opts.forEach((optText, oi) => {
+      const b = document.createElement('button'); b.className = 'quiz-opt'; b.textContent = optText;
+      b.addEventListener('click', () => {
+        if (b.disabled) return;
+        const allBtns = div.querySelectorAll('.quiz-opt'); allBtns.forEach(x => x.disabled = true);
+        if (oi === item.correct) { b.classList.add('correct'); quizScore++; }
+        else { b.classList.add('wrong'); allBtns[item.correct].classList.add('correct'); }
+        explainEl.style.display = 'block';
+        quizAnswered++;
+        const scoreLabel = currentLang === 'en' ? 'Score: ' : '目前分數：';
+        const doneLabel = currentLang === 'en' ? ' (all answered!)' : '（全部答完了！）';
+        document.getElementById('quiz-score').textContent = scoreLabel + quizScore + ' / ' + QUIZ.length + (quizAnswered === QUIZ.length ? doneLabel : '');
+      });
+      div.appendChild(b);
     });
-    div.appendChild(b);
+    div.appendChild(explainEl);
+    quizContainer.appendChild(div);
   });
-  div.appendChild(explainEl);
-  quizContainer.appendChild(div);
-});
+  document.getElementById('quiz-score').textContent = '';
+}
 
 // ---- Flashcards ----
 const FLASH = [
-  { term: 'Boolean 判斷口訣', def: '同一欄位互斥值 → OR / IN；不同條件同時成立 → AND。絕不能對同一欄位用 AND 接兩個互斥值。' },
-  { term: 'NULL 語意', def: 'NULL 代表「未知」，不是值，不能用 = 比較，只能用 IS NULL / IS NOT NULL。' },
-  { term: 'WHERE vs HAVING', def: 'WHERE 過濾分組前的原始列；HAVING 過濾分組後的整組，通常搭配聚合函數。' },
-  { term: 'CROSS JOIN', def: 'JOIN 沒寫 ON/USING 時的預設行為：兩表每一列互相配對，產生笛卡兒積。' },
-  { term: 'Self-Join', def: '同一張表跟自己 JOIN，一定要給兩個不同 alias，例如 E1、E2。' },
-  { term: 'UNION vs UNION ALL', def: 'UNION 自動去除重複列；UNION ALL 保留所有重複列，不去重。' },
-  { term: 'MySQL 沒有的集合運算', def: 'MySQL 不支援 INTERSECT / MINUS，要用 IN / NOT IN 子查詢自己模擬。' },
-  { term: 'ANSI JOIN vs 逗號式', def: 'ANSI 標準用 JOIN...ON；逗號式（FROM A, B WHERE...）能跑但不是標準寫法。' },
-  { term: 'DISTINCT', def: '放在 SELECT 後面，用來消除結果中重複的整列資料。' },
-  { term: 'Inline View', def: '把一個 SELECT 查詢包在括號裡當成暫時的表，放在 FROM 子句中並給別名使用。' },
+  { zh: { term: 'Boolean 判斷口訣', def: '同一欄位互斥值 → OR / IN；不同條件同時成立 → AND。絕不能對同一欄位用 AND 接兩個互斥值。' }, en: { term: 'Boolean rule of thumb', def: 'Same column, mutually-exclusive values → OR / IN; different conditions that must both hold → AND. Never AND two exclusive values on the same column.' } },
+  { zh: { term: 'NULL 語意', def: 'NULL 代表「未知」，不是值，不能用 = 比較，只能用 IS NULL / IS NOT NULL。' }, en: { term: 'NULL semantics', def: 'NULL means "unknown" — it is not a value, so it can\'t be compared with =, only with IS NULL / IS NOT NULL.' } },
+  { zh: { term: 'WHERE vs HAVING', def: 'WHERE 過濾分組前的原始列；HAVING 過濾分組後的整組，通常搭配聚合函數。' }, en: { term: 'WHERE vs HAVING', def: 'WHERE filters raw rows before grouping; HAVING filters whole groups after grouping, usually with an aggregate function.' } },
+  { zh: { term: 'CROSS JOIN', def: 'JOIN 沒寫 ON/USING 時的預設行為：兩表每一列互相配對，產生笛卡兒積。' }, en: { term: 'CROSS JOIN', def: 'The default behavior of a JOIN with no ON/USING: every row of one table pairs with every row of the other — a Cartesian product.' } },
+  { zh: { term: 'Self-Join', def: '同一張表跟自己 JOIN，一定要給兩個不同 alias，例如 E1、E2。' }, en: { term: 'Self-Join', def: 'Joining a table with itself always needs two different aliases, e.g. E1 and E2.' } },
+  { zh: { term: 'UNION vs UNION ALL', def: 'UNION 自動去除重複列；UNION ALL 保留所有重複列，不去重。' }, en: { term: 'UNION vs UNION ALL', def: 'UNION automatically removes duplicate rows; UNION ALL keeps every duplicate.' } },
+  { zh: { term: 'MySQL 沒有的集合運算', def: 'MySQL 不支援 INTERSECT / MINUS，要用 IN / NOT IN 子查詢自己模擬。' }, en: { term: 'Set ops MySQL lacks', def: 'MySQL has no INTERSECT / MINUS — simulate them yourself with IN / NOT IN subqueries.' } },
+  { zh: { term: 'ANSI JOIN vs 逗號式', def: 'ANSI 標準用 JOIN...ON；逗號式（FROM A, B WHERE...）能跑但不是標準寫法。' }, en: { term: 'ANSI JOIN vs comma-style', def: 'The ANSI standard uses JOIN...ON; comma-style (FROM A, B WHERE...) still runs but isn\'t the standard way to write it.' } },
+  { zh: { term: 'DISTINCT', def: '放在 SELECT 後面，用來消除結果中重複的整列資料。' }, en: { term: 'DISTINCT', def: 'Placed right after SELECT to remove fully-duplicate rows from the result.' } },
+  { zh: { term: 'Inline View', def: '把一個 SELECT 查詢包在括號裡當成暫時的表，放在 FROM 子句中並給別名使用。' }, en: { term: 'Inline View', def: 'A SELECT wrapped in parentheses and used as a temporary table, placed in FROM and given an alias.' } },
+  { zh: { term: 'LEFT / RIGHT OUTER JOIN', def: 'LEFT 保留左表所有列、RIGHT 保留右表所有列，配對不到的一邊用 NULL 補齊。' }, en: { term: 'LEFT / RIGHT OUTER JOIN', def: 'LEFT keeps every row from the left table, RIGHT keeps every row from the right table; the unmatched side is padded with NULL.' } },
+  { zh: { term: 'FULL OUTER JOIN', def: '等於 LEFT OUTER JOIN 跟 RIGHT OUTER JOIN 的聯集；MySQL 沒有這個語法，要自己用 UNION 模擬。' }, en: { term: 'FULL OUTER JOIN', def: 'The union of a LEFT OUTER JOIN and a RIGHT OUTER JOIN. MySQL has no such keyword — simulate it with UNION.' } },
+  { zh: { term: 'EXISTS / NOT EXISTS', def: '問「至少有一列符合條件存在嗎」；常搭配相關子查詢，是寫 ANTIJOIN 的經典寫法。' }, en: { term: 'EXISTS / NOT EXISTS', def: 'Asks "does at least one matching row exist?" Often paired with a correlated subquery — the classic way to write an ANTIJOIN.' } },
+  { zh: { term: '相關子查詢 (Correlated Subquery)', def: '內層查詢引用外層表的欄位，因此要針對外層每一列重新算一次，不能獨立先算完。' }, en: { term: 'Correlated Subquery', def: 'The inner query references a column from the outer table, so it must be re-evaluated once per outer row — it can\'t be computed independently up front.' } },
+  { zh: { term: 'WITH 子句 (CTE)', def: '在查詢最前面先把一或多個 inline view 取名字，後面可以重複引用，讓複雜查詢更好讀。' }, en: { term: 'WITH clause (CTE)', def: 'Names one or more inline views up front so they can be reused later in the query — keeps complex queries readable.' } },
+  { zh: { term: 'Relational View', def: '儲存起來、有名字的 SELECT 敘述，本身不佔資料儲存空間，每次查詢時重新展開執行。' }, en: { term: 'Relational View', def: 'A stored, named SELECT statement that occupies no data storage of its own — it is re-expanded and re-run every time it is queried.' } },
+  { zh: { term: 'DDL vs DML', def: 'DDL（CREATE/ALTER/DROP）定義資料表的結構；DML（INSERT/UPDATE/DELETE）操作資料表裡的內容。' }, en: { term: 'DDL vs DML', def: 'DDL (CREATE/ALTER/DROP) defines a table\'s structure; DML (INSERT/UPDATE/DELETE) operates on the data inside it.' } },
+  { zh: { term: 'TRUNCATE TABLE', def: '快速清空一張表的所有資料，是 DDL、無法 ROLLBACK，也沒有 WHERE 子句可用。' }, en: { term: 'TRUNCATE TABLE', def: 'Quickly empties every row from a table. It\'s DDL, cannot be rolled back, and has no WHERE clause.' } },
 ];
 const flashContainer = document.getElementById('flash-container');
-FLASH.forEach(item => {
-  const div = document.createElement('div'); div.className = 'flash';
-  div.innerHTML = '<span class="hint">點擊翻面</span><div class="term">' + escapeHtml(item.term) + '</div><div class="def">' + escapeHtml(item.def) + '</div>';
-  div.addEventListener('click', () => div.classList.toggle('open'));
-  flashContainer.appendChild(div);
-});
+function renderFlash() {
+  flashContainer.innerHTML = '';
+  const flipLabel = currentLang === 'en' ? 'click to flip' : '點擊翻面';
+  FLASH.forEach(item => {
+    const t = item[currentLang];
+    const div = document.createElement('div'); div.className = 'flash';
+    div.innerHTML = '<span class="hint">' + flipLabel + '</span><div class="term">' + escapeHtml(t.term) + '</div><div class="def">' + escapeHtml(t.def) + '</div>';
+    div.addEventListener('click', () => div.classList.toggle('open'));
+    flashContainer.appendChild(div);
+  });
+}
+renderQuiz();
+renderFlash();
+
+// ---- 語言切換按鈕 ----
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hant';
+  document.querySelectorAll('[data-en]').forEach(el => {
+    if (el.dataset.zh === undefined) el.dataset.zh = el.innerHTML;
+    el.innerHTML = lang === 'en' ? el.dataset.en : el.dataset.zh;
+  });
+  document.getElementById('lang-zh').classList.toggle('active', lang === 'zh');
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  renderQuiz();
+  renderFlash();
+  try { localStorage.setItem('sql-notes-lang', lang); } catch (e) {}
+}
+document.getElementById('lang-zh').addEventListener('click', () => setLang('zh'));
+document.getElementById('lang-en').addEventListener('click', () => setLang('en'));
+(function initLang() {
+  let saved = null;
+  try { saved = localStorage.getItem('sql-notes-lang'); } catch (e) {}
+  if (saved === 'en') setLang('en');
+})();
+
 </script>
 </body>
 </html>
