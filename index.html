@@ -616,6 +616,14 @@ SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
+      <div class="console" data-default="SELECT credits FROM COURSE WHERE offered_by = 'Physics'&#10;UNION ALL&#10;SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';">
+        <div class="console-topbar" data-en="UNION ALL: same query, but keeping every duplicate">UNION ALL：同一句查詢，但重複的不去除</div>
+        <textarea class="console-input" spellcheck="false">SELECT credits FROM COURSE WHERE offered_by = 'Physics'
+UNION ALL
+SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Compare the row count with the UNION version above">跟上面的 UNION 比較一下筆數</span></div>
+      </div>
       <h3 data-en="Simulating INTERSECT (in both)">模擬 INTERSECT（兩邊都有）</h3>
       <div class="console" data-default="SELECT DISTINCT credits FROM COURSE&#10;WHERE offered_by = 'Physics'&#10;  AND credits IN (SELECT credits FROM COURSE WHERE offered_by = 'Mathematics');">
         <div class="console-topbar" data-en="IN maps to &quot;and&quot; logic">IN 對應「且」的邏輯</div>
@@ -658,6 +666,31 @@ HAVING COUNT(*) > 1;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Which row disappeared compared to above?">跟上面比較少了哪一列？</span></div>
       </div>
+      <p data-en="A few more grouping questions, each grouped by a different column:">再多幾個分組問題，各自照不同的欄位分組：</p>
+      <div class="console" data-default="SELECT credits, COUNT(*)&#10;FROM COURSE&#10;GROUP BY credits;">
+        <div class="console-topbar" data-en="For each credit value, how many courses have it?">每一種學分數，各有幾門課</div>
+        <textarea class="console-input" spellcheck="false">SELECT credits, COUNT(*)
+FROM COURSE
+GROUP BY credits;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT offered_by, SUM(credits)&#10;FROM COURSE&#10;GROUP BY offered_by;">
+        <div class="console-topbar" data-en="Total credit points offered by each department">每個系開的學分數總和</div>
+        <textarea class="console-input" spellcheck="false">SELECT offered_by, SUM(credits)
+FROM COURSE
+GROUP BY offered_by;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT MAX(total)&#10;FROM (SELECT COUNT(*) total FROM COURSE GROUP BY offered_by) T;">
+        <div class="console-topbar" data-en="The largest number of courses offered by any single department, using an inline view">用 inline view 找出「開課數量最多的系」開了幾門</div>
+        <textarea class="console-input" spellcheck="false">SELECT MAX(total)
+FROM (SELECT COUNT(*) total FROM COURSE GROUP BY offered_by) T;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="tip"><span data-en="This last one is grouping twice: the inline view groups courses by department and counts them, then MAX picks the largest count out of that result — a common pattern for &quot;the biggest / smallest group&quot; questions.">這一題其實是分組了兩次：inline view 先照系分組並算出課程數，外層再用 MAX 從那份結果裡挑出最大值 — 這是問「哪一組最大 / 最小」的常見寫法。</span></div>
     </section>
 
     <section id="joinbasic">
@@ -672,6 +705,24 @@ ON DEPARTMENT.name = COURSE.offered_by
 WHERE DEPARTMENT.chair = 'Peter';</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <p data-en="The same query can be written several ways — table aliases keep it short, and the older comma-style FROM still works (though ANSI-standard JOIN...ON is the recommended style):">同一題可以有好幾種寫法 — 用別名可以讓語句變短，舊式的逗號 FROM 寫法也還是能跑（雖然建議還是用 ANSI 標準的 JOIN...ON）：</p>
+      <div class="console" data-default="SELECT C.title&#10;FROM COURSE C JOIN DEPARTMENT D&#10;ON D.name = C.offered_by&#10;WHERE D.chair = 'Peter';">
+        <div class="console-topbar" data-en="Same query, with short table aliases C and D">同一題，改用短別名 C 跟 D</div>
+        <textarea class="console-input" spellcheck="false">SELECT C.title
+FROM COURSE C JOIN DEPARTMENT D
+ON D.name = C.offered_by
+WHERE D.chair = 'Peter';</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Same answer as the first console in this section">答案應該跟這節第一台主控台一樣</span></div>
+      </div>
+      <div class="console" data-default="SELECT title&#10;FROM COURSE, DEPARTMENT&#10;WHERE name = offered_by AND chair = 'Peter';">
+        <div class="console-topbar" data-en="Same query, old comma-style FROM (the join condition moves into WHERE)">同一題，舊式的逗號 FROM 寫法（連接條件搬進 WHERE）</div>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE, DEPARTMENT
+WHERE name = offered_by AND chair = 'Peter';</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Still the same answer">答案還是一樣</span></div>
       </div>
       <div class="callout"><strong data-en="Common mistake:">常見錯誤：</strong><span data-en=" writing JOIN but forgetting the ON condition turns it into a &quot;Cartesian product&quot; — every row of one table paired with every row of the other, row count explodes, and the logic is almost always wrong.">寫了 JOIN 卻忘記寫 ON 條件，會變成「笛卡兒積」— 兩張表的每一列互相配對，列數暴增，而且邏輯上通常是錯的。</span></div>
       <div class="console" data-default="SELECT COURSE.title, DEPARTMENT.name&#10;FROM COURSE JOIN DEPARTMENT;">
