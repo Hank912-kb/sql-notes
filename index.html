@@ -330,17 +330,51 @@ WHERE offered_by = 'physics';</textarea>
   CONSTRAINT dept_ckey1 UNIQUE(code)
 );</div>
       <p data-en="Common column types: VARCHAR(size) variable-length string · CHAR(size) fixed-length string · INTEGER whole numbers · DECIMAL(M,D) exact-precision numbers · DATE / TIME / DATETIME dates and times.">常見的欄位型別：<code>VARCHAR(size)</code> 變動長度字串、<code>CHAR(size)</code> 固定長度字串、<code>INTEGER</code> 整數、<code>DECIMAL(M,D)</code> 精確位數的數字、<code>DATE / TIME / DATETIME</code> 日期時間。</p>
+      <p data-en="A second table with a FOREIGN KEY, so its rows can only reference department names that actually exist — and ON DELETE CASCADE means deleting a department automatically deletes its courses too.">第二張表加上 FOREIGN KEY，讓它的每一列只能參照真的存在的系名稱 — ON DELETE CASCADE 則代表刪掉一個系時，這個系開的課也會自動被一起刪掉。</p>
+      <div class="skeleton skeleton-code">CREATE TABLE COURSE(
+  cnum CHAR(7) NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  credits DECIMAL(2) NOT NULL,
+  offered_by VARCHAR(50) NULL,
+  CONSTRAINT course_pkey PRIMARY KEY(cnum),
+  CONSTRAINT course_check1 CHECK (credits IN (6, 12)),
+  CONSTRAINT course_fkey1 FOREIGN KEY(offered_by)
+    REFERENCES DEPARTMENT(name) ON DELETE CASCADE
+);</div>
+      <div class="callout"><strong data-en="Common mistake: dropping tables in the wrong order">常見錯誤：DROP TABLE 的順序錯了</strong><span data-en=" — since COURSE has a foreign key pointing at DEPARTMENT, MySQL refuses to drop DEPARTMENT first:"> — 因為 COURSE 有一個外鍵指向 DEPARTMENT，MySQL 會拒絕先刪 DEPARTMENT：</span>
+        <div class="skeleton skeleton-code" style="margin:10px 0 0;">DROP TABLE DEPARTMENT;
+-- ERROR 1217 (23000): Cannot delete or update a parent
+-- row: a foreign key constraint fails
+
+DROP TABLE COURSE;
+DROP TABLE DEPARTMENT;
+-- this order works: drop the child table (COURSE) first</div>
+      </div>
       <p data-en="ALTER TABLE changes an existing table's definition: add/drop a column, change a type, add/drop a constraint, or rename the table. DROP TABLE permanently deletes both the table and its data.">ALTER TABLE 用來變更既有資料表的定義：新增或刪除欄位、改型別、新增或刪除限制條件、幫資料表改名。DROP TABLE 則會把整張表連同資料一起永久刪除。</p>
+      <div class="skeleton skeleton-code">ALTER TABLE DEPARTMENT ADD COLUMN category VARCHAR(20);
+ALTER TABLE DEPARTMENT DROP COLUMN budget;
+ALTER TABLE DEPARTMENT MODIFY code CHAR(6) NOT NULL;
+ALTER TABLE DEPARTMENT ADD CONSTRAINT dept_check2
+  CHECK (code = UPPER(code));
+ALTER TABLE COURSE DROP FOREIGN KEY course_fkey1;
+ALTER TABLE DEPARTMENT DROP PRIMARY KEY;
+ALTER TABLE DEPARTMENT RENAME TO NEWDEPARTMENT;</div>
       <div class="callout"><strong data-en="Try it yourself:">動手做做看：</strong><span data-en="The sandbox console below has its own private copy of DEPARTMENT/COURSE — anything you CREATE, ALTER, or DROP here only affects this console, and never touches the tables used elsewhere on this page. Write several statements separated by semicolons and hit Run to execute them in order; use Reset to start over.">下面這台「沙盒主控台」有自己獨立的一份 DEPARTMENT / COURSE 複本 — 在這裡 CREATE、ALTER、DROP 只會影響這台主控台，不會動到頁面其他地方用的資料表。可以一次寫好幾句、用分號隔開，按執行會依序跑完；按重置可以重新開始。</span></div>
       <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="ALTER TABLE DEPARTMENT ADD COLUMN category VARCHAR(20);
 SELECT name, category FROM DEPARTMENT;
 ALTER TABLE DEPARTMENT DROP COLUMN category;
+ALTER TABLE DEPARTMENT MODIFY code CHAR(6) NOT NULL;
+ALTER TABLE DEPARTMENT RENAME TO NEWDEPARTMENT;
+SELECT * FROM NEWDEPARTMENT;
 DROP TABLE COURSE;
 SELECT * FROM COURSE;">
         <div class="console-topbar" data-en="DDL sandbox — seeded with a private copy of DEPARTMENT / COURSE">DDL 沙盒 — 已載入獨立的 DEPARTMENT / COURSE 複本</div>
         <textarea class="console-input" spellcheck="false">ALTER TABLE DEPARTMENT ADD COLUMN category VARCHAR(20);
 SELECT name, category FROM DEPARTMENT;
 ALTER TABLE DEPARTMENT DROP COLUMN category;
+ALTER TABLE DEPARTMENT MODIFY code CHAR(6) NOT NULL;
+ALTER TABLE DEPARTMENT RENAME TO NEWDEPARTMENT;
+SELECT * FROM NEWDEPARTMENT;
 DROP TABLE COURSE;
 SELECT * FROM COURSE;</textarea>
         <div class="console-actions">
@@ -350,33 +384,80 @@ SELECT * FROM COURSE;</textarea>
         </div>
         <div class="console-result"><span class="placeholder" data-en="The last line drops COURSE — guess what the final SELECT shows, then run">最後一行把 COURSE 刪掉了，猜猜最後那個 SELECT 會顯示什麼</span></div>
       </div>
+      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="This sandbox doesn't check constraints (PRIMARY KEY, FOREIGN KEY, CHECK) the way a real database would — it accepts MODIFY / ADD CONSTRAINT / DROP FOREIGN KEY / DROP PRIMARY KEY syntax so you can practice writing it, but nothing actually gets enforced. That's also why the DROP TABLE order error above can't be reproduced here — it's shown as a static reference instead.">這個沙盒不會像真正的資料庫一樣檢查限制條件（PRIMARY KEY、FOREIGN KEY、CHECK）— 它會接受 MODIFY / ADD CONSTRAINT / DROP FOREIGN KEY / DROP PRIMARY KEY 這些語法讓你練習怎麼寫，但不會真的去執行檢查。這也是為什麼上面 DROP TABLE 順序錯誤的例子沒辦法在這裡重現 — 只能用靜態範例呈現。</p>
     </section>
 
     <section id="dml">
       <h2 data-en="3. Data Manipulation Language (DML) — INSERT / UPDATE / DELETE">3. 資料操作語言 DML — INSERT / UPDATE / DELETE</h2>
       <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Signing up on a website is really an INSERT behind the scenes; editing your profile is an UPDATE; deleting a comment is a DELETE. Almost everything you tap on your phone turns into some DML statement.">使用者在網站上「註冊帳號」，背後其實是執行一次 INSERT；「修改個人資料」是 UPDATE；「刪除一則留言」是 DELETE。你每天滑手機做的操作，幾乎都會變成某一句 DML。</span></div>
       <p data-en="INSERT adds a new row, UPDATE changes rows that match a condition, and DELETE removes rows that match a condition. All three can be undone with ROLLBACK until COMMIT is executed — but they never remove the table itself.">INSERT 新增一列，UPDATE 修改符合條件的列，DELETE 刪除符合條件的列。這三個在 COMMIT 之前都能用 ROLLBACK 復原 — 但它們都不會把資料表本身刪掉。</p>
-      <div class="skeleton skeleton-code">INSERT INTO DEPARTMENT
-VALUES ('Chemistry', 'CHEM', 8, NULL, 90000.0);
 
-UPDATE DEPARTMENT
-SET total_staff_number = total_staff_number + 1
-WHERE name = 'Physics';
+      <h3 data-en="DELETE — several ways to pick rows">DELETE — 幾種挑列的方式</h3>
+      <div class="skeleton skeleton-code">DELETE FROM COURSE
+WHERE cnum = 'CSCI235';
 
 DELETE FROM COURSE
-WHERE cnum = 'CSCI235';</div>
+WHERE (credits = 12) OR (UPPER(title) LIKE '%DATABASE%');
+
+DELETE FROM DEPARTMENT
+WHERE total_staff_number < 5;
+
+DELETE FROM DEPARTMENT;</div>
+      <p data-en="The last line — DELETE with no WHERE — deletes every row but keeps the empty table (that's different from DROP TABLE, which removes the table itself, and from TRUNCATE, which is faster but can't be rolled back).">最後一行 — 沒有 WHERE 的 DELETE — 會刪掉每一列，但表本身還在（這跟把整張表刪掉的 DROP TABLE 不一樣，也跟速度更快、但不能 ROLLBACK 的 TRUNCATE 不一樣）。</p>
+      <div class="callout"><strong data-en="Common mistake: deleting in the wrong order">常見錯誤：DELETE 的順序錯了</strong><span data-en=" — deleting a department that still has courses fails, unless the foreign key was declared with ON DELETE CASCADE:"> — 刪除一個還有課程的系會失敗，除非外鍵有宣告 ON DELETE CASCADE：</span>
+        <div class="skeleton skeleton-code" style="margin:10px 0 0;">DELETE FROM DEPARTMENT WHERE name = 'Physics';
+-- ERROR 1451 (23000): Cannot delete or update a parent
+-- row: a foreign key constraint fails
+
+DELETE FROM COURSE WHERE offered_by = 'Physics';
+DELETE FROM DEPARTMENT WHERE name = 'Physics';
+-- this order works: delete the child rows (COURSE) first</div>
+      </div>
+
+      <h3 data-en="INSERT — with and without a column list">INSERT — 有沒有指定欄位清單</h3>
+      <div class="skeleton skeleton-code">INSERT INTO DEPARTMENT
+VALUES ('Computer Science', 'CSCI', 30, 'Peter', 123456.9);
+
+INSERT INTO DEPARTMENT(name, code, chair, budget, total_staff_number)
+VALUES ('Mathematics', 'MATH', NULL, 12345.6, 10);</div>
       <div class="tip"><span data-en="INSERT without a column list must supply a value for every column in table order. Giving an explicit column list — INSERT INTO T(col1,col2) VALUES(...) — lets you skip columns (they become NULL) and reorder them freely.">不指定欄位清單的 INSERT，值的順序必須跟資料表欄位順序完全一樣。明確列出欄位清單 — <code>INSERT INTO T(col1,col2) VALUES(...)</code> — 就可以跳過某些欄位（會變成 NULL）或改變順序。</span></div>
-      <div class="callout"><strong data-en="This mini-engine's limit:">這個迷你引擎的限制：</strong><span data-en="Real MySQL would reject a DELETE/UPDATE that violates a foreign key (e.g. deleting a department that still has courses) unless ON DELETE CASCADE is set. This sandbox doesn't enforce foreign keys, so it always lets the statement through — keep that in mind when comparing to what your real database would do.">真正的 MySQL 如果違反外鍵限制（例如刪除還有課程的系所），在沒有 ON DELETE CASCADE 的情況下會直接報錯拒絕。這個沙盒不會檢查外鍵，所以語句一定會被接受 — 跟真正資料庫的行為比較時要記得這點。</span></div>
+      <div class="callout"><strong data-en="Common mistake: inserting in the wrong order">常見錯誤：INSERT 的順序錯了</strong><span data-en=" — inserting a course before its department exists fails the foreign key check:"> — 在系所還不存在之前先插入它的課，會違反外鍵檢查：</span>
+        <div class="skeleton skeleton-code" style="margin:10px 0 0;">INSERT INTO COURSE VALUES ('PHYS999', 'Relativity II', 6, 'Physics');
+-- ERROR 1452 (23000): Cannot add or update a child row:
+-- a foreign key constraint fails
+-- (fix: insert the 'Physics' department row first)</div>
+      </div>
+
+      <h3 data-en="UPDATE — one column, several columns, or every row">UPDATE — 改一欄、改好幾欄，或整張表都改</h3>
+      <div class="skeleton skeleton-code">UPDATE COURSE
+SET credits = 12
+WHERE cnum IN ('CSCI235', 'CSCI205', 'CSCI203');
+
+UPDATE DEPARTMENT
+SET chair = 'Margaret',
+    total_staff_number = total_staff_number + 1
+WHERE name = 'Physics';
+
+UPDATE DEPARTMENT
+SET total_staff_number = total_staff_number + 2;</div>
+      <p data-en="SET can update several columns at once, separated by commas. And just like DELETE, UPDATE with no WHERE applies to every single row — here, every department gets +2 staff.">SET 可以一次改好幾個欄位，中間用逗號隔開。跟 DELETE 一樣，沒有 WHERE 的 UPDATE 會套用到「每一列」— 這裡是讓每個系的教職員人數都 +2。</p>
+      <div class="callout"><strong data-en="Common mistake: renaming a value other rows depend on">常見錯誤：改掉一個被其他列參照的值</strong><span data-en=" — renaming a department that courses still point to fails the same way, unless ON UPDATE CASCADE was declared on the foreign key:"> — 把還有課程指向它的系改名，會用同樣的方式失敗，除非外鍵有宣告 ON UPDATE CASCADE：</span>
+        <div class="skeleton skeleton-code" style="margin:10px 0 0;">UPDATE DEPARTMENT SET name = 'IT' WHERE name = 'Physics';
+-- ERROR 1451 (23000): Cannot delete or update a parent
+-- row: a foreign key constraint fails</div>
+      </div>
+
+      <div class="callout"><strong data-en="This mini-engine's limit:">這個迷你引擎的限制：</strong><span data-en="Real MySQL would reject the INSERT/DELETE/UPDATE statements above that violate a foreign key, with the exact errors shown. This sandbox doesn't enforce foreign keys, so it always lets the statement through — the boxes above are shown as static reference so you can still see what a real database would say.">真正的 MySQL 會拒絕上面違反外鍵限制的 INSERT/DELETE/UPDATE，並顯示這樣的錯誤訊息。這個沙盒不會檢查外鍵，所以語句一定會被接受 — 上面用靜態範例呈現，這樣還是看得到真正的資料庫會回報什麼。</span></div>
       <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="INSERT INTO DEPARTMENT VALUES ('Chemistry', 'CHEM', 8, NULL, 90000.0);
 SELECT * FROM DEPARTMENT;
-UPDATE DEPARTMENT SET total_staff_number = total_staff_number + 1 WHERE name = 'Physics';
-DELETE FROM COURSE WHERE cnum = 'CSCI235';
+UPDATE DEPARTMENT SET chair = 'Margaret', total_staff_number = total_staff_number + 1 WHERE name = 'Physics';
+DELETE FROM COURSE WHERE (credits = 12) OR (UPPER(title) LIKE '%DATABASE%');
 SELECT * FROM COURSE;">
         <div class="console-topbar" data-en="DML sandbox — seeded with a private copy of DEPARTMENT / COURSE">DML 沙盒 — 已載入獨立的 DEPARTMENT / COURSE 複本</div>
         <textarea class="console-input" spellcheck="false">INSERT INTO DEPARTMENT VALUES ('Chemistry', 'CHEM', 8, NULL, 90000.0);
 SELECT * FROM DEPARTMENT;
-UPDATE DEPARTMENT SET total_staff_number = total_staff_number + 1 WHERE name = 'Physics';
-DELETE FROM COURSE WHERE cnum = 'CSCI235';
+UPDATE DEPARTMENT SET chair = 'Margaret', total_staff_number = total_staff_number + 1 WHERE name = 'Physics';
+DELETE FROM COURSE WHERE (credits = 12) OR (UPPER(title) LIKE '%DATABASE%');
 SELECT * FROM COURSE;</textarea>
         <div class="console-actions">
           <button class="run-btn" data-en="▶ Run">▶ 執行</button>
@@ -438,8 +519,33 @@ WHERE credits IN (6, 12);</textarea>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
 
-      <h3 data-en="AND / OR logic — the #1 beginner mistake">AND / OR 邏輯 — 新手最常錯的地方</h3>
+      <h3 data-en="AND / OR / NOT logic — the #1 beginner mistake">AND / OR / NOT 邏輯 — 新手最常錯的地方</h3>
       <p data-en="Rule of thumb: same column, two mutually-exclusive values → use OR; two different conditions that must both hold → use AND.">判斷口訣：同一個欄位、兩個互斥的值 → 用 <code>OR</code>；不同條件同時成立 → 才用 <code>AND</code>。</p>
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE (credits = 6) AND (offered_by = 'Physics');">
+        <div class="console-topbar" data-en="AND: 6-credit courses offered by Physics">AND：由 Physics 開的 6 學分課</div>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE (credits = 6) AND (offered_by = 'Physics');</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Both conditions must hold at once — run it">兩個條件要同時成立，執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE (credits = 6) OR (offered_by = 'Physics');">
+        <div class="console-topbar" data-en="OR: 6-credit courses, plus every course from Physics (even 12-credit ones)">OR：6 學分的課，再加上 Physics 開的所有課（連 12 學分的也算）</div>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE (credits = 6) OR (offered_by = 'Physics');</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess: should have more rows than the AND version above">猜猜看：應該會比上面 AND 那句多幾筆</span></div>
+      </div>
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE NOT (offered_by = 'Physics') AND (credits = 6);">
+        <div class="console-topbar" data-en="NOT: 6-credit courses that are NOT from Physics">NOT：6 學分、但不是 Physics 開的課</div>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE NOT (offered_by = 'Physics') AND (credits = 6);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="NOT (offered_by = 'Physics') means exactly the same thing as offered_by != 'Physics' — pick whichever reads more clearly for the condition you're writing.">NOT (offered_by = 'Physics') 跟 offered_by != 'Physics' 完全是同一件事 — 看哪個寫法讀起來更順就用哪個。</p>
       <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');">
         <div class="console-topbar" data-en="A deliberately wrong example — guess how many rows come back">故意寫錯的例子：猜猜看會有幾筆結果？</div>
         <textarea class="console-input" spellcheck="false">SELECT title
@@ -738,9 +844,48 @@ GROUP BY name;</textarea>
     <section id="nested">
       <h2 data-en="15. Nested Queries and EXISTS">15. 巢狀查詢與 EXISTS</h2>
       <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Building a marketing list of &quot;members who have never placed an order&quot; (for a first-purchase coupon), or &quot;customers who bought a specific product at least once&quot; &mdash; these &quot;does it exist&quot; questions are exactly what EXISTS / NOT EXISTS are built for.">行銷名單想找「從來沒有下過訂單的會員」（用來發送首購優惠券），或找「至少買過一次特定商品的顧客」— 這種「存在 / 不存在」的問題，就是 EXISTS / NOT EXISTS 最擅長解決的。</span></div>
-      <p data-en="A nested query embeds another SELECT inside WHERE, SELECT, or FROM. You've already used this pattern with IN (SELECT ...). EXISTS is a different, often more natural, way to ask the same kind of question: &quot;does at least one matching row exist?&quot;">巢狀查詢就是把另一個 SELECT 包在 WHERE、SELECT 或 FROM 裡面。前面用過的 IN (SELECT ...) 就是這種寫法。EXISTS 是另一種、通常更直覺的問法：「至少有一列符合條件存在嗎？」</p>
+      <p data-en="A nested query embeds another SELECT inside WHERE, SELECT, or FROM. A common family of nested queries builds on the &quot;inline view&quot; idea: run the inner query first, then feed its result into the outer one via IN.">巢狀查詢就是把另一個 SELECT 包在 WHERE、SELECT 或 FROM 裡面。有一大類巢狀查詢是「inline view」的延伸：先把內層查詢跑出一個結果，再用 IN 把結果餵給外層查詢用。</p>
+
+      <h3 data-en="Nested queries with IN">巢狀查詢 — 用 IN</h3>
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE offered_by IN (&#10;  SELECT name FROM DEPARTMENT WHERE chair = 'Peter'&#10;);">
+        <div class="console-topbar" data-en="Find the titles of courses offered by the department chaired by Peter">找出系主任是 Peter 的系開的課名</div>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE offered_by IN (
+  SELECT name FROM DEPARTMENT WHERE chair = 'Peter'
+);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="This should look familiar — it's the same answer a JOIN would give">這題其實跟用 JOIN 寫答案會一樣，猜猜看</span></div>
+      </div>
+      <div class="tip"><span data-en="Implementing it step by step: first write the inner query as its own inline view — (SELECT name FROM DEPARTMENT WHERE chair = 'Peter') Q — then reference it from the outer WHERE with IN. That's exactly what the query above does, just written as one statement.">分解著寫：先把內層查出來當成一個 inline view — (SELECT name FROM DEPARTMENT WHERE chair = 'Peter') Q —再讓外層 WHERE 用 IN 引用它。上面這句其實就是把這兩步驟合成一句話而已。</span></div>
+      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE name IN (&#10;  SELECT offered_by FROM COURSE WHERE credits = 12&#10;);">
+        <div class="console-topbar" data-en="Find the chairs of departments that offer a 12-credit course">找出開了 12 學分課程的系主任</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair
+FROM DEPARTMENT
+WHERE name IN (
+  SELECT offered_by FROM COURSE WHERE credits = 12
+);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it — keep this one in mind, we'll answer the exact same question with EXISTS below">執行看看，記住這一題 — 等一下會用 EXISTS 回答同一個問題</span></div>
+      </div>
+
+      <h3 data-en="NOT IN — an ANTIJOIN">NOT IN — 一種 ANTIJOIN</h3>
+      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE name NOT IN (&#10;  SELECT offered_by FROM COURSE&#10;);">
+        <div class="console-topbar" data-en="Find the chairs of departments that offer no courses at all">找出完全沒有開課的系主任</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair
+FROM DEPARTMENT
+WHERE name NOT IN (
+  SELECT offered_by FROM COURSE
+);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it — keep this one in mind too">執行看看，這一題等一下也會再問一次</span></div>
+      </div>
+      <div class="callout"><strong data-en="This is an ANTIJOIN:">這就是 ANTIJOIN：</strong><span data-en=" it's equivalent to &quot;find every row in DEPARTMENT that cannot be joined with any row in COURSE&quot; — the inner query finds every department that offers at least one course, and the outer query keeps only the departments NOT in that list.">等於「找出 DEPARTMENT 裡完全無法跟 COURSE 任何一列配對成功的列」— 內層查詢找出所有有開課的系，外層再保留「不在」那份名單裡的系。</span></div>
+
+      <h3 data-en="Correlated nested queries with EXISTS">相關子查詢與 EXISTS</h3>
+      <p data-en="EXISTS is a different, often more natural, way to ask the same kind of question: &quot;does at least one matching row exist?&quot; Watch it answer the exact same two questions as above.">EXISTS 是另一種、通常更直覺的問法：「至少有一列符合條件存在嗎？」我們用它重新回答上面問過的同兩個問題。</p>
       <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE EXISTS (&#10;  SELECT * FROM COURSE&#10;  WHERE credits = 12 AND offered_by = DEPARTMENT.name&#10;);">
-        <div class="console-topbar" data-en="Correlated subquery: find chairs of departments that offer a 12-credit course">相關子查詢：找出開了 12 學分課程的系主任</div>
+        <div class="console-topbar" data-en="Same question as before (12-credit course), now via a correlated EXISTS">跟前面同一題（12 學分課程），改用相關子查詢的 EXISTS</div>
         <textarea class="console-input" spellcheck="false">SELECT chair
 FROM DEPARTMENT
 WHERE EXISTS (
@@ -748,11 +893,23 @@ WHERE EXISTS (
   WHERE credits = 12 AND offered_by = DEPARTMENT.name
 );</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Should match the IN version above exactly">應該跟上面 IN 那一版答案完全一樣</span></div>
       </div>
       <div class="callout"><strong data-en="What makes it &quot;correlated&quot;:">為什麼叫「相關」子查詢：</strong><span data-en=" the inner SELECT references DEPARTMENT.name, a column from the outer query's table. The inner query is re-evaluated once per outer row — it can't be computed on its own the way an ordinary subquery can.">內層的 SELECT 引用了 DEPARTMENT.name — 這是外層查詢那張表的欄位。內層查詢會「針對外層每一列各跑一次」，不像一般子查詢可以先獨立算完再代進去。</span></div>
+      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE NOT EXISTS (&#10;  SELECT * FROM COURSE&#10;  WHERE offered_by = DEPARTMENT.name&#10;);">
+        <div class="console-topbar" data-en="Same question as the NOT IN example (no courses at all), now via correlated NOT EXISTS">跟前面 NOT IN 同一題（完全沒開課），改用相關子查詢的 NOT EXISTS</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair
+FROM DEPARTMENT
+WHERE NOT EXISTS (
+  SELECT * FROM COURSE
+  WHERE offered_by = DEPARTMENT.name
+);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Should match the NOT IN version above exactly">應該跟上面 NOT IN 那一版答案完全一樣</span></div>
+      </div>
+      <p data-en="EXISTS / NOT EXISTS is the classic way to phrase &quot;an ANTIJOIN&quot; too — and it's the form that generalizes best, since it also works when the inner query needs extra conditions.">EXISTS / NOT EXISTS 同樣是寫「ANTIJOIN」的經典寫法 — 而且是延伸性最好的形式，因為內層查詢需要加更多條件時，它也一樣好用。</p>
       <div class="console" data-default="SELECT name&#10;FROM DEPARTMENT&#10;WHERE NOT EXISTS (&#10;  SELECT * FROM COURSE&#10;  WHERE offered_by = DEPARTMENT.name AND credits = 6&#10;);">
-        <div class="console-topbar" data-en="NOT EXISTS: departments that offer no 6-credit course at all">NOT EXISTS：完全沒有開 6 學分課程的系</div>
+        <div class="console-topbar" data-en="Extra practice: departments that offer no 6-credit course at all (a condition IN/NOT IN can't add this easily)">額外練習：完全沒有開 6 學分課程的系（這種額外條件用 IN/NOT IN 比較難加）</div>
         <textarea class="console-input" spellcheck="false">SELECT name
 FROM DEPARTMENT
 WHERE NOT EXISTS (
@@ -762,7 +919,6 @@ WHERE NOT EXISTS (
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Guess which department this is, then run">猜猜看是哪個系，再執行</span></div>
       </div>
-      <p data-en="EXISTS / NOT EXISTS is the classic way to phrase &quot;an ANTIJOIN&quot; — find rows in one table that have no matching row at all in another.">EXISTS / NOT EXISTS 是寫「ANTIJOIN」的經典寫法 — 找出一張表裡「在另一張表完全找不到對應資料」的那些列。</p>
     </section>
 
     <section id="views">
@@ -837,6 +993,19 @@ SELECT * FROM DCNT;</textarea>
     <section id="functions">
       <h2 data-en="18. Common Functions + SQL as a Calculator">18. 常用函數 + SQL 當計算機</h2>
       <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Formatting an amount as &quot;$1,234&quot;, concatenating a name into &quot;Mr. Wang&quot;, or comparing an email case-insensitively &mdash; this everyday text and number wrangling is what SQL functions are for.">訂單金額要顯示成「NT$1,234」這種格式、姓名要拼接成「王小明 先生」、比較顧客輸入的 Email 時不管大小寫 — 這些日常的文字跟數字加工，都是靠 SQL 函數完成。</span></div>
+      <h3 data-en="Row functions — computed once per row">Row 函數 — 每一列各算一次</h3>
+      <div class="console" data-default="SELECT UPPER(name) FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="UPPER: list department names in uppercase">UPPER：把系名稱全部轉成大寫列出來</div>
+        <textarea class="console-input" spellcheck="false">SELECT UPPER(name) FROM DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT SUBSTR(cnum, 1, 3), title FROM COURSE;">
+        <div class="console-topbar" data-en="SUBSTR: the first 3 characters of every course code, plus its title">SUBSTR：每個課程代號的前 3 個字元，加上課程名稱</div>
+        <textarea class="console-input" spellcheck="false">SELECT SUBSTR(cnum, 1, 3), title FROM COURSE;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
       <div class="console" data-default="SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget&#10;FROM DEPARTMENT;">
         <div class="console-topbar" data-en="IFNULL: treat a NULL budget as 0 so the math doesn't break">IFNULL：budget 是 NULL 時當作 0，避免運算出錯</div>
         <textarea class="console-input" spellcheck="false">SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget
@@ -844,6 +1013,34 @@ FROM DEPARTMENT;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
+
+      <h3 data-en="Group functions — one number for the whole table">Group 函數 — 對整張表算出一個數字</h3>
+      <p data-en="You've already used COUNT/SUM/AVG/MAX/MIN together with GROUP BY. Without a GROUP BY, the whole table is treated as one single group — handy for a single summary number.">前面用 COUNT/SUM/AVG/MAX/MIN 都是搭配 GROUP BY。如果不寫 GROUP BY，整張表就會被當成一個大組別 — 很適合用來算一個總結性的數字。</p>
+      <div class="console" data-default="SELECT COUNT(*) FROM COURSE;">
+        <div class="console-topbar" data-en="Total number of courses">課程總數</div>
+        <textarea class="console-input" spellcheck="false">SELECT COUNT(*) FROM COURSE;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT SUM(total_staff_number) FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="Total staff across all departments">全部系所的教職員人數加總</div>
+        <textarea class="console-input" spellcheck="false">SELECT SUM(total_staff_number) FROM DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT AVG(IFNULL(budget, 0)) FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="Average budget per department (NULL treated as 0)">每個系的平均預算（NULL 當作 0）</div>
+        <textarea class="console-input" spellcheck="false">SELECT AVG(IFNULL(budget, 0)) FROM DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT MAX(total_staff_number) FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="The largest department's staff count">教職員人數最多的系有幾人</div>
+        <textarea class="console-input" spellcheck="false">SELECT MAX(total_staff_number) FROM DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+
       <h3 data-en="CONCAT / INSTR — string building and searching">CONCAT / INSTR — 字串拼接與搜尋</h3>
       <p data-en="CONCAT(a, b, ...) joins strings together. INSTR(str, sub) returns the 1-based position where sub first appears in str (0 if not found) — handy together with SUBSTR.">CONCAT(a, b, ...) 把多個字串接在一起。INSTR(str, sub) 回傳 sub 第一次出現在 str 裡的位置（從 1 算起，找不到回傳 0）— 常常跟 SUBSTR 搭配使用。</p>
       <div class="console" data-default="SELECT CONCAT('Number: ', enum) AS label&#10;FROM EMPLOYEE&#10;WHERE enum = 10;">
@@ -865,6 +1062,33 @@ FROM DUAL;</textarea>
       <div class="console" data-default="SELECT 30 * 90.30 AS total_pay FROM DUAL;">
         <div class="console-topbar" data-en="SQL can be used as a plain calculator; DUAL is a fake, single-row placeholder table">SQL 可以直接當計算機用，DUAL 是一張假的虛擬表</div>
         <textarea class="console-input" spellcheck="false">SELECT 30 * 90.30 AS total_pay FROM DUAL;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+
+      <h3 data-en="SQL as a diary — date functions">SQL 當日記本 — 日期函數</h3>
+      <div class="tip"><span data-en="To keep the answers checkable, this page pins &quot;today&quot; to a fixed date — 2024-06-15 — instead of your computer's real current date. SYSDATE() / CURDATE() always return that same fixed day here.">為了讓答案可以對得起來，這個頁面把「今天」固定在 2024-06-15，而不是你電腦上真正的今天。這裡的 SYSDATE() / CURDATE() 永遠回傳這個固定的日子。</span></div>
+      <div class="console" data-default="SELECT DATE_ADD(SYSDATE(), INTERVAL 1 DAY) AS tomorrow FROM DUAL;">
+        <div class="console-topbar" data-en="What date is tomorrow?">明天是幾號？</div>
+        <textarea class="console-input" spellcheck="false">SELECT DATE_ADD(SYSDATE(), INTERVAL 1 DAY) AS tomorrow FROM DUAL;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="&quot;Today&quot; on this page is 2024-06-15 — guess tomorrow's date, then run">這頁的「今天」是 2024-06-15，先猜明天是幾號再執行</span></div>
+      </div>
+      <div class="console" data-default="SELECT DATE_ADD(SYSDATE(), INTERVAL 2 MONTH) AS two_months_later FROM DUAL;">
+        <div class="console-topbar" data-en="Add 2 months to today's date">從今天再加 2 個月</div>
+        <textarea class="console-input" spellcheck="false">SELECT DATE_ADD(SYSDATE(), INTERVAL 2 MONTH) AS two_months_later FROM DUAL;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT DATEDIFF(SYSDATE(), '2001-01-01') AS days_since FROM DUAL;">
+        <div class="console-topbar" data-en="How many days have passed since 1 January 2001?">從 2001 年 1 月 1 日到今天過了幾天？</div>
+        <textarea class="console-input" spellcheck="false">SELECT DATEDIFF(SYSDATE(), '2001-01-01') AS days_since FROM DUAL;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+      </div>
+      <div class="console" data-default="SELECT CONCAT('I am ', CURRENT_USER()) AS whoami FROM DUAL;">
+        <div class="console-topbar" data-en="Who am I? CURRENT_USER() returns the logged-in database user">我是誰？CURRENT_USER() 回傳目前登入的資料庫使用者</div>
+        <textarea class="console-input" spellcheck="false">SELECT CONCAT('I am ', CURRENT_USER()) AS whoami FROM DUAL;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
@@ -1112,6 +1336,28 @@ class ExprParser {
         this.next(); this.expectType('LPAREN'); const a1 = this.parseAdditive(); this.expectType('COMMA'); const a2 = this.parseAdditive(); this.expectType('RPAREN');
         return { type: 'FUNC', name: 'INSTR', args: [a1, a2] };
       }
+      if (upper === 'DATEDIFF') {
+        this.next(); this.expectType('LPAREN'); const a1 = this.parseAdditive(); this.expectType('COMMA'); const a2 = this.parseAdditive(); this.expectType('RPAREN');
+        return { type: 'FUNC', name: 'DATEDIFF', args: [a1, a2] };
+      }
+      if (upper === 'DATE_ADD') {
+        // DATE_ADD(日期, INTERVAL 數字 DAY/MONTH/YEAR) — INTERVAL 子句是特殊語法，不是一般逗號參數
+        this.next(); this.expectType('LPAREN');
+        const dateArg = this.parseAdditive();
+        this.expectType('COMMA');
+        this.expectKeyword('INTERVAL');
+        const amountArg = this.parseAdditive();
+        const unitTok = this.peek();
+        if (!unitTok || unitTok.type !== 'IDENT') throw new Error('DATE_ADD 需要 DAY / MONTH / YEAR 其中一個單位');
+        const unit = unitTok.value.toUpperCase();
+        this.next();
+        this.expectType('RPAREN');
+        return { type: 'FUNC', name: 'DATE_ADD', args: [dateArg, amountArg, { type: 'LIT', value: unit }] };
+      }
+      if (upper === 'SYSDATE' || upper === 'CURDATE' || upper === 'CURRENT_USER') {
+        this.next(); this.expectType('LPAREN'); this.expectType('RPAREN');
+        return { type: 'FUNC', name: upper, args: [] };
+      }
       if (upper === 'NULL') { this.next(); return { type: 'LIT', value: null }; }
       this.next();
       return { type: 'COL', name: t.value };
@@ -1152,6 +1398,19 @@ function applySimpleFunc(name, args) {
     case 'SUBSTR': { const s = args[0], start = args[1], len = args[2]; const str = String(s ?? ''); const from = start - 1; return len !== undefined ? str.substr(from, len) : str.substr(from); }
     case 'CONCAT': return args.map(a => String(a ?? '')).join('');
     case 'INSTR': { const s = String(args[0] ?? ''); const sub = String(args[1] ?? ''); return s.indexOf(sub) + 1; }
+    // 這個頁面的「今天」固定在 2024-06-15，答案才會是可以預測、對答案用的固定值，
+    // 不會因為你哪天打開這頁而每次都不一樣。
+    case 'SYSDATE': case 'CURDATE': return '2024-06-15';
+    case 'CURRENT_USER': return 'sql_notes_user';
+    case 'DATEDIFF': { const d1 = new Date(args[0] + 'T00:00:00Z'), d2 = new Date(args[1] + 'T00:00:00Z'); return Math.round((d1 - d2) / 86400000); }
+    case 'DATE_ADD': {
+      const d = new Date(args[0] + 'T00:00:00Z'); const amount = args[1]; const unit = args[2];
+      if (unit === 'DAY') d.setUTCDate(d.getUTCDate() + amount);
+      else if (unit === 'MONTH') d.setUTCMonth(d.getUTCMonth() + amount);
+      else if (unit === 'YEAR') d.setUTCFullYear(d.getUTCFullYear() + amount);
+      else throw new Error('DATE_ADD 不認識的單位: ' + unit);
+      return d.toISOString().slice(0, 10);
+    }
   }
 }
 function computeAggregate(name, argAst, rows) {
