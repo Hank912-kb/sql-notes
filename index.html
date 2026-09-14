@@ -271,15 +271,19 @@
       </table>
       <h3 data-en="Formatting rules">格式規則</h3>
       <p data-en="Keywords and table names are NOT case-sensitive — SELECT/select/Select all work the same. String literals (the values inside quotes) ARE case-sensitive.">關鍵字跟資料表名稱「不分大小寫」— SELECT / select / Select 效果一樣。但字串字面值（引號裡的值）「會分大小寫」。</p>
-      <div class="console" data-default="select title from course where credits = 6;">
+      <div class="console" data-default="select title&#10;from course&#10;where credits = 6;">
         <div class="console-topbar" data-en="Keywords in any case still work">關鍵字不管大小寫都能跑</div>
-        <textarea class="console-input" spellcheck="false">select title from course where credits = 6;</textarea>
+        <textarea class="console-input" spellcheck="false">select title
+from course
+where credits = 6;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
-      <div class="console" data-default="SELECT title FROM COURSE WHERE offered_by = 'physics';">
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE offered_by = 'physics';">
         <div class="console-topbar" data-en="But string literal case does matter — guess how many rows this returns">但字串字面值的大小寫有差 — 猜猜看這句會有幾筆</div>
-        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE offered_by = 'physics';</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE offered_by = 'physics';</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Real value is 'Physics' with a capital P — guess first, then run">實際的值是大寫開頭的 'Physics'，先猜再執行</span></div>
       </div>
@@ -371,9 +375,11 @@ SELECT * FROM COURSE;</textarea>
     <section id="select-where">
       <h2 data-en="5. SELECT / WHERE — basic filtering">5. SELECT / WHERE — 基本篩選</h2>
       <p data-en="SELECT decides which columns you see, WHERE decides which rows. The simplest comparison:">SELECT 決定要看哪些欄位，WHERE 決定要哪些列。最基本的比較：</p>
-      <div class="console" data-default="SELECT title FROM COURSE WHERE credits = 6;">
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE credits = 6;">
         <div class="console-topbar" data-en="Example: find every 6-credit course">範例：找出所有 6 學分的課</div>
-        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE credits = 6;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE credits = 6;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Guess how many rows come back, then run">先猜答案有幾筆，再執行</span></div>
       </div>
@@ -394,27 +400,33 @@ SELECT * FROM COURSE;</textarea>
       </div>
 
       <h3 data-en="Use IN instead of a pile of ORs">用 IN 取代一堆 OR</h3>
-      <div class="console" data-default="SELECT title FROM COURSE WHERE credits IN (6, 12);">
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE credits IN (6, 12);">
         <div class="console-topbar" data-en="Equivalent to credits = 6 OR credits = 12">等同於 credits = 6 OR credits = 12</div>
-        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE credits IN (6, 12);</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE credits IN (6, 12);</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
 
       <h3 data-en="AND / OR logic — the #1 beginner mistake">AND / OR 邏輯 — 新手最常錯的地方</h3>
       <p data-en="Rule of thumb: same column, two mutually-exclusive values → use OR; two different conditions that must both hold → use AND.">判斷口訣：同一個欄位、兩個互斥的值 → 用 <code>OR</code>；不同條件同時成立 → 才用 <code>AND</code>。</p>
-      <div class="console" data-default="SELECT title FROM COURSE WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');">
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');">
         <div class="console-topbar" data-en="A deliberately wrong example — guess how many rows come back">故意寫錯的例子：猜猜看會有幾筆結果？</div>
-        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE (offered_by = 'Physics') AND (offered_by = 'Mathematics');</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="One column can't equal two values at once — guess the result">同一欄位不可能同時等於兩個值，猜猜結果</span></div>
       </div>
       <div class="callout"><strong data-en="The result is always 0 rows">結果一定是 0 筆</strong><span data-en=" — offered_by is a single column; it can never be both Physics and Mathematics at the same time. This should use OR or IN instead."> — offered_by 是同一個欄位，不可能同時是 Physics 又是 Mathematics。這裡應該用 OR 或 IN。</span></div>
 
       <h3 data-en="LIKE — fuzzy pattern matching">LIKE 模糊比對</h3>
-      <div class="console" data-default="SELECT title FROM COURSE WHERE UPPER(title) LIKE '%DATA%';">
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE UPPER(title) LIKE '%DATA%';">
         <div class="console-topbar" data-en="% matches any characters; UPPER() makes the match case-insensitive">% 代表任意字元；UPPER() 讓比對不分大小寫</div>
-        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE UPPER(title) LIKE '%DATA%';</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE UPPER(title) LIKE '%DATA%';</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
@@ -423,9 +435,11 @@ SELECT * FROM COURSE;</textarea>
     <section id="orderby">
       <h2 data-en="6. ORDER BY — sorting">6. ORDER BY — 排序</h2>
       <p data-en="Defaults to ascending (ASC); add DESC for descending. You can sort by several columns at once — earlier columns take priority.">預設由小到大 (ASC)，要由大到小要加 DESC。可以同時排多個欄位，前面的欄位優先。</p>
-      <div class="console" data-default="SELECT cnum, title, credits FROM COURSE ORDER BY credits ASC, title DESC;">
+      <div class="console" data-default="SELECT cnum, title, credits&#10;FROM COURSE&#10;ORDER BY credits ASC, title DESC;">
         <div class="console-topbar" data-en="Sort by credits ascending first, then by title descending within ties">先照 credits 由小排到大，credits 相同的再照 title 由大排到小</div>
-        <textarea class="console-input" spellcheck="false">SELECT cnum, title, credits FROM COURSE ORDER BY credits ASC, title DESC;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT cnum, title, credits
+FROM COURSE
+ORDER BY credits ASC, title DESC;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Guess which row comes out first, then run">猜猜看排序後第一筆是誰</span></div>
       </div>
@@ -435,15 +449,19 @@ SELECT * FROM COURSE;</textarea>
     <section id="nullsec">
       <h2 data-en="7. Handling NULL — an easy point that's easy to lose">7. NULL 處理 — 送分題但常常寫錯</h2>
       <p data-en="NULL means &quot;no value / unknown&quot; — it's not a value you can compare against, so &quot;= NULL&quot; must never be written.">NULL 代表「沒有值 / 未知」，不是一個可以拿來比較的值，所以絕對不能寫 <code>= NULL</code>。</p>
-      <div class="console" data-default="SELECT title FROM COURSE WHERE offered_by = NULL;">
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE offered_by = NULL;">
         <div class="console-topbar" data-en="Deliberately wrong: this can logically never match anything">故意寫錯：這句話邏輯上永遠抓不到任何東西</div>
-        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE offered_by = NULL;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE offered_by = NULL;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it and guess whether it's empty">執行看看，猜猜是不是空的</span></div>
       </div>
-      <div class="console" data-default="SELECT title FROM COURSE WHERE offered_by IS NULL;">
+      <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE offered_by IS NULL;">
         <div class="console-topbar" data-en="The correct way to write it">正確寫法</div>
-        <textarea class="console-input" spellcheck="false">SELECT title FROM COURSE WHERE offered_by IS NULL;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT title
+FROM COURSE
+WHERE offered_by IS NULL;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
@@ -483,16 +501,21 @@ WHERE offered_by = 'Physics'
     <section id="groupby">
       <h2 data-en="9. GROUP BY / HAVING — grouped statistics">9. GROUP BY / HAVING — 分組統計</h2>
       <p data-en="GROUP BY collects rows with equal values into groups, usually paired with an aggregate function COUNT / SUM / AVG / MAX / MIN that reduces each group to one number.">GROUP BY 把相同值的列分成一組，通常搭配聚合函數 <code>COUNT / SUM / AVG / MAX / MIN</code> 對每組算出一個結果。</p>
-      <div class="console" data-default="SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by;">
+      <div class="console" data-default="SELECT offered_by, COUNT(*)&#10;FROM COURSE&#10;GROUP BY offered_by;">
         <div class="console-topbar" data-en="How many courses does each department offer?">每個系開了幾門課</div>
-        <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(*)
+FROM COURSE
+GROUP BY offered_by;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Guess each row's COUNT">猜猜每一列的 COUNT 是多少</span></div>
       </div>
       <div class="tip"><strong data-en="WHERE vs. HAVING:">WHERE 跟 HAVING 的差別：</strong><span data-en=" WHERE filters raw rows &quot;before&quot; grouping and can't use COUNT/SUM; HAVING filters whole groups &quot;after&quot; grouping and is usually paired with an aggregate function.">WHERE 在分組「之前」過濾原始列，不能用 COUNT/SUM；HAVING 在分組「之後」過濾整組，通常搭配聚合函數。</span></div>
-      <div class="console" data-default="SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by HAVING COUNT(*) > 1;">
+      <div class="console" data-default="SELECT offered_by, COUNT(*)&#10;FROM COURSE&#10;GROUP BY offered_by&#10;HAVING COUNT(*) > 1;">
         <div class="console-topbar" data-en="Keep only departments offering more than 1 course">只留下開課數量超過 1 門的系</div>
-        <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(*) FROM COURSE GROUP BY offered_by HAVING COUNT(*) > 1;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(*)
+FROM COURSE
+GROUP BY offered_by
+HAVING COUNT(*) > 1;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Which row disappeared compared to above?">跟上面比較少了哪一列？</span></div>
       </div>
@@ -511,9 +534,10 @@ WHERE DEPARTMENT.chair = 'Peter';</textarea>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
       <div class="callout"><strong data-en="Common mistake:">常見錯誤：</strong><span data-en=" writing JOIN but forgetting the ON condition turns it into a &quot;Cartesian product&quot; — every row of one table paired with every row of the other, row count explodes, and the logic is almost always wrong.">寫了 JOIN 卻忘記寫 ON 條件，會變成「笛卡兒積」— 兩張表的每一列互相配對，列數暴增，而且邏輯上通常是錯的。</span></div>
-      <div class="console" data-default="SELECT COURSE.title, DEPARTMENT.name FROM COURSE JOIN DEPARTMENT;">
+      <div class="console" data-default="SELECT COURSE.title, DEPARTMENT.name&#10;FROM COURSE JOIN DEPARTMENT;">
         <div class="console-topbar" data-en="Forgot the ON clause — guess how many rows come back">忘記寫 ON：猜猜看會有幾筆結果</div>
-        <textarea class="console-input" spellcheck="false">SELECT COURSE.title, DEPARTMENT.name FROM COURSE JOIN DEPARTMENT;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT COURSE.title, DEPARTMENT.name
+FROM COURSE JOIN DEPARTMENT;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="6 courses x 3 departments = ?">6 門課 x 3 個系 = ？</span></div>
       </div>
@@ -534,15 +558,19 @@ WHERE DEPARTMENT.chair = 'Peter';</textarea>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
       <p data-en="NATURAL JOIN and USING need two tables that actually share a column name — DEPARTMENT/COURSE don't (name vs. offered_by), so here are two small dedicated tables: STAFF(enum, ename, dname) and OFFICE(dname, chair), sharing the column dname.">NATURAL JOIN 跟 USING 需要兩張表真的有同名欄位 — DEPARTMENT/COURSE 並沒有（name 跟 offered_by 不同名），所以這裡用兩張專門示範的小表：STAFF(enum, ename, dname) 跟 OFFICE(dname, chair)，共用 dname 這個欄位。</p>
-      <div class="console" data-default="SELECT ename FROM STAFF NATURAL JOIN OFFICE WHERE chair = 'Peter';">
+      <div class="console" data-default="SELECT ename&#10;FROM STAFF NATURAL JOIN OFFICE&#10;WHERE chair = 'Peter';">
         <div class="console-topbar" data-en="NATURAL JOIN: auto-matches on the shared column dname">NATURAL JOIN：自動用同名欄位 dname 配對</div>
-        <textarea class="console-input" spellcheck="false">SELECT ename FROM STAFF NATURAL JOIN OFFICE WHERE chair = 'Peter';</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT ename
+FROM STAFF NATURAL JOIN OFFICE
+WHERE chair = 'Peter';</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Find staff in the department chaired by Peter">找出系主任是 Peter 那個系的員工</span></div>
       </div>
-      <div class="console" data-default="SELECT ename FROM STAFF JOIN OFFICE USING(dname) WHERE chair = 'Mary';">
+      <div class="console" data-default="SELECT ename&#10;FROM STAFF JOIN OFFICE USING(dname)&#10;WHERE chair = 'Mary';">
         <div class="console-topbar" data-en="USING: you name the shared column explicitly">USING：由你明確指定同名欄位</div>
-        <textarea class="console-input" spellcheck="false">SELECT ename FROM STAFF JOIN OFFICE USING(dname) WHERE chair = 'Mary';</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT ename
+FROM STAFF JOIN OFFICE USING(dname)
+WHERE chair = 'Mary';</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
@@ -622,29 +650,37 @@ WHERE E2.name = 'Kate';</textarea>
         <tr><td>RIGHT (OUTER) JOIN</td><td data-en="Every row from the right table, even with no match on the left">右邊資料表的每一列，就算左邊配對不到也保留</td></tr>
         <tr><td>FULL (OUTER) JOIN</td><td data-en="Every row from both sides — union of LEFT and RIGHT">兩邊的每一列都保留 — 等於 LEFT 加上 RIGHT 的聯集</td></tr>
       </table>
-      <div class="console" data-default="SELECT name, title FROM DEPARTMENT LEFT OUTER JOIN COURSE ON name = offered_by;">
+      <div class="console" data-default="SELECT name, title&#10;FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;ON name = offered_by;">
         <div class="console-topbar" data-en="LEFT JOIN: department names, plus the titles of courses each offers">LEFT JOIN：系名稱，加上每個系開的課名</div>
-        <textarea class="console-input" spellcheck="false">SELECT name, title FROM DEPARTMENT LEFT OUTER JOIN COURSE ON name = offered_by;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT name, title
+FROM DEPARTMENT LEFT OUTER JOIN COURSE
+ON name = offered_by;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
       <p data-en="In this dataset every department offers at least one course, so nothing shows up as NULL yet. Add an extra condition to see a department come up empty:">在這份資料裡每個系都至少開了一門課，所以現在還看不到 NULL。加一個額外條件，讓某個系「配對不到」看看：</p>
-      <div class="console" data-default="SELECT name, title FROM DEPARTMENT LEFT OUTER JOIN COURSE ON name = offered_by AND credits = 999;">
+      <div class="console" data-default="SELECT name, title&#10;FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;ON name = offered_by AND credits = 999;">
         <div class="console-topbar" data-en="No course has 999 credits, so every department is now unmatched">沒有課是 999 學分，所以現在每個系都配對不到</div>
-        <textarea class="console-input" spellcheck="false">SELECT name, title FROM DEPARTMENT LEFT OUTER JOIN COURSE ON name = offered_by AND credits = 999;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT name, title
+FROM DEPARTMENT LEFT OUTER JOIN COURSE
+ON name = offered_by AND credits = 999;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Guess: still 3 departments, but title is...?">猜猜看：還是 3 個系，但 title 會是？</span></div>
       </div>
-      <div class="console" data-default="SELECT name, title FROM DEPARTMENT RIGHT OUTER JOIN COURSE ON name = offered_by;">
+      <div class="console" data-default="SELECT name, title&#10;FROM DEPARTMENT RIGHT OUTER JOIN COURSE&#10;ON name = offered_by;">
         <div class="console-topbar" data-en="RIGHT JOIN: the course with no department (offered_by is NULL) is kept, with name padded as NULL">RIGHT JOIN：沒有系所的那門課（offered_by 是 NULL）會被保留，name 補 NULL</div>
-        <textarea class="console-input" spellcheck="false">SELECT name, title FROM DEPARTMENT RIGHT OUTER JOIN COURSE ON name = offered_by;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT name, title
+FROM DEPARTMENT RIGHT OUTER JOIN COURSE
+ON name = offered_by;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Find the 'Unknown' course in the results">在結果裡找找看那門叫 'Unknown' 的課</span></div>
       </div>
       <div class="tip"><span data-en="MySQL doesn't actually implement FULL OUTER JOIN — in a real MySQL you'd write it as a UNION of a LEFT JOIN and a RIGHT JOIN. This page's mini-engine accepts the FULL OUTER JOIN keyword directly, purely to make the concept easier to try.">MySQL 實際上沒有 FULL OUTER JOIN 這個語法 — 在真正的 MySQL 裡要自己用 LEFT JOIN 加 RIGHT JOIN 的 UNION 模擬。這個頁面的迷你引擎直接支援 FULL OUTER JOIN 關鍵字，單純是為了方便你先理解概念。</span></div>
-      <div class="console" data-default="SELECT name, title FROM DEPARTMENT FULL OUTER JOIN COURSE ON name = offered_by;">
+      <div class="console" data-default="SELECT name, title&#10;FROM DEPARTMENT FULL OUTER JOIN COURSE&#10;ON name = offered_by;">
         <div class="console-topbar" data-en="FULL OUTER JOIN: everything from both sides">FULL OUTER JOIN：兩邊全部都保留</div>
-        <textarea class="console-input" spellcheck="false">SELECT name, title FROM DEPARTMENT FULL OUTER JOIN COURSE ON name = offered_by;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT name, title
+FROM DEPARTMENT FULL OUTER JOIN COURSE
+ON name = offered_by;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
@@ -664,16 +700,26 @@ GROUP BY name;</textarea>
     <section id="nested">
       <h2 data-en="15. Nested Queries and EXISTS">15. 巢狀查詢與 EXISTS</h2>
       <p data-en="A nested query embeds another SELECT inside WHERE, SELECT, or FROM. You've already used this pattern with IN (SELECT ...). EXISTS is a different, often more natural, way to ask the same kind of question: &quot;does at least one matching row exist?&quot;">巢狀查詢就是把另一個 SELECT 包在 WHERE、SELECT 或 FROM 裡面。前面用過的 IN (SELECT ...) 就是這種寫法。EXISTS 是另一種、通常更直覺的問法：「至少有一列符合條件存在嗎？」</p>
-      <div class="console" data-default="SELECT chair FROM DEPARTMENT WHERE EXISTS (SELECT * FROM COURSE WHERE credits = 12 AND offered_by = DEPARTMENT.name);">
+      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE EXISTS (&#10;  SELECT * FROM COURSE&#10;  WHERE credits = 12 AND offered_by = DEPARTMENT.name&#10;);">
         <div class="console-topbar" data-en="Correlated subquery: find chairs of departments that offer a 12-credit course">相關子查詢：找出開了 12 學分課程的系主任</div>
-        <textarea class="console-input" spellcheck="false">SELECT chair FROM DEPARTMENT WHERE EXISTS (SELECT * FROM COURSE WHERE credits = 12 AND offered_by = DEPARTMENT.name);</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT chair
+FROM DEPARTMENT
+WHERE EXISTS (
+  SELECT * FROM COURSE
+  WHERE credits = 12 AND offered_by = DEPARTMENT.name
+);</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
       <div class="callout"><strong data-en="What makes it &quot;correlated&quot;:">為什麼叫「相關」子查詢：</strong><span data-en=" the inner SELECT references DEPARTMENT.name, a column from the outer query's table. The inner query is re-evaluated once per outer row — it can't be computed on its own the way an ordinary subquery can.">內層的 SELECT 引用了 DEPARTMENT.name — 這是外層查詢那張表的欄位。內層查詢會「針對外層每一列各跑一次」，不像一般子查詢可以先獨立算完再代進去。</span></div>
-      <div class="console" data-default="SELECT name FROM DEPARTMENT WHERE NOT EXISTS (SELECT * FROM COURSE WHERE offered_by = DEPARTMENT.name AND credits = 6);">
+      <div class="console" data-default="SELECT name&#10;FROM DEPARTMENT&#10;WHERE NOT EXISTS (&#10;  SELECT * FROM COURSE&#10;  WHERE offered_by = DEPARTMENT.name AND credits = 6&#10;);">
         <div class="console-topbar" data-en="NOT EXISTS: departments that offer no 6-credit course at all">NOT EXISTS：完全沒有開 6 學分課程的系</div>
-        <textarea class="console-input" spellcheck="false">SELECT name FROM DEPARTMENT WHERE NOT EXISTS (SELECT * FROM COURSE WHERE offered_by = DEPARTMENT.name AND credits = 6);</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT name
+FROM DEPARTMENT
+WHERE NOT EXISTS (
+  SELECT * FROM COURSE
+  WHERE offered_by = DEPARTMENT.name AND credits = 6
+);</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Guess which department this is, then run">猜猜看是哪個系，再執行</span></div>
       </div>
@@ -749,23 +795,27 @@ SELECT * FROM DCNT;</textarea>
 
     <section id="functions">
       <h2 data-en="18. Common Functions + SQL as a Calculator">18. 常用函數 + SQL 當計算機</h2>
-      <div class="console" data-default="SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget FROM DEPARTMENT;">
+      <div class="console" data-default="SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget&#10;FROM DEPARTMENT;">
         <div class="console-topbar" data-en="IFNULL: treat a NULL budget as 0 so the math doesn't break">IFNULL：budget 是 NULL 時當作 0，避免運算出錯</div>
-        <textarea class="console-input" spellcheck="false">SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget FROM DEPARTMENT;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget
+FROM DEPARTMENT;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
       <h3 data-en="CONCAT / INSTR — string building and searching">CONCAT / INSTR — 字串拼接與搜尋</h3>
       <p data-en="CONCAT(a, b, ...) joins strings together. INSTR(str, sub) returns the 1-based position where sub first appears in str (0 if not found) — handy together with SUBSTR.">CONCAT(a, b, ...) 把多個字串接在一起。INSTR(str, sub) 回傳 sub 第一次出現在 str 裡的位置（從 1 算起，找不到回傳 0）— 常常跟 SUBSTR 搭配使用。</p>
-      <div class="console" data-default="SELECT CONCAT('Number: ', enum) AS label FROM EMPLOYEE WHERE enum = 10;">
+      <div class="console" data-default="SELECT CONCAT('Number: ', enum) AS label&#10;FROM EMPLOYEE&#10;WHERE enum = 10;">
         <div class="console-topbar" data-en="CONCAT: build a label string">CONCAT：組出一個標籤字串</div>
-        <textarea class="console-input" spellcheck="false">SELECT CONCAT('Number: ', enum) AS label FROM EMPLOYEE WHERE enum = 10;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT CONCAT('Number: ', enum) AS label
+FROM EMPLOYEE
+WHERE enum = 10;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
-      <div class="console" data-default="SELECT SUBSTR('Hello world', INSTR('Hello world','e'), 5) AS x FROM DUAL;">
+      <div class="console" data-default="SELECT SUBSTR('Hello world', INSTR('Hello world','e'), 5) AS x&#10;FROM DUAL;">
         <div class="console-topbar" data-en="INSTR finds where 'e' is, then SUBSTR cuts 5 characters from there">INSTR 先找出 'e' 在哪裡，再用 SUBSTR 從那裡切 5 個字元</div>
-        <textarea class="console-input" spellcheck="false">SELECT SUBSTR('Hello world', INSTR('Hello world','e'), 5) AS x FROM DUAL;</textarea>
+        <textarea class="console-input" spellcheck="false">SELECT SUBSTR('Hello world', INSTR('Hello world','e'), 5) AS x
+FROM DUAL;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Guess the resulting substring, then run">先猜切出來的子字串，再執行</span></div>
       </div>
@@ -777,9 +827,11 @@ SELECT * FROM DCNT;</textarea>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
       <p style="font-size:.88rem;color:var(--ink-soft)" data-en="The box below is empty — your turn: find the department names where total_staff_number is greater than 12.">下面這個框是空的，換你自己寫寫看：試著找出 total_staff_number 大於 12 的系名稱。</p>
-      <div class="console" data-default="SELECT name FROM DEPARTMENT WHERE ">
+      <div class="console" data-default="SELECT name&#10;FROM DEPARTMENT&#10;WHERE ">
         <div class="console-topbar" data-en="Free practice area">自由練習區</div>
-        <textarea class="console-input" spellcheck="false">SELECT name FROM DEPARTMENT WHERE </textarea>
+        <textarea class="console-input" spellcheck="false">SELECT name
+FROM DEPARTMENT
+WHERE </textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Finish writing it, then run">寫完按執行</span></div>
       </div>
@@ -1754,7 +1806,12 @@ function enhanceCodeInput(ta) {
   wrap.appendChild(ta);
   function sync() { pre.innerHTML = highlightSQL(ta.value) + '\n'; }
   function autoResize() { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
-  function refresh() { sync(); autoResize(); }
+  // 排版還沒穩定前量 scrollHeight 常常會量到不準確的數字（例如頁面剛載入那一刻），
+  // 所以量高度這步延到下一次畫面重繪之後才做；上色本身沒有這個問題，可以立刻做。
+  function refresh() {
+    sync();
+    requestAnimationFrame(() => requestAnimationFrame(autoResize));
+  }
   ta.addEventListener('input', refresh);
   ta.addEventListener('scroll', () => { pre.scrollTop = ta.scrollTop; });
   refresh();
