@@ -140,7 +140,32 @@
     padding:6px 14px; font-size:.82rem; font-weight:600; cursor:pointer; font-family:var(--sans);
   }
   .reset-btn:hover{ color:var(--console-text); border-color:rgba(255,255,255,0.4); }
+  .source-btn{
+    background:transparent; color:#9FB6AC; border:1px solid rgba(255,255,255,0.18); border-radius:4px;
+    padding:6px 14px; font-size:.82rem; font-weight:600; cursor:pointer; font-family:var(--sans);
+  }
+  .source-btn:hover{ color:var(--console-accent); border-color:rgba(255,255,255,0.4); }
+  .source-panel{
+    padding:14px 18px; border-top:1px dashed rgba(255,255,255,0.14); background:rgba(255,255,255,0.03);
+    font-family:var(--mono); font-size:.82rem; color:var(--console-text); overflow-x:auto;
+  }
+  .source-table{ margin-bottom:14px; }
+  .source-table:last-child{ margin-bottom:0; }
+  .source-table-name{
+    font-family:var(--sans); font-weight:700; color:var(--console-accent); font-size:.75rem;
+    margin-bottom:6px; text-transform:uppercase; letter-spacing:.04em;
+  }
+  .source-panel table{ border-collapse:collapse; width:100%; }
+  .source-panel th, .source-panel td{
+    text-align:left; padding:4px 12px 4px 0; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap;
+  }
+  .source-panel th{ color:#9FB6AC; font-weight:700; }
   .console-hint{ color:#7C9389; font-size:.78rem; }
+  .scenario{
+    background:#E3EAF3; border-left:3px solid #3C6E9C;
+    padding:12px 16px; margin:16px 0; border-radius:0 4px 4px 0; font-size:.95rem;
+  }
+  .scenario strong{ color:#2A5178; }
   .console-result{
     background:var(--console-panel); padding:16px 18px; border-top:1px solid rgba(255,255,255,0.06);
     font-family:var(--mono); font-size:.88rem; color:var(--console-text); overflow-x:auto;
@@ -259,6 +284,7 @@
 
     <section id="intro">
       <h2 data-en="1. SQL Overview">1. SQL 語言總覽</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Any website, app, or internal system backed by a database runs on SQL &mdash; developers and analysts write it daily to look up member data, generate reports, or update inventory.">不管是網站後台、App，還是公司內部系統，只要背後有資料庫，開發者跟資料分析師幾乎每天都在寫 SQL — 從查會員資料、產生報表，到修改商品庫存，都要靠它。</span></div>
       <p data-en="SQL (Structured Query Language) was defined by IBM in the early 1970s under the name SEQUEL, first implemented in IBM's System R, and standardized by ANSI/ISO in 1986. It is a declarative, command-based language shared by nearly every relational database.">SQL（結構化查詢語言）由 IBM 在 1970 年代初期定義，最早叫做 SEQUEL，第一個實作是 IBM 的 System R，1986 年成為 ANSI/ISO 標準。它是一種宣告式、以指令為單位的語言，幾乎所有關聯式資料庫都在用。</p>
       <h3 data-en="Five families of SQL statements">SQL 語句的五大類</h3>
       <table class="static-tbl">
@@ -292,6 +318,7 @@ WHERE offered_by = 'physics';</textarea>
 
     <section id="ddl">
       <h2 data-en="2. Data Definition Language (DDL) — CREATE / ALTER / DROP TABLE">2. 資料定義語言 DDL — CREATE / ALTER / DROP TABLE</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Before shipping a new feature (say, a &quot;wishlist&quot;), engineers first CREATE TABLE to design where that data will live; when requirements change later, ALTER TABLE adds the new column.">工程師要上線一個新功能（例如「願望清單」）之前，通常要先用 CREATE TABLE 設計一張新的資料表來存放這個功能的資料；日後需求變了要加欄位，就用 ALTER TABLE。</span></div>
       <p data-en="DDL statements define the shape of a table: its columns, their types, and the constraints on them.">DDL 語句用來定義資料表的結構：有哪些欄位、每個欄位是什麼型別、有什麼限制條件。</p>
       <div class="skeleton skeleton-code">CREATE TABLE DEPARTMENT(
   name VARCHAR(50) NOT NULL,
@@ -327,6 +354,7 @@ SELECT * FROM COURSE;</textarea>
 
     <section id="dml">
       <h2 data-en="3. Data Manipulation Language (DML) — INSERT / UPDATE / DELETE">3. 資料操作語言 DML — INSERT / UPDATE / DELETE</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Signing up on a website is really an INSERT behind the scenes; editing your profile is an UPDATE; deleting a comment is a DELETE. Almost everything you tap on your phone turns into some DML statement.">使用者在網站上「註冊帳號」，背後其實是執行一次 INSERT；「修改個人資料」是 UPDATE；「刪除一則留言」是 DELETE。你每天滑手機做的操作，幾乎都會變成某一句 DML。</span></div>
       <p data-en="INSERT adds a new row, UPDATE changes rows that match a condition, and DELETE removes rows that match a condition. All three can be undone with ROLLBACK until COMMIT is executed — but they never remove the table itself.">INSERT 新增一列，UPDATE 修改符合條件的列，DELETE 刪除符合條件的列。這三個在 COMMIT 之前都能用 ROLLBACK 復原 — 但它們都不會把資料表本身刪掉。</p>
       <div class="skeleton skeleton-code">INSERT INTO DEPARTMENT
 VALUES ('Chemistry', 'CHEM', 8, NULL, 90000.0);
@@ -374,6 +402,7 @@ SELECT * FROM COURSE;</textarea>
 
     <section id="select-where">
       <h2 data-en="5. SELECT / WHERE — basic filtering">5. SELECT / WHERE — 基本篩選</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="An e-commerce backend showing &quot;only items under $500 in this category&quot;, or a support tool pulling up &quot;just this one customer's orders&quot; &mdash; that's SELECT plus WHERE at work.">電商後台想「只看某個分類、價格低於 500 元的商品」，或客服系統想「只調出某位顧客的訂單」— 這些都是 SELECT 加 WHERE 在做的事。</span></div>
       <p data-en="SELECT decides which columns you see, WHERE decides which rows. The simplest comparison:">SELECT 決定要看哪些欄位，WHERE 決定要哪些列。最基本的比較：</p>
       <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE credits = 6;">
         <div class="console-topbar" data-en="Example: find every 6-credit course">範例：找出所有 6 學分的課</div>
@@ -434,6 +463,7 @@ WHERE UPPER(title) LIKE '%DATA%';</textarea>
 
     <section id="orderby">
       <h2 data-en="6. ORDER BY — sorting">6. ORDER BY — 排序</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Leaderboards sorted by score, a shop's &quot;price: low to high&quot; filter, or a feed showing newest posts first &mdash; all ORDER BY.">排行榜依分數排序、購物網站的「價格由低到高」篩選、依日期由新到舊顯示的貼文列表，都是 ORDER BY。</span></div>
       <p data-en="Defaults to ascending (ASC); add DESC for descending. You can sort by several columns at once — earlier columns take priority.">預設由小到大 (ASC)，要由大到小要加 DESC。可以同時排多個欄位，前面的欄位優先。</p>
       <div class="console" data-default="SELECT cnum, title, credits&#10;FROM COURSE&#10;ORDER BY credits ASC, title DESC;">
         <div class="console-topbar" data-en="Sort by credits ascending first, then by title descending within ties">先照 credits 由小排到大，credits 相同的再照 title 由大排到小</div>
@@ -448,6 +478,7 @@ ORDER BY credits ASC, title DESC;</textarea>
 
     <section id="nullsec">
       <h2 data-en="7. Handling NULL — an easy point that's easy to lose">7. NULL 處理 — 送分題但常常寫錯</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="An &quot;optional&quot; field on a form that a user skips gets stored as NULL &mdash; not an empty string, not zero. Get NULL handling wrong in a report (like &quot;how many members gave an email&quot;) and the count will be off.">問卷或表單裡的「選填」欄位，使用者沒填就會存成 NULL — 不是空字串、也不是 0。做報表統計「有填 email 的會員數」時，就得正確處理 NULL，不然數字會算錯。</span></div>
       <p data-en="NULL means &quot;no value / unknown&quot; — it's not a value you can compare against, so &quot;= NULL&quot; must never be written.">NULL 代表「沒有值 / 未知」，不是一個可以拿來比較的值，所以絕對不能寫 <code>= NULL</code>。</p>
       <div class="console" data-default="SELECT title&#10;FROM COURSE&#10;WHERE offered_by = NULL;">
         <div class="console-topbar" data-en="Deliberately wrong: this can logically never match anything">故意寫錯：這句話邏輯上永遠抓不到任何東西</div>
@@ -469,6 +500,7 @@ WHERE offered_by IS NULL;</textarea>
 
     <section id="setops">
       <h2 data-en="8. Set Operations — UNION / simulating INTERSECT / MINUS">8. 集合運算 — UNION / 模擬 INTERSECT / MINUS</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Marketing wants &quot;VIP members who were also active this month&quot; (INTERSECT logic), or &quot;newsletter subscribers who never opened an email this month&quot; (MINUS logic) &mdash; exactly what set operations solve.">行銷部想找「同時是 VIP 會員又是本月活躍用戶」的名單（INTERSECT 的邏輯），或「有訂閱電子報但這個月完全沒開信」的名單（MINUS 的邏輯），這些都是集合運算在解決的問題。</span></div>
       <p><code>UNION</code><span data-en=" automatically removes duplicate rows; UNION ALL keeps every duplicate. MySQL has no INTERSECT or MINUS — you build them yourself with a subquery plus IN / NOT IN."> 會自動去除重複列；<code>UNION ALL</code> 不會去重複。MySQL 沒有 <code>INTERSECT</code> 跟 <code>MINUS</code>，要用子查詢搭配 <code>IN</code> / <code>NOT IN</code> 自己刻出來。</span></p>
       <div class="console" data-default="SELECT credits FROM COURSE WHERE offered_by = 'Physics'&#10;UNION&#10;SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';">
         <div class="console-topbar" data-en="UNION: credits offered by either department, duplicates removed automatically">UNION：兩系開的學分數，自動去重複</div>
@@ -500,6 +532,7 @@ WHERE offered_by = 'Physics'
 
     <section id="groupby">
       <h2 data-en="9. GROUP BY / HAVING — grouped statistics">9. GROUP BY / HAVING — 分組統計</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="&quot;Total sales per product category&quot; on an e-commerce dashboard, &quot;average grade per class&quot; in a school system, &quot;post count per user&quot; in an app &mdash; group first, then compute one number per group.">電商後台想知道「每個商品分類的總銷售額」、學校系統想算「每個班級的平均成績」、App 想統計「每位使用者的貼文數」— 都是先分組、再對每組算一個數字。</span></div>
       <p data-en="GROUP BY collects rows with equal values into groups, usually paired with an aggregate function COUNT / SUM / AVG / MAX / MIN that reduces each group to one number.">GROUP BY 把相同值的列分成一組，通常搭配聚合函數 <code>COUNT / SUM / AVG / MAX / MIN</code> 對每組算出一個結果。</p>
       <div class="console" data-default="SELECT offered_by, COUNT(*)&#10;FROM COURSE&#10;GROUP BY offered_by;">
         <div class="console-topbar" data-en="How many courses does each department offer?">每個系開了幾門課</div>
@@ -523,6 +556,7 @@ HAVING COUNT(*) > 1;</textarea>
 
     <section id="joinbasic">
       <h2 data-en="10. JOIN Basics — connecting two tables">10. JOIN 基礎 — 把兩張表接起來</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="An orders table usually stores just a customer ID, not the customer's name and address (to avoid duplicating them). To show the customer's name on an order, you JOIN the orders table with the customers table.">訂單資料表通常只存「顧客編號」，不會重複存顧客姓名跟地址；要在訂單明細上顯示顧客姓名，就要用 JOIN 把「訂單表」跟「顧客表」接起來。</span></div>
       <p data-en="When the columns you need are spread across two tables, connect them with a shared column. The standard way is JOIN ... ON:">當你要的欄位分散在兩張表時，需要用共同欄位把它們連起來。標準寫法用 <code>JOIN ... ON</code>：</p>
       <div class="console" data-default="SELECT COURSE.title&#10;FROM COURSE JOIN DEPARTMENT&#10;ON DEPARTMENT.name = COURSE.offered_by&#10;WHERE DEPARTMENT.chair = 'Peter';">
         <div class="console-topbar" data-en="Find the courses offered by the department chaired by Peter">找出系主任是 Peter 的系開的課</div>
@@ -545,6 +579,7 @@ FROM COURSE JOIN DEPARTMENT;</textarea>
 
     <section id="joinspecial">
       <h2 data-en="11. Special JOINs — NATURAL JOIN / USING / CROSS JOIN">11. 特殊 JOIN — NATURAL JOIN / USING / CROSS JOIN</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="When two tables happen to share a column name (e.g. both called dept_id), USING keeps the syntax short. But NATURAL JOIN can quietly match on a same-named column you never intended &mdash; a common source of subtle bugs when someone renames a column.">兩張表剛好用一樣的欄位名稱來連接時（例如兩邊都叫 dept_id），USING 可以讓語法更簡短；但要小心 NATURAL JOIN 常常在不知不覺中，把你沒預期要拿來配對的同名欄位也配對進去，公司系統改欄位名稱時很容易因此出問題。</span></div>
       <table class="static-tbl">
         <tr><th data-en="Type">類型</th><th data-en="Syntax">語法</th><th data-en="When to use">何時用</th></tr>
         <tr><td>CROSS JOIN</td><td><code>CROSS JOIN</code></td><td data-en="Pair every row with every row, no condition (Cartesian product)">無條件全配對（笛卡兒積）</td></tr>
@@ -579,6 +614,7 @@ WHERE chair = 'Mary';</textarea>
 
     <section id="multijoin">
       <h2 data-en="12. Multi-table JOIN">12. 多表 JOIN</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="&quot;Which courses is this student taking, and who teaches them&quot; usually needs data spread across three tables (students, enrolments, courses) &mdash; you join all three to get the answer.">想知道「某個學生選修了哪些課、授課教師是誰」，資料通常分散在「學生表」「選課表」「課程表」三張表裡，得一次接三張表才查得出來。</span></div>
       <p data-en="With three or more tables, find which two tables share a column and connect them one pair at a time — don't try to do it all in one step.">三張表以上，先找哪兩張表有共同欄位，一對一對接起來，不要想著一次到位。</p>
       <div class="console" data-default="SELECT STUDENT.name&#10;FROM COURSE JOIN ENROLMENT&#10;ON COURSE.cnum = ENROLMENT.cnum&#10;JOIN STUDENT&#10;ON ENROLMENT.snum = STUDENT.snum&#10;WHERE COURSE.title = 'C++';">
         <div class="console-topbar" data-en="Find the names of students who took C++">找出修過 C++ 這門課的學生姓名</div>
@@ -606,6 +642,7 @@ ON CE.snum = STUDENT.snum;</textarea>
 
     <section id="selfjoin">
       <h2 data-en="13. Self-Join — joining a table with itself">13. Self-Join — 跟自己 JOIN</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="An org chart (employees and their managers live in the same table), a &quot;friends of friends&quot; suggestion on social media, or &quot;this district's parent region&quot; in a mapping system &mdash; whenever a row points to another row in its own table, you need a self-join.">公司的組織圖（員工跟主管其實存在同一張員工表裡）、社群軟體的「朋友的朋友」推薦、地圖系統裡「這個地區的上一層行政區」— 只要資料「指向自己這張表裡的另一列」，就需要 self-join。</span></div>
       <p data-en="Joining a table with itself requires two different aliases. Here's a demo using &quot;employee - manager&quot; data:">同一張表要跟自己 JOIN，必須給兩個不同的別名（alias）。下面用「員工 - 主管」的資料做示範：</p>
       <div class="schema-card" style="margin-bottom:16px;">
         <h4>EMPLOYEE</h4>
@@ -643,6 +680,7 @@ WHERE E2.name = 'Kate';</textarea>
 
     <section id="outerjoin">
       <h2 data-en="14. OUTER JOIN — LEFT / RIGHT / FULL">14. 外部 JOIN — LEFT / RIGHT / FULL</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="A sales report listing &quot;this month's total per salesperson&quot; &mdash; even a salesperson with zero deals should still appear on the report with 0, not vanish entirely. That's exactly what LEFT JOIN is for.">業績報表要列出「每位業務員這個月的成交金額」，就算某位業務員這個月完全沒有成交，也希望他/她的名字出現在報表上、金額顯示 0，而不是整個人從報表上消失 — 這正是 LEFT JOIN 的用途。</span></div>
       <p data-en="A plain JOIN drops any row from either side that finds no match. An OUTER JOIN keeps the unmatched rows anyway, padding the missing side with NULL.">一般的 JOIN 會把兩邊配對不到的列都丟掉。OUTER JOIN 則會把配對不到的那一邊也保留下來，缺的欄位用 NULL 補上。</p>
       <table class="static-tbl">
         <tr><th data-en="Type">類型</th><th data-en="Keeps">保留哪一邊</th></tr>
@@ -699,6 +737,7 @@ GROUP BY name;</textarea>
 
     <section id="nested">
       <h2 data-en="15. Nested Queries and EXISTS">15. 巢狀查詢與 EXISTS</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Building a marketing list of &quot;members who have never placed an order&quot; (for a first-purchase coupon), or &quot;customers who bought a specific product at least once&quot; &mdash; these &quot;does it exist&quot; questions are exactly what EXISTS / NOT EXISTS are built for.">行銷名單想找「從來沒有下過訂單的會員」（用來發送首購優惠券），或找「至少買過一次特定商品的顧客」— 這種「存在 / 不存在」的問題，就是 EXISTS / NOT EXISTS 最擅長解決的。</span></div>
       <p data-en="A nested query embeds another SELECT inside WHERE, SELECT, or FROM. You've already used this pattern with IN (SELECT ...). EXISTS is a different, often more natural, way to ask the same kind of question: &quot;does at least one matching row exist?&quot;">巢狀查詢就是把另一個 SELECT 包在 WHERE、SELECT 或 FROM 裡面。前面用過的 IN (SELECT ...) 就是這種寫法。EXISTS 是另一種、通常更直覺的問法：「至少有一列符合條件存在嗎？」</p>
       <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE EXISTS (&#10;  SELECT * FROM COURSE&#10;  WHERE credits = 12 AND offered_by = DEPARTMENT.name&#10;);">
         <div class="console-topbar" data-en="Correlated subquery: find chairs of departments that offer a 12-credit course">相關子查詢：找出開了 12 學分課程的系主任</div>
@@ -728,6 +767,7 @@ WHERE NOT EXISTS (
 
     <section id="views">
       <h2 data-en="16. Views and the WITH Clause">16. View 與 WITH 子句</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Finance runs the same complex monthly rollup every month for reporting. Instead of rewriting a long query each time, save the logic as a VIEW &mdash; afterwards it's just SELECT * FROM that view, and anyone else can reuse it without understanding the underlying complexity.">財務部每個月都要跑同一組複雜的彙總計算來產生月報 — 與其每次重寫一長串 SQL，不如把邏輯存成一個 VIEW，之後只要 SELECT * FROM 這個 view 就好，其他人也能直接拿去用，不用搞懂背後複雜的邏輯。</span></div>
       <p data-en="An inline view is a SELECT wrapped in parentheses and used as if it were a table — you've already used it inside FROM. The WITH clause lets you name one or more inline views up front and reuse them, which keeps a complex query readable.">Inline view 就是把一個 SELECT 包在括號裡，當成一張表來用 — 前面在 FROM 子句裡已經用過。WITH 子句可以先把一個或多個 inline view 取名字放在前面，後面重複使用，讓複雜的查詢維持可讀性。</p>
       <div class="console" data-default="WITH DEPT_COURSE AS (&#10;  SELECT name, cnum FROM DEPARTMENT LEFT OUTER JOIN COURSE ON DEPARTMENT.name = COURSE.offered_by&#10;),&#10;DC_COUNT AS (&#10;  SELECT name, COUNT(cnum) AS total_courses FROM DEPT_COURSE GROUP BY name&#10;)&#10;SELECT name FROM DC_COUNT WHERE total_courses > 1;">
         <div class="console-topbar" data-en="Two chained CTEs: first join+select, then group+count on top of it">兩個串接的 CTE：先做 JOIN+SELECT，再對它做 GROUP BY+COUNT</div>
@@ -756,6 +796,7 @@ SELECT name FROM VDEPT WHERE total_courses > 1;</div>
 
     <section id="advanceddml">
       <h2 data-en="17. Advanced DDL / DML">17. 進階 DDL / DML</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Archiving &quot;this quarter's orders&quot; into a history table at quarter-end can be done in one shot with CREATE TABLE ... AS or INSERT INTO ... SELECT; clearing out a &quot;temporary import&quot; table is much faster with TRUNCATE than deleting row by row.">季末要把「這一季的訂單」全部封存到另一張歷史資料表，可以用 CREATE TABLE ... AS 或 INSERT INTO ... SELECT 一次搬過去；清空一張「暫存匯入資料」的表格，用 TRUNCATE 比一筆一筆 DELETE 快得多。</span></div>
       <p data-en="TRUNCATE TABLE removes every row from a table permanently and fast — unlike DELETE, it can't be rolled back and it has no WHERE clause.">TRUNCATE TABLE 會把一張表的所有資料永久且快速地清空 — 跟 DELETE 不同，它不能被 ROLLBACK，也沒有 WHERE 子句。</p>
       <p data-en="CREATE TABLE ... AS (SELECT ...) creates a brand new table and fills it with a query's result in one step. INSERT INTO ... (SELECT ...) does the same into an already-existing table. DELETE and UPDATE can also carry a subquery in their WHERE clause, including a correlated one.">CREATE TABLE ... AS (SELECT ...) 可以一次建立一張新表，並把查詢結果灌進去。INSERT INTO ... (SELECT ...) 則是把查詢結果灌進「已經存在」的表。DELETE 跟 UPDATE 的 WHERE 子句裡也可以放子查詢，包括相關子查詢。</p>
       <div class="skeleton skeleton-code">CREATE TABLE DCNT AS (
@@ -795,6 +836,7 @@ SELECT * FROM DCNT;</textarea>
 
     <section id="functions">
       <h2 data-en="18. Common Functions + SQL as a Calculator">18. 常用函數 + SQL 當計算機</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Formatting an amount as &quot;$1,234&quot;, concatenating a name into &quot;Mr. Wang&quot;, or comparing an email case-insensitively &mdash; this everyday text and number wrangling is what SQL functions are for.">訂單金額要顯示成「NT$1,234」這種格式、姓名要拼接成「王小明 先生」、比較顧客輸入的 Email 時不管大小寫 — 這些日常的文字跟數字加工，都是靠 SQL 函數完成。</span></div>
       <div class="console" data-default="SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget&#10;FROM DEPARTMENT;">
         <div class="console-topbar" data-en="IFNULL: treat a NULL budget as 0 so the math doesn't break">IFNULL：budget 是 NULL 時當作 0，避免運算出錯</div>
         <textarea class="console-input" spellcheck="false">SELECT name, IFNULL(budget,0) * 1.1 AS boosted_budget
@@ -1836,6 +1878,59 @@ function resultToHTML(result) {
 }
 function renderResult(el, result) { el.innerHTML = resultToHTML(result); }
 
+// ---- 「查看原始資料表」---- 讓人可以隨時比對「查詢結果」跟「原本的資料表長怎樣」，
+// 不用捲到頁面最下面的資料表結構章節。
+function tableNamesOf(tables) { return Object.keys(tables).filter(k => k !== '__cols' && k !== 'DUAL'); }
+function detectReferencedTables(sql, names) {
+  return names.filter(name => new RegExp('\\b' + name + '\\b', 'i').test(sql));
+}
+function renderSourceTablesHTML(names, tables) {
+  if (!names.length) {
+    return '<span class="placeholder">（這句話沒有用到頁面上的資料表，或找不到資料表名稱）</span>';
+  }
+  return names.map(name => {
+    const rows = tables[name];
+    const header = '<div class="source-table-name">' + escapeHtml(name) + '</div>';
+    if (!rows || !rows.length) return '<div class="source-table">' + header + '<span class="placeholder">（目前沒有資料）</span></div>';
+    const cols = Object.keys(rows[0]);
+    let html = '<div class="source-table">' + header + '<table><thead><tr>';
+    cols.forEach(c => { html += '<th>' + escapeHtml(c) + '</th>'; });
+    html += '</tr></thead><tbody>';
+    rows.forEach(r => {
+      html += '<tr>';
+      cols.forEach(c => { const v = r[c]; html += '<td>' + (v === null || v === undefined ? '<span class="null-val">NULL</span>' : escapeHtml(v)) + '</td>'; });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }).join('');
+}
+// label: {zh, en} 按鈕文字；getTables(): 回傳目前該用哪一份資料表物件 (全域 TABLES，或沙盒自己的 store)
+function addSourceToggle(el, ta, getTables, label) {
+  const actions = el.querySelector('.console-actions');
+  if (!actions) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'source-btn';
+  btn.textContent = label.zh;
+  btn.dataset.zh = label.zh;
+  btn.dataset.en = label.en;
+  const panel = document.createElement('div');
+  panel.className = 'source-panel';
+  panel.hidden = true;
+  actions.parentNode.insertBefore(panel, actions.nextSibling);
+  const hint = actions.querySelector('.console-hint');
+  if (hint) actions.insertBefore(btn, hint); else actions.appendChild(btn);
+  btn.addEventListener('click', () => {
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) {
+      const tables = getTables();
+      const names = detectReferencedTables(ta.value, tableNamesOf(tables));
+      panel.innerHTML = renderSourceTablesHTML(names, tables);
+    }
+  });
+}
+
 // ---- 靜態語法示範區塊（非互動，只需要上色，不需要 textarea 疊層） ----
 document.querySelectorAll('.skeleton.skeleton-code').forEach(el => {
   el.innerHTML = highlightSQL(el.textContent);
@@ -1847,6 +1942,7 @@ document.querySelectorAll('.console:not(.sandbox)').forEach(el => {
   const btn = el.querySelector('.run-btn');
   const resultEl = el.querySelector('.console-result');
   enhanceCodeInput(ta);
+  addSourceToggle(el, ta, () => TABLES, { zh: '📋 查看原始資料表', en: '📋 View source tables' });
   function run() {
     try { const r = runQuery(ta.value); renderResult(resultEl, r); }
     catch (e) { resultEl.innerHTML = '<div class="console-error">⚠ ' + escapeHtml(e.message) + '</div>'; }
@@ -1865,6 +1961,7 @@ document.querySelectorAll('.console.sandbox').forEach(el => {
   const defaultScript = el.dataset.default || ta.value;
   const codeInput = enhanceCodeInput(ta);
   let store = cloneStore(seedNames);
+  addSourceToggle(el, ta, () => store, { zh: '📋 查看目前資料表', en: '📋 View current tables' });
   function renderTranscript(steps) {
     let html = '';
     steps.forEach(st => {
