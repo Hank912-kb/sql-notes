@@ -166,6 +166,11 @@
     padding:12px 16px; margin:16px 0; border-radius:0 4px 4px 0; font-size:.95rem;
   }
   .scenario strong{ color:#2A5178; }
+  .skeleton.bad{ border-left:4px solid #C0553B; background:#FBEEE9; }
+  .skeleton.good{ border-left:4px solid var(--teal); background:#EAF3EF; }
+  .verdict{ display:inline-block; font-family:var(--sans); font-weight:700; font-size:.85rem; margin:14px 0 -6px; }
+  .verdict.bad{ color:#C0553B; }
+  .verdict.good{ color:var(--teal); }
   .console-result{
     background:var(--console-panel); padding:16px 18px; border-top:1px solid rgba(255,255,255,0.06);
     font-family:var(--mono); font-size:.88rem; color:var(--console-text); overflow-x:auto;
@@ -359,6 +364,64 @@ ALTER TABLE DEPARTMENT ADD CONSTRAINT dept_check2
 ALTER TABLE COURSE DROP FOREIGN KEY course_fkey1;
 ALTER TABLE DEPARTMENT DROP PRIMARY KEY;
 ALTER TABLE DEPARTMENT RENAME TO NEWDEPARTMENT;</div>
+
+      <h3 data-en="Adding constraints with ALTER TABLE — 4 places where it usually goes wrong">用 ALTER TABLE 加限制條件 — 最容易翻車的四個地方</h3>
+      <p data-en="Suppose a PAYMENT table has a Fee column that must be more than 0 and not larger than 9999.99. Writing that constraint trips people up in four places:">假設 PAYMENT 資料表有一個 Fee（費用）欄位，規定「必須大於 0、且不超過 9999.99」。要把這個規則寫成限制條件，最容易在下面四個地方出錯：</p>
+
+      <p><strong data-en="① DECIMAL(p, s) — get the precision right">① DECIMAL(p, s) 的精度算對</strong></p>
+      <p data-en="In DECIMAL(p, s), p is the TOTAL number of digits and s is the number of digits after the decimal point. So the integer part gets p − s digits. To store 9999.99 (4 integer digits + 2 decimals) you need DECIMAL(6, 2), not DECIMAL(4, 2).">DECIMAL(p, s) 裡，p 是「總位數」、s 是「小數位數」，所以整數部分能用的位數 = p − s。要存 9999.99（整數 4 位＋小數 2 位）就要寫 DECIMAL(6, 2)，不是 DECIMAL(4, 2)。</p>
+      <table class="static-tbl">
+        <tr><th data-en="Column type">欄位型別</th><th data-en="Integer digits (p − s)">整數位數（p − s）</th><th data-en="Largest value it can hold">最大能存的值</th></tr>
+        <tr><td><code>DECIMAL(4,2)</code></td><td>2</td><td><code>99.99</code></td></tr>
+        <tr><td><code>DECIMAL(6,2)</code></td><td>4</td><td><code>9999.99</code></td></tr>
+        <tr><td><code>DECIMAL(9,1)</code></td><td>8</td><td><code>99999999.9</code></td></tr>
+      </table>
+      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="The last row is exactly DEPARTMENT.budget from this page's schema — DECIMAL(9,1).">最後一列就是本頁 DEPARTMENT.budget 的型別 — DECIMAL(9,1)。</p>
+      <div class="verdict bad" data-en="✗ DECIMAL(4,2) tops out at 99.99 — 9999.99 does not fit">✗ DECIMAL(4,2) 上限只到 99.99，9999.99 存不進去</div>
+      <div class="skeleton skeleton-code">ALTER TABLE PAYMENT MODIFY Fee DECIMAL(4,2) NOT NULL;</div>
+      <div class="verdict good" data-en="✓ DECIMAL(6,2): 4 integer digits + 2 decimals">✓ DECIMAL(6,2)：整數 4 位＋小數 2 位</div>
+      <div class="skeleton skeleton-code">ALTER TABLE PAYMENT MODIFY Fee DECIMAL(6,2) NOT NULL;</div>
+
+      <p><strong data-en="② MODIFY changes the column type — it cannot express a condition">② MODIFY 只能改欄位「型別」，不能寫條件式</strong></p>
+      <p data-en="MODIFY redefines a column's type (and NULL / NOT NULL). A rule like &quot;more than 0 and at most 9999.99&quot; is a condition, so it belongs in a CHECK constraint added with ADD CONSTRAINT.">MODIFY 是用來重新定義欄位的型別（以及 NULL / NOT NULL）。「大於 0 且小於等於某個值」這種是「條件」，要用 ADD CONSTRAINT 加一條 CHECK 限制。</p>
+      <div class="verdict bad" data-en="✗ MODIFY cannot be followed by a condition">✗ MODIFY 後面不能直接接條件式</div>
+      <div class="skeleton skeleton-code">ALTER TABLE PAYMENT MODIFY Fee &gt; 0 AND Fee &lt;= 9999.99;</div>
+      <div class="verdict good" data-en="✓ Type goes to MODIFY, the condition goes to ADD CONSTRAINT ... CHECK">✓ 型別交給 MODIFY，條件交給 ADD CONSTRAINT ... CHECK</div>
+      <div class="skeleton skeleton-code">ALTER TABLE PAYMENT MODIFY Fee DECIMAL(6,2) NOT NULL;
+ALTER TABLE PAYMENT ADD CONSTRAINT fee_range
+  CHECK (Fee &gt; 0 AND Fee &lt;= 9999.99);</div>
+
+      <p><strong data-en="③ Write the full condition inside CHECK — including the column name">③ CHECK 裡的條件要寫完整，包含欄位名</strong></p>
+      <p data-en="Every comparison needs something to compare: the column name on the left, the operator, then the value. Two comparisons are joined with AND (or OR), not with a comma.">每一個比較都要有「比較的對象」：欄位名在左邊、接運算符號、再接數值。兩個比較之間用 AND（或 OR）連接，不是用逗號。</p>
+      <div class="verdict bad" data-en="✗ No column to compare — SQL cannot parse it">✗ 缺少比較對象，SQL 看不懂</div>
+      <div class="skeleton skeleton-code">ALTER TABLE PAYMENT ADD CONSTRAINT fee_range
+  CHECK (&gt;0, &lt;9999.99);</div>
+      <div class="verdict good" data-en="✓ column name + operator + value, joined with AND">✓ 欄位名 ＋ 比較符號 ＋ 數值，再用 AND 連起來</div>
+      <div class="skeleton skeleton-code">ALTER TABLE PAYMENT ADD CONSTRAINT fee_range
+  CHECK (Fee &gt; 0 AND Fee &lt;= 9999.99);</div>
+
+      <p><strong data-en="④ Boundaries: &quot;not larger than X&quot; means ≤ X">④ 邊界判斷：「不超過 X」要用小於等於</strong></p>
+      <p data-en="&quot;Not larger than 9999.99&quot; means 9999.99 itself is still allowed. Using a strict less-than would wrongly reject exactly 9999.99. Read the wording carefully to pick the operator:">「不超過 9999.99」代表 9999.99 本身也是合法的值。如果用嚴格的「小於」，剛好等於 9999.99 的合法資料會被誤擋掉。看到題目的說法時，照下表選符號：</p>
+      <table class="static-tbl">
+        <tr><th data-en="Wording">題目說法</th><th data-en="Operator">符號</th><th data-en="Is X itself allowed?">X 本身合法嗎？</th></tr>
+        <tr><td data-en="larger than X / more than X">大於 X</td><td><code>&gt;</code></td><td data-en="No">不合法</td></tr>
+        <tr><td data-en="at least X">至少 X</td><td><code>&gt;=</code></td><td data-en="Yes">合法</td></tr>
+        <tr><td data-en="smaller than X / less than X">小於 X</td><td><code>&lt;</code></td><td data-en="No">不合法</td></tr>
+        <tr><td data-en="not larger than X / at most X">不超過 X（最多 X）</td><td><code>&lt;=</code></td><td data-en="Yes">合法</td></tr>
+      </table>
+      <div class="verdict bad" data-en="✗ A strict &lt; wrongly rejects a Fee of exactly 9999.99">✗ 用 < 會誤擋掉剛好等於 9999.99 的合法值</div>
+      <div class="skeleton skeleton-code">ALTER TABLE PAYMENT ADD CONSTRAINT fee_range
+  CHECK (Fee &gt; 0 AND Fee &lt; 9999.99);</div>
+      <div class="verdict good" data-en="✓ not larger than → less-than-or-equal &lt;=">✓ 不超過 → 小於等於 &lt;=</div>
+      <div class="skeleton skeleton-code">ALTER TABLE PAYMENT ADD CONSTRAINT fee_range
+  CHECK (Fee &gt; 0 AND Fee &lt;= 9999.99);</div>
+
+      <div class="tip"><strong data-en="Putting it all together:">全部合起來：</strong><span data-en=" first fix the type so the column can physically hold 9999.99, then add one CHECK with the complete condition."> 先用 MODIFY 把型別改對，確保欄位真的存得下 9999.99；再用一條 ADD CONSTRAINT ... CHECK 寫完整的條件。</span>
+        <div class="skeleton skeleton-code" style="margin:10px 0 0;">ALTER TABLE PAYMENT MODIFY Fee DECIMAL(6,2) NOT NULL;
+ALTER TABLE PAYMENT ADD CONSTRAINT fee_range
+  CHECK (Fee &gt; 0 AND Fee &lt;= 9999.99);</div>
+      </div>
+      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="The sandbox below accepts this syntax but does not enforce CHECK constraints, so a wrong constraint won't produce an error there — use this section as the checklist when writing your own.">下面的沙盒可以接受這些語法，但不會真的去檢查 CHECK 限制，所以寫錯也不會報錯 — 這一節請當成自己寫限制條件時的檢查清單。</p>
       <div class="callout"><strong data-en="Try it yourself:">動手做做看：</strong><span data-en="The sandbox console below has its own private copy of DEPARTMENT/COURSE — anything you CREATE, ALTER, or DROP here only affects this console, and never touches the tables used elsewhere on this page. Write several statements separated by semicolons and hit Run to execute them in order; use Reset to start over.">下面這台「沙盒主控台」有自己獨立的一份 DEPARTMENT / COURSE 複本 — 在這裡 CREATE、ALTER、DROP 只會影響這台主控台，不會動到頁面其他地方用的資料表。可以一次寫好幾句、用分號隔開，按執行會依序跑完；按重置可以重新開始。</span></div>
       <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="ALTER TABLE DEPARTMENT ADD COLUMN category VARCHAR(20);
 SELECT name, category FROM DEPARTMENT;
@@ -2118,7 +2181,7 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp
 //   hl-func   函數名稱 (COUNT, UPPER, SUBSTR, CONCAT ...)
 //   hl-string 字串常值
 const HL_GROUPS = [
-  { cls: 'hl-ddl', words: ['CREATE TABLE', 'CREATE VIEW', 'DROP TABLE', 'ALTER TABLE', 'TRUNCATE TABLE', 'ADD COLUMN', 'DROP COLUMN', 'RENAME TO', 'PRIMARY KEY', 'FOREIGN KEY', 'NOT NULL', 'REFERENCES', 'CONSTRAINT', 'UNIQUE', 'CHECK', 'INSERT INTO', 'DELETE FROM', 'CREATE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'TABLE', 'VIEW', 'TRUNCATE', 'INSERT', 'DELETE', 'UPDATE', 'SET', 'VALUES', 'DEFAULT', 'CASCADE'] },
+  { cls: 'hl-ddl', words: ['CREATE TABLE', 'CREATE VIEW', 'DROP TABLE', 'ALTER TABLE', 'TRUNCATE TABLE', 'ADD COLUMN', 'DROP COLUMN', 'RENAME TO', 'PRIMARY KEY', 'FOREIGN KEY', 'NOT NULL', 'REFERENCES', 'CONSTRAINT', 'UNIQUE', 'CHECK', 'INSERT INTO', 'DELETE FROM', 'CREATE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'TABLE', 'VIEW', 'TRUNCATE', 'MODIFY', 'INSERT', 'DELETE', 'UPDATE', 'SET', 'VALUES', 'DEFAULT', 'CASCADE'] },
   { cls: 'hl-clause', words: ['LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN', 'NATURAL JOIN', 'CROSS JOIN', 'GROUP BY', 'ORDER BY', 'UNION ALL', 'SELECT', 'FROM', 'WHERE', 'JOIN', 'ON', 'USING', 'HAVING', 'UNION', 'WITH', 'OUTER', 'INTO'] },
   { cls: 'hl-logic', words: ['IS NOT NULL', 'IS NULL', 'NOT IN', 'NOT EXISTS', 'NOT', 'AND', 'OR', 'IN', 'IS', 'NULL', 'LIKE', 'BETWEEN', 'EXISTS', 'DISTINCT', 'AS', 'ASC', 'DESC'] },
   { cls: 'hl-func', words: ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'UPPER', 'LOWER', 'SUBSTR', 'CONCAT', 'INSTR', 'IFNULL', 'LENGTH', 'DUAL'] },
@@ -2347,6 +2410,12 @@ const QUIZ = [
   { correct: 0,
     zh: { q: '一個關聯式 View（CREATE VIEW）本質上是什麼？', opts: ['一個存起來的、有名字的 SELECT 敘述，每次查詢時重新算', '一份真正另外複製、永久儲存的資料', '一種特殊的索引'], explain: 'View 不佔額外的儲存空間，每次被用到就把它的定義代進去重新執行一次，本質上跟 inline view / WITH 子句是同一件事。' },
     en: { q: 'What is a relational view (CREATE VIEW) fundamentally?', opts: ['A stored, named SELECT statement, re-evaluated every time it\'s queried', 'A separately copied, permanently stored set of data', 'A special kind of index'], explain: 'A view occupies no extra storage — every time it\'s used, its definition is substituted in and re-run. It\'s fundamentally the same idea as an inline view / WITH clause.' } },
+  { correct: 1,
+    zh: { q: 'Fee 欄位要能存到 9999.99（整數 4 位、小數 2 位），該用哪個型別？', opts: ['DECIMAL(4,2)', 'DECIMAL(6,2)', 'DECIMAL(2,4)'], explain: 'DECIMAL(p,s) 的 p 是總位數、s 是小數位數，整數位數 = p − s。整數 4 位＋小數 2 位 = 總共 6 位，所以是 DECIMAL(6,2)；DECIMAL(4,2) 的整數只有 2 位，上限是 99.99。' },
+    en: { q: 'A Fee column must hold values up to 9999.99 (4 integer digits, 2 decimals). Which type fits?', opts: ['DECIMAL(4,2)', 'DECIMAL(6,2)', 'DECIMAL(2,4)'], explain: 'In DECIMAL(p,s), p is the total digit count and s the decimals, so integer digits = p − s. 4 integer + 2 decimal digits = 6 total, so DECIMAL(6,2). DECIMAL(4,2) only has 2 integer digits and tops out at 99.99.' } },
+  { correct: 2,
+    zh: { q: '要規定 Fee「大於 0 且不超過 9999.99」，下列哪個寫法正確？', opts: ['ALTER TABLE PAYMENT MODIFY Fee > 0 AND Fee <= 9999.99;', 'ALTER TABLE PAYMENT ADD CONSTRAINT c CHECK(>0, <9999.99);', 'ALTER TABLE PAYMENT ADD CONSTRAINT c CHECK(Fee > 0 AND Fee <= 9999.99);'], explain: 'MODIFY 只能改型別，不能寫條件式；CHECK 裡每個比較都要有欄位名，並用 AND 連接；「不超過」代表 9999.99 本身合法，要用 <=。' },
+    en: { q: 'Which statement correctly requires Fee to be "more than 0 and not larger than 9999.99"?', opts: ['ALTER TABLE PAYMENT MODIFY Fee > 0 AND Fee <= 9999.99;', 'ALTER TABLE PAYMENT ADD CONSTRAINT c CHECK(>0, <9999.99);', 'ALTER TABLE PAYMENT ADD CONSTRAINT c CHECK(Fee > 0 AND Fee <= 9999.99);'], explain: 'MODIFY only changes the type and cannot hold a condition; every comparison inside CHECK needs the column name and is joined with AND; "not larger than" means 9999.99 itself is valid, so use <=.' } },
 ];
 const quizContainer = document.getElementById('quiz-container');
 let quizScore = 0, quizAnswered = 0;
@@ -2399,6 +2468,10 @@ const FLASH = [
   { zh: { term: 'Relational View', def: '儲存起來、有名字的 SELECT 敘述，本身不佔資料儲存空間，每次查詢時重新展開執行。' }, en: { term: 'Relational View', def: 'A stored, named SELECT statement that occupies no data storage of its own — it is re-expanded and re-run every time it is queried.' } },
   { zh: { term: 'DDL vs DML', def: 'DDL（CREATE/ALTER/DROP）定義資料表的結構；DML（INSERT/UPDATE/DELETE）操作資料表裡的內容。' }, en: { term: 'DDL vs DML', def: 'DDL (CREATE/ALTER/DROP) defines a table\'s structure; DML (INSERT/UPDATE/DELETE) operates on the data inside it.' } },
   { zh: { term: 'TRUNCATE TABLE', def: '快速清空一張表的所有資料，是 DDL、無法 ROLLBACK，也沒有 WHERE 子句可用。' }, en: { term: 'TRUNCATE TABLE', def: 'Quickly empties every row from a table. It\'s DDL, cannot be rolled back, and has no WHERE clause.' } },
+  { zh: { term: 'DECIMAL(p,s) 精度', def: 'p 是總位數、s 是小數位數，整數位數 = p − s。要存 9999.99 要寫 DECIMAL(6,2)，DECIMAL(4,2) 只到 99.99。' }, en: { term: 'DECIMAL(p,s) precision', def: 'p is the total digit count, s the decimals; integer digits = p − s. To store 9999.99 use DECIMAL(6,2) — DECIMAL(4,2) stops at 99.99.' } },
+  { zh: { term: 'MODIFY vs ADD CONSTRAINT', def: 'MODIFY 只改欄位型別（與 NULL / NOT NULL），不能寫條件式；條件式要用 ADD CONSTRAINT ... CHECK(...)。' }, en: { term: 'MODIFY vs ADD CONSTRAINT', def: 'MODIFY only changes a column\'s type (and NULL / NOT NULL) — it cannot hold a condition. Conditions go in ADD CONSTRAINT ... CHECK(...).' } },
+  { zh: { term: 'CHECK 條件要寫完整', def: '每個比較都要有欄位名：CHECK(Fee > 0 AND Fee <= 9999.99)。CHECK(>0, <9999.99) 缺少比較對象，SQL 看不懂。' }, en: { term: 'Write CHECK conditions in full', def: 'Every comparison needs the column name: CHECK(Fee > 0 AND Fee <= 9999.99). CHECK(>0, <9999.99) has nothing to compare, so SQL cannot parse it.' } },
+  { zh: { term: '「不超過 X」的邊界', def: 'not larger than X 代表 X 本身合法，要用 <=；用 < 會誤擋剛好等於 X 的合法值。大於用 >，至少用 >=。' }, en: { term: 'Boundary of "not larger than X"', def: '"Not larger than X" means X itself is valid, so use <=; a strict < wrongly rejects a value exactly equal to X. Larger than = >, at least = >=.' } },
 ];
 const flashContainer = document.getElementById('flash-container');
 function renderFlash() {
