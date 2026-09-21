@@ -1410,41 +1410,414 @@ FROM VPASS;</div>
     <section id="advanceddml">
       <h2 data-en="17. Advanced DDL / DML">17. 進階 DDL / DML</h2>
       <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Archiving &quot;this quarter's orders&quot; into a history table at quarter-end can be done in one shot with CREATE TABLE ... AS or INSERT INTO ... SELECT; clearing out a &quot;temporary import&quot; table is much faster with TRUNCATE than deleting row by row.">季末要把「這一季的訂單」全部封存到另一張歷史資料表，可以用 CREATE TABLE ... AS 或 INSERT INTO ... SELECT 一次搬過去；清空一張「暫存匯入資料」的表格，用 TRUNCATE 比一筆一筆 DELETE 快得多。</span></div>
-      <p data-en="TRUNCATE TABLE removes every row from a table permanently and fast — unlike DELETE, it can't be rolled back and it has no WHERE clause.">TRUNCATE TABLE 會把一張表的所有資料永久且快速地清空 — 跟 DELETE 不同，它不能被 ROLLBACK，也沒有 WHERE 子句。</p>
-      <p data-en="CREATE TABLE ... AS (SELECT ...) creates a brand new table and fills it with a query's result in one step. INSERT INTO ... (SELECT ...) does the same into an already-existing table. DELETE and UPDATE can also carry a subquery in their WHERE clause, including a correlated one.">CREATE TABLE ... AS (SELECT ...) 可以一次建立一張新表，並把查詢結果灌進去。INSERT INTO ... (SELECT ...) 則是把查詢結果灌進「已經存在」的表。DELETE 跟 UPDATE 的 WHERE 子句裡也可以放子查詢，包括相關子查詢。</p>
-      <div class="skeleton skeleton-code">CREATE TABLE DCNT AS (
+      <p data-en="This chapter joins the DDL / DML you already know with SELECT subqueries: writing a query result straight into a table (CREATE TABLE ... AS, INSERT ... SELECT), using a query result as the condition or new value in a DELETE / UPDATE, plus TRUNCATE for emptying a table fast.">這一章把前面學的 DDL / DML 跟 SELECT 子查詢接在一起：把「查詢結果直接寫進資料表」（CREATE TABLE ... AS、INSERT ... SELECT）、把「查詢結果當成刪除 / 更新的條件或新值」（DELETE、UPDATE 裡的子查詢），再加上一個快速清空資料表的 TRUNCATE。</p>
+      <table class="static-tbl">
+        <tr><th data-en="Statement">語句</th><th data-en="Kind">類別</th><th data-en="Where the subquery goes">子查詢用在哪</th><th data-en="Can ROLLBACK undo it?">能 ROLLBACK 嗎？</th></tr>
+        <tr><td><code>TRUNCATE TABLE</code></td><td>DDL</td><td>—</td><td data-en="No">不能</td></tr>
+        <tr><td><code>CREATE TABLE ... AS (SELECT ...)</code></td><td>DDL</td><td data-en="The whole content of the new table">新表的全部內容</td><td data-en="No">不能</td></tr>
+        <tr><td><code>INSERT INTO ... (SELECT ...)</code></td><td>DML</td><td data-en="The rows to insert">要寫入的那些列</td><td data-en="Yes, until COMMIT">能（COMMIT 之前）</td></tr>
+        <tr><td><code>DELETE ... WHERE (子查詢)</code></td><td>DML</td><td data-en="The condition">條件</td><td data-en="Yes, until COMMIT">能（COMMIT 之前）</td></tr>
+        <tr><td><code>UPDATE ... SET / WHERE (子查詢)</code></td><td>DML</td><td data-en="The new value and / or the condition">新值、條件，或兩者</td><td data-en="Yes, until COMMIT">能（COMMIT 之前）</td></tr>
+      </table>
+      <div class="tip"><span data-en="Whether ROLLBACK can undo it is the most practical line between DDL and DML: a DML mistake can be taken back until COMMIT, while DDL is permanent the moment it runs. Be more careful before running DDL.">「能不能 ROLLBACK」就是 DDL 和 DML 最實用的分界線：DML 做錯了，COMMIT 之前還能反悔；DDL 一執行就是永久的。所以對 DDL 出手前要更謹慎。</span></div>
+      <h3 data-en="17.1 TRUNCATE TABLE — compared with DELETE and DROP TABLE">17.1 TRUNCATE TABLE — 跟 DELETE、DROP TABLE 比一比</h3>
+      <p data-en="All three can &quot;get rid of the data&quot;, but they behave very differently. Start with the comparison:">三個語句都能「把資料清掉」，但性質差很多。先看比較表：</p>
+      <table class="static-tbl">
+        <tr><th></th><th><code>DELETE FROM</code></th><th><code>TRUNCATE TABLE</code></th><th><code>DROP TABLE</code></th></tr>
+        <tr><td data-en="Removes">刪掉什麼</td><td data-en="The rows that match WHERE (or all rows if there is none)">符合 WHERE 的列（沒寫 WHERE 就是全部）</td><td data-en="Every row">所有列</td><td data-en="The whole table, definition included">整張表，連定義都沒了</td></tr>
+        <tr><td data-en="Has WHERE?">有 WHERE 嗎</td><td data-en="Yes">有</td><td data-en="No">沒有</td><td data-en="No">沒有</td></tr>
+        <tr><td data-en="Kind">類別</td><td>DML</td><td>DDL</td><td>DDL</td></tr>
+        <tr><td data-en="ROLLBACK?">能 ROLLBACK</td><td data-en="Yes, until COMMIT">能（COMMIT 之前）</td><td data-en="No">不能</td><td data-en="No">不能</td></tr>
+        <tr><td data-en="Speed / storage">速度與儲存空間</td><td data-en="Slower — the database must save rollback information; the freed space is not returned">較慢：要保留可還原的資訊；空間不會還給系統</td><td data-en="Much faster — no rollback information; the space is returned to the free pool">快很多：不存還原資訊；空間還給系統</td><td>—</td></tr>
+        <tr><td data-en="Table still exists?">表還在嗎</td><td data-en="Yes">在</td><td data-en="Yes (empty)">在（變成空表）</td><td data-en="No">不在</td></tr>
+      </table>
+      <div class="callout"><strong data-en="The sandbox now supports COMMIT / ROLLBACK:">這個沙盒現在支援 COMMIT / ROLLBACK：</strong><span data-en="The moment the sandbox starts (or you press Reset) counts as already COMMITted. Afterwards DML (INSERT / UPDATE / DELETE) can be undone with ROLLBACK back to that state; DDL (CREATE / DROP / ALTER / TRUNCATE) does an &quot;implicit COMMIT&quot; just as in real MySQL, after which there is no way back.">沙盒剛開始（或按重置）的那一刻就當作「已 COMMIT」。DML（INSERT / UPDATE / DELETE）之後可以 ROLLBACK 回到那個狀態；DDL（CREATE / DROP / ALTER / TRUNCATE）跟真的 MySQL 一樣，執行時會「隱式 COMMIT」，之後就回不去了。</span></div>
+      <div class="console sandbox" data-seed="COURSE" data-default="DELETE FROM COURSE;&#10;SELECT COUNT(*) FROM COURSE;&#10;ROLLBACK;&#10;SELECT COUNT(*) FROM COURSE;">
+        <div class="console-topbar" data-en="A DELETE can be rescued with ROLLBACK">DELETE 之後可以 ROLLBACK 救回來</div>
+        <textarea class="console-input" spellcheck="false">DELETE FROM COURSE;
+SELECT COUNT(*) FROM COURSE;
+ROLLBACK;
+SELECT COUNT(*) FROM COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Guess first: how many rows does COURSE have after the ROLLBACK?">先猜：ROLLBACK 之後 COURSE 有幾列？</span></div>
+      </div>
+      <div class="console sandbox" data-seed="COURSE" data-default="TRUNCATE TABLE COURSE;&#10;SELECT COUNT(*) FROM COURSE;&#10;ROLLBACK;&#10;SELECT COUNT(*) FROM COURSE;&#10;INSERT INTO COURSE VALUES ('CSCI999', 'New Course', 6, 'Computer Science');&#10;SELECT COUNT(*) FROM COURSE;">
+        <div class="console-topbar" data-en="After TRUNCATE, ROLLBACK cannot bring the rows back — but the table still exists and accepts new rows">TRUNCATE 之後 ROLLBACK 救不回來 — 但表還在，可以再 INSERT</div>
+        <textarea class="console-input" spellcheck="false">TRUNCATE TABLE COURSE;
+SELECT COUNT(*) FROM COURSE;
+ROLLBACK;
+SELECT COUNT(*) FROM COURSE;
+INSERT INTO COURSE VALUES ('CSCI999', 'New Course', 6, 'Computer Science');
+SELECT COUNT(*) FROM COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Compare with the previous one: how many rows after the ROLLBACK this time?">跟上一台比較：這次 ROLLBACK 之後是幾列？</span></div>
+      </div>
+      <div class="console sandbox" data-seed="COURSE" data-default="TRUNCATE TABLE COURSE&#10;WHERE credits = 6;">
+        <div class="console-topbar" data-en="TRUNCATE has no WHERE — what happens if you try to clear only part of the table?">TRUNCATE 沒有 WHERE — 想只清一部分會怎樣？</div>
+        <textarea class="console-input" spellcheck="false">TRUNCATE TABLE COURSE
+WHERE credits = 6;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="To delete only part of the data, use DELETE ... WHERE instead">想只刪一部分，請改成 DELETE ... WHERE</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Guess what happens, then run">猜猜看會出現什麼，再執行</span></div>
+      </div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 1 (predict, then check) — DDL does an &quot;implicit COMMIT&quot;">🧪 練習 1（先猜再驗證）— DDL 會「隱式 COMMIT」</div>
+        <p data-en="Do not run it yet — guess how many rows each of the last two SELECTs will show (COURSE starts with 6 rows, ENROLMENT with 4). Decide, then run to check.">先不要執行，猜猜看：最後兩個 SELECT 各會顯示幾列？（COURSE 一開始 6 列、ENROLMENT 一開始 4 列。）想好答案再按執行對答案。</p>
+      <div class="console sandbox" data-seed="COURSE,ENROLMENT" data-default="DELETE FROM COURSE&#10;WHERE credits = 12;&#10;TRUNCATE TABLE ENROLMENT;&#10;ROLLBACK;&#10;SELECT COUNT(*) FROM COURSE;&#10;SELECT COUNT(*) FROM ENROLMENT;">
+        <div class="console-topbar" data-en="Practice 1: DELETE from one table, TRUNCATE another, then ROLLBACK">練習 1：DELETE 一張表、TRUNCATE 另一張表，再 ROLLBACK</div>
+        <textarea class="console-input" spellcheck="false">DELETE FROM COURSE
+WHERE credits = 12;
+TRUNCATE TABLE ENROLMENT;
+ROLLBACK;
+SELECT COUNT(*) FROM COURSE;
+SELECT COUNT(*) FROM ENROLMENT;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Can both tables be rescued? Think first, then run">兩張表都救得回來嗎？先想再跑</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">COURSE：4 列（DELETE 刪掉的 2 列沒有救回來）
+ENROLMENT：0 列</div>
+          <p data-en="TRUNCATE is DDL, so it does an implicit COMMIT when it runs — that makes the earlier, not-yet-committed DELETE permanent too, leaving nothing for the ROLLBACK to undo. (This is real MySQL behaviour.) If you replace TRUNCATE TABLE ENROLMENT with DELETE FROM ENROLMENT, both tables can be rescued: COURSE 6 rows, ENROLMENT 4 rows.">TRUNCATE 是 DDL，執行的時候會「隱式 COMMIT」— 先把前面還沒 COMMIT 的 DELETE 也一起變成永久的，所以後面的 ROLLBACK 已經沒有東西可以復原了。（這是真實 MySQL 的行為。）如果把 TRUNCATE TABLE ENROLMENT 換成 DELETE FROM ENROLMENT，兩張表都救得回來：COURSE 6 列、ENROLMENT 4 列。</p>
+          </div>
+        </details>
+      </div>
+      <h3 data-en="17.2 CREATE TABLE ... AS — create the table and fill it in one step">17.2 CREATE TABLE ... AS — 建表和灌資料一步完成</h3>
+      <p data-en="CREATE TABLE ... AS (SELECT ...) creates a new table and stores the result of that SELECT in it. It is DDL, so it cannot be rolled back, and the new table has NO primary key, foreign key or CHECK constraints — only NULL / NOT NULL survive; add the rest afterwards with ALTER TABLE. The new columns take their names from the SELECT list (or from the aliases you give).">CREATE TABLE ... AS (SELECT ...) 會建立一張新表，並把那句 SELECT 的結果存進去。它是 DDL，所以不能 ROLLBACK；而且新表「沒有」主鍵、外鍵、CHECK 這些限制條件，只保留 NULL / NOT NULL — 需要的話要事後用 ALTER TABLE 補上。新表的欄位名稱來自 SELECT 清單（或你取的別名）。</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE TABLE DCNT AS (&#10;  SELECT name, COUNT(cnum) totc&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;  GROUP BY name&#10;);&#10;SELECT * FROM DCNT;&#10;ALTER TABLE DCNT ADD CONSTRAINT DCNT_pkey PRIMARY KEY(name);&#10;ALTER TABLE DCNT ADD CONSTRAINT DCNT_fkey FOREIGN KEY (name)&#10;  REFERENCES DEPARTMENT(name);">
+        <div class="console-topbar" data-en="Example (from the slides): save &quot;courses per department&quot; as a new table DCNT, then add constraints with ALTER TABLE">範例（講義）：把「每個系開幾門課」存成新表 DCNT，再用 ALTER TABLE 補上限制條件</div>
+        <textarea class="console-input" spellcheck="false">CREATE TABLE DCNT AS (
   SELECT name, COUNT(cnum) totc
   FROM DEPARTMENT LEFT OUTER JOIN COURSE
-  ON DEPARTMENT.name = COURSE.offered_by GROUP BY name
-);
-
-DELETE FROM DEPARTMENT
-WHERE NOT EXISTS ( SELECT 1 FROM COURSE WHERE COURSE.offered_by = DEPARTMENT.name );</div>
-      <div class="callout"><strong data-en="Try it yourself:">動手做做看：</strong><span data-en="Another private sandbox below, seeded with DEPARTMENT/COURSE — build a summary table with CREATE TABLE ... AS, then TRUNCATE it.">下面又是一台獨立的沙盒，載入了 DEPARTMENT/COURSE 複本 — 用 CREATE TABLE ... AS 建一張彙總表，再把它 TRUNCATE 掉。</span></div>
-      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE TABLE DCNT AS (
-  SELECT name, COUNT(cnum) AS total_courses
-  FROM DEPARTMENT LEFT OUTER JOIN COURSE
-  ON DEPARTMENT.name = COURSE.offered_by GROUP BY name
+  ON DEPARTMENT.name = COURSE.offered_by
+  GROUP BY name
 );
 SELECT * FROM DCNT;
-TRUNCATE TABLE DCNT;
-SELECT * FROM DCNT;">
-        <div class="console-topbar" data-en="Advanced DDL/DML sandbox">進階 DDL/DML 沙盒</div>
-        <textarea class="console-input" spellcheck="false">CREATE TABLE DCNT AS (
+ALTER TABLE DCNT ADD CONSTRAINT DCNT_pkey PRIMARY KEY(name);
+ALTER TABLE DCNT ADD CONSTRAINT DCNT_fkey FOREIGN KEY (name)
+  REFERENCES DEPARTMENT(name);</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Note the new columns are name and totc — totc is the alias we chose">注意新表的欄位叫 name 和 totc — totc 是我們取的別名</span></div>
+      </div>
+      <p data-en="Where do the column names come from? A computed column without an alias is named after the whole expression, which is awkward to use later. So give computed results an alias before saving them into a new table:">欄位名稱從哪來？沒取別名的計算欄位，欄位名稱就是那一整段運算式，之後很難用。所以要存進新表的計算結果，記得取別名：</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE TABLE NO_ALIAS AS (&#10;  SELECT name, COUNT(cnum)&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;  GROUP BY name&#10;);&#10;SELECT * FROM NO_ALIAS;&#10;CREATE TABLE WITH_ALIAS AS (&#10;  SELECT name, COUNT(cnum) AS total_courses&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;  GROUP BY name&#10;);&#10;SELECT * FROM WITH_ALIAS;">
+        <div class="console-topbar" data-en="No alias vs an alias: compare the column names of the two new tables">沒取別名 vs 取了別名：比較兩張新表的欄位名稱</div>
+        <textarea class="console-input" spellcheck="false">CREATE TABLE NO_ALIAS AS (
+  SELECT name, COUNT(cnum)
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by
+  GROUP BY name
+);
+SELECT * FROM NO_ALIAS;
+CREATE TABLE WITH_ALIAS AS (
   SELECT name, COUNT(cnum) AS total_courses
   FROM DEPARTMENT LEFT OUTER JOIN COURSE
-  ON DEPARTMENT.name = COURSE.offered_by GROUP BY name
+  ON DEPARTMENT.name = COURSE.offered_by
+  GROUP BY name
 );
-SELECT * FROM DCNT;
-TRUNCATE TABLE DCNT;
+SELECT * FROM WITH_ALIAS;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Look at the column headings of the two SELECTs">看兩次 SELECT 的欄位標題</span></div>
+      </div>
+      <p data-en="CREATE TABLE ... AS is also handy for backups and subsets. Note that the new table is only a snapshot of that moment — it does not follow later changes to the original table. This is the exact opposite of the view from the previous chapter, so let us compare them side by side:">CREATE TABLE ... AS 也常拿來做「備份」或「取子集」。但要注意：新表只是「當下的快照」，之後原表再怎麼變，它都不會跟著變 — 這跟上一章的 view 剛好相反。下面把兩者放在一起比：</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE TABLE CS_COPY AS (&#10;  SELECT cnum, title FROM COURSE&#10;  WHERE offered_by = 'Computer Science'&#10;);&#10;CREATE VIEW CS_VIEW( cnum, title ) AS (&#10;  SELECT cnum, title FROM COURSE&#10;  WHERE offered_by = 'Computer Science'&#10;);&#10;INSERT INTO COURSE VALUES ('CSCI300', 'Algorithms', 6, 'Computer Science');&#10;SELECT COUNT(*) FROM CS_COPY;&#10;SELECT COUNT(*) FROM CS_VIEW;">
+        <div class="console-topbar" data-en="Snapshot vs view: after a course is added to the original table, which one changes?">快照 vs view：原表新增一門課之後，誰會跟著變？</div>
+        <textarea class="console-input" spellcheck="false">CREATE TABLE CS_COPY AS (
+  SELECT cnum, title FROM COURSE
+  WHERE offered_by = 'Computer Science'
+);
+CREATE VIEW CS_VIEW( cnum, title ) AS (
+  SELECT cnum, title FROM COURSE
+  WHERE offered_by = 'Computer Science'
+);
+INSERT INTO COURSE VALUES ('CSCI300', 'Algorithms', 6, 'Computer Science');
+SELECT COUNT(*) FROM CS_COPY;
+SELECT COUNT(*) FROM CS_VIEW;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Guess both COUNTs first">先猜兩個 COUNT 各是多少</span></div>
+      </div>
+      <h3 data-en="17.3 INSERT INTO ... (SELECT ...) — load a query result into an EXISTING table">17.3 INSERT INTO ... (SELECT ...) — 把查詢結果灌進「已經存在」的表</h3>
+      <p data-en="If you want the new table to have proper constraints, design it first with an ordinary CREATE TABLE, then load it with INSERT ... SELECT. It is DML, so it can be rolled back. Columns are matched by POSITION, so computed values do not need aliases.">如果想要新表有完整的限制條件，就先用一般的 CREATE TABLE 把它設計好，再用 INSERT ... SELECT 把資料灌進去。這是 DML，所以可以 ROLLBACK。欄位是「依位置」對應的，所以不需要幫計算結果取別名。</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE TABLE DCNT(&#10;  name VARCHAR(50) NOT NULL,&#10;  total_courses DECIMAL(2) NOT NULL,&#10;  CONSTRAINT DCNT_pkey PRIMARY KEY(name),&#10;  CONSTRAINT DCNT_fkey FOREIGN KEY (name)&#10;    REFERENCES DEPARTMENT(name)&#10;);&#10;INSERT INTO DCNT (&#10;  SELECT name, COUNT(cnum)&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;  GROUP BY name&#10;);&#10;SELECT * FROM DCNT;">
+        <div class="console-topbar" data-en="Example (from the slides): create DCNT with its constraints first, then load it with INSERT ... SELECT">範例（講義）：先建好有限制條件的 DCNT，再用 INSERT ... SELECT 灌資料</div>
+        <textarea class="console-input" spellcheck="false">CREATE TABLE DCNT(
+  name VARCHAR(50) NOT NULL,
+  total_courses DECIMAL(2) NOT NULL,
+  CONSTRAINT DCNT_pkey PRIMARY KEY(name),
+  CONSTRAINT DCNT_fkey FOREIGN KEY (name)
+    REFERENCES DEPARTMENT(name)
+);
+INSERT INTO DCNT (
+  SELECT name, COUNT(cnum)
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by
+  GROUP BY name
+);
 SELECT * FROM DCNT;</textarea>
         <div class="console-actions">
           <button class="run-btn" data-en="▶ Run">▶ 執行</button>
           <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
-          <span class="console-hint" data-en="Try a DELETE ... WHERE NOT EXISTS (...) too">也可以試試看 DELETE ... WHERE NOT EXISTS (...)</span>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
         </div>
-        <div class="console-result"><span class="placeholder" data-en="Run it and watch DCNT get created, then emptied">執行看看，觀察 DCNT 先被建立，再被清空</span></div>
+        <div class="console-result"><span class="placeholder" data-en="This time the column names come from CREATE TABLE, so COUNT(cnum) needs no alias">這次欄位名稱來自 CREATE TABLE，SELECT 裡的 COUNT(cnum) 不用別名</span></div>
       </div>
+      <div class="callout"><strong data-en="Common mistake: the SELECT list order must match the target table's column order">常見錯誤：SELECT 清單的順序要跟目標表的欄位順序一致</strong><span data-en="INSERT ... SELECT looks only at POSITION, never at names. Swap the order and the data lands in the wrong columns — and you do not always get an error.">INSERT ... SELECT 只看「位置」，不看名稱。順序寫反了，資料就會被灌進錯的欄位 — 而且不一定會報錯。</span></div>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE TABLE DCNT2(&#10;  name VARCHAR(50),&#10;  total_courses DECIMAL(2)&#10;);&#10;INSERT INTO DCNT2 (&#10;  SELECT COUNT(cnum), name&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;  GROUP BY name&#10;);&#10;SELECT * FROM DCNT2;">
+        <div class="console-topbar" data-en="Deliberately reversed: COUNT first, then name — see what ends up in the name column">故意寫反：先 COUNT 再 name，看看 name 欄位裝了什麼</div>
+        <textarea class="console-input" spellcheck="false">CREATE TABLE DCNT2(
+  name VARCHAR(50),
+  total_courses DECIMAL(2)
+);
+INSERT INTO DCNT2 (
+  SELECT COUNT(cnum), name
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by
+  GROUP BY name
+);
+SELECT * FROM DCNT2;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="See whether the two columns got mixed up (a real database would raise a type error; this sandbox does not check types)">注意兩個欄位裡的內容是不是搞混了（真的資料庫會因為型別不合而報錯，這個沙盒不檢查型別）</span></div>
+      </div>
+      <table class="static-tbl">
+        <tr><th></th><th><code>CREATE TABLE ... AS</code></th><th><code>INSERT ... SELECT</code></th></tr>
+        <tr><td data-en="Table must already exist?">表要先存在嗎</td><td data-en="No — it creates the table">不用，它自己建表</td><td data-en="Yes — created beforehand with CREATE TABLE">要，事先用 CREATE TABLE 建好</td></tr>
+        <tr><td data-en="Constraints on the table">限制條件</td><td data-en="Only NULL / NOT NULL; add the rest with ALTER TABLE">只有 NULL / NOT NULL，其他要事後 ALTER TABLE 補</td><td data-en="Whatever you declared in CREATE TABLE">CREATE TABLE 裡宣告了什麼就有什麼</td></tr>
+        <tr><td data-en="Column names come from">欄位名稱來自</td><td data-en="The SELECT list / aliases">SELECT 清單（或別名）</td><td data-en="The CREATE TABLE definition (matched by position)">CREATE TABLE 的定義（依位置對應）</td></tr>
+        <tr><td data-en="Kind / ROLLBACK">類別 / ROLLBACK</td><td data-en="DDL — cannot be rolled back">DDL，不能 ROLLBACK</td><td data-en="DML — can be rolled back before COMMIT">DML，COMMIT 之前能 ROLLBACK</td></tr>
+        <tr><td data-en="Good for">適合</td><td data-en="Quick backups and snapshots">快速備份、做快照</td><td data-en="Loading a carefully designed table, or adding more rows later">灌進設計好的表、或之後再追加資料</td></tr>
+      </table>
+      <h3 data-en="17.4 DELETE with a subquery — let a query decide which rows go">17.4 DELETE 搭配子查詢 — 用查詢結果決定刪哪些列</h3>
+      <p data-en="A DELETE's WHERE can contain a subquery. Use = when the subquery returns a single value, IN when it may return several. A good habit: before running a wide DELETE, swap it for a SELECT to see exactly which rows it would remove, and only then delete for real.">DELETE 的 WHERE 裡可以放子查詢。子查詢只回傳「一個值」時可以用 =；回傳「好幾個值」就要用 IN。先給一個實務習慣：對大範圍的 DELETE 出手前，先把 DELETE 換成 SELECT，確認「會刪到哪些列」，沒問題再真的刪。</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="SELECT *&#10;FROM COURSE&#10;WHERE offered_by = ( SELECT name&#10;                    FROM DEPARTMENT&#10;                    WHERE chair = 'Peter' );&#10;DELETE FROM COURSE&#10;WHERE offered_by = ( SELECT name&#10;                    FROM DEPARTMENT&#10;                    WHERE chair = 'Peter' );&#10;SELECT * FROM COURSE;">
+        <div class="console-topbar" data-en="Example (from the slides): delete every course offered by the department chaired by Peter — preview, delete, verify">範例（講義）：刪掉系主任是 Peter 的系開的所有課 — 先預覽、再刪、再確認</div>
+        <textarea class="console-input" spellcheck="false">SELECT *
+FROM COURSE
+WHERE offered_by = ( SELECT name
+                    FROM DEPARTMENT
+                    WHERE chair = 'Peter' );
+DELETE FROM COURSE
+WHERE offered_by = ( SELECT name
+                    FROM DEPARTMENT
+                    WHERE chair = 'Peter' );
+SELECT * FROM COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="What the first SELECT lists is exactly what the DELETE removes">第一個 SELECT 列出的，就是第二句 DELETE 會刪掉的</span></div>
+      </div>
+      <p data-en="Second example (from the slides): delete the departments that offer no courses. This needs NOT EXISTS with a correlated subquery — the inner query references the outer DEPARTMENT.name, just as in chapter 15. Every department here offers a course, so we first delete Computer Science's courses to make it &quot;course-less&quot;, then delete such departments:">第二個範例（講義）：刪掉「沒有開任何課」的系。這需要 NOT EXISTS 加上相關子查詢 — 內層引用了外層的 DEPARTMENT.name，跟第 15 章一樣。這份資料每個系都有開課，所以我們先刪掉 Computer Science 的課，讓它變成「沒開課」，再刪掉這樣的系：</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="DELETE FROM COURSE&#10;WHERE offered_by = ( SELECT name&#10;                    FROM DEPARTMENT&#10;                    WHERE chair = 'Peter' );&#10;SELECT name FROM DEPARTMENT&#10;WHERE NOT EXISTS ( SELECT 'whatever'&#10;                   FROM COURSE&#10;                   WHERE COURSE.offered_by = DEPARTMENT.name );&#10;DELETE FROM DEPARTMENT&#10;WHERE NOT EXISTS ( SELECT 'whatever'&#10;                   FROM COURSE&#10;                   WHERE COURSE.offered_by = DEPARTMENT.name );&#10;SELECT * FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="NOT EXISTS with a correlated subquery: delete departments that offer no course">NOT EXISTS 相關子查詢：刪掉沒開任何課的系</div>
+        <textarea class="console-input" spellcheck="false">DELETE FROM COURSE
+WHERE offered_by = ( SELECT name
+                    FROM DEPARTMENT
+                    WHERE chair = 'Peter' );
+SELECT name FROM DEPARTMENT
+WHERE NOT EXISTS ( SELECT 'whatever'
+                   FROM COURSE
+                   WHERE COURSE.offered_by = DEPARTMENT.name );
+DELETE FROM DEPARTMENT
+WHERE NOT EXISTS ( SELECT 'whatever'
+                   FROM COURSE
+                   WHERE COURSE.offered_by = DEPARTMENT.name );
+SELECT * FROM DEPARTMENT;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Guess which department gets deleted">先猜哪個系會被刪掉</span></div>
+      </div>
+      <div class="tip"><span data-en="The 'whatever' in SELECT 'whatever' can be anything — EXISTS only cares whether the inner query finds any row, not what it selects. That is why SELECT * or SELECT 1 work just as well.">SELECT 'whatever' 裡的 'whatever' 是什麼都可以 — EXISTS 只在乎「內層有沒有查到列」，不在乎 SELECT 了什麼。所以習慣寫 SELECT * 或 SELECT 1 都行。</span></div>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="DELETE FROM COURSE&#10;WHERE offered_by = ( SELECT name&#10;                    FROM DEPARTMENT );">
+        <div class="console-topbar" data-en="Deliberately wrong: comparing with = against a subquery that returns several rows">故意寫錯：用 = 去比一個回傳好幾列的子查詢</div>
+        <textarea class="console-input" spellcheck="false">DELETE FROM COURSE
+WHERE offered_by = ( SELECT name
+                    FROM DEPARTMENT );</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="When it errors, no row is deleted">錯誤發生時，一列都不會被刪掉</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Guess what happens, then change = to IN and run again">猜猜看會怎樣？然後把 = 改成 IN 再跑</span></div>
+      </div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 2 (INSERT ... SELECT + DELETE with a subquery) — archive the 6-credit courses">🧪 練習 2（INSERT ... SELECT ＋ DELETE 子查詢）— 封存 6 學分的課</div>
+        <p data-en="Move every 6-credit course into an archive table COURSE_ARCHIVE: copy them with INSERT ... SELECT, then delete from COURSE just the courses that are now archived (use a subquery — delete only the course numbers found in the archive). The subquery in the final DELETE is unfinished, so the first run stops with an error there; complete it and run again.">把所有 6 學分的課「搬」到封存表 COURSE_ARCHIVE：先用 INSERT ... SELECT 複製過去，再把原表裡「已經封存的那幾門」刪掉（要用子查詢，只刪封存表裡有的課號）。最後那個 DELETE 的子查詢還沒寫完 — 先執行會在那一行報錯，補完再跑。</p>
+      <div class="console sandbox" data-seed="COURSE" data-default="CREATE TABLE COURSE_ARCHIVE(&#10;  cnum CHAR(7) NOT NULL,&#10;  title VARCHAR(200) NOT NULL&#10;);&#10;INSERT INTO COURSE_ARCHIVE (&#10;  SELECT cnum, title&#10;  FROM COURSE&#10;  WHERE credits = 6&#10;);&#10;SELECT * FROM COURSE_ARCHIVE;&#10;DELETE FROM COURSE&#10;WHERE cnum IN ( SELECT );&#10;SELECT * FROM COURSE;">
+        <div class="console-topbar" data-en="Practice 2: finish the subquery in the last DELETE">練習 2：補完最後 DELETE 的子查詢</div>
+        <textarea class="console-input" spellcheck="false">CREATE TABLE COURSE_ARCHIVE(
+  cnum CHAR(7) NOT NULL,
+  title VARCHAR(200) NOT NULL
+);
+INSERT INTO COURSE_ARCHIVE (
+  SELECT cnum, title
+  FROM COURSE
+  WHERE credits = 6
+);
+SELECT * FROM COURSE_ARCHIVE;
+DELETE FROM COURSE
+WHERE cnum IN ( SELECT );
+SELECT * FROM COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="After completing it, COURSE should hold only the 12-credit courses">補完之後，COURSE 應該只剩 12 學分的課</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">DELETE FROM COURSE
+WHERE cnum IN ( SELECT cnum
+                FROM COURSE_ARCHIVE );</div>
+          <p data-en="The archive holds the four 6-credit courses, so after deleting those four from COURSE only two remain (the 12-credit Mechanics and Calculus). Selecting the course numbers from the archive is safer than repeating credits = 6: only courses that really were copied get deleted. In practice such a move is wrapped in one transaction so it can be rolled back if something goes wrong (DML can be; the CREATE TABLE is DDL, so create the table beforehand).">封存表裡有 4 門 6 學分的課，所以原表刪掉這 4 門後只剩 2 門（12 學分的 Mechanics 和 Calculus）。用「子查詢從封存表撈課號」比再寫一次 credits = 6 更安全：只有真的已經搬過去的課才會被刪。正式做這種搬移時，通常會包在一次交易裡，出問題還能 ROLLBACK（DML 可以，但建表的 CREATE TABLE 是 DDL，要先建好）。</p>
+          </div>
+        </details>
+      </div>
+      <h3 data-en="17.5 UPDATE with a subquery — a query result as the condition or the new value">17.5 UPDATE 搭配子查詢 — 用查詢結果當條件或新值</h3>
+      <p data-en="An UPDATE's subquery can sit in the WHERE (which rows to update), in the SET (what the new value is), or in both. First the WHERE:">UPDATE 的子查詢可以放在 WHERE（決定「更新哪些列」）、SET（決定「新值是什麼」），也可以兩個地方都放。先看 WHERE：</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="UPDATE DEPARTMENT&#10;SET total_staff_number = total_staff_number + 5&#10;WHERE name IN ( SELECT offered_by&#10;                FROM COURSE&#10;                GROUP BY offered_by&#10;                HAVING COUNT(cnum) > 20 );&#10;SELECT name, total_staff_number&#10;FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="Example (from the slides): departments with more than 20 courses get +5 staff">範例（講義）：開課數超過 20 的系，教職員人數 +5</div>
+        <textarea class="console-input" spellcheck="false">UPDATE DEPARTMENT
+SET total_staff_number = total_staff_number + 5
+WHERE name IN ( SELECT offered_by
+                FROM COURSE
+                GROUP BY offered_by
+                HAVING COUNT(cnum) > 20 );
+SELECT name, total_staff_number
+FROM DEPARTMENT;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Guess: how many departments get +5? (Hint: the busiest one offers only 2 courses.) Then reset, change 20 to 1 and run again">先猜：有幾個系會被加人？（提示：最多的系只開了 2 門課）。之後把 20 改成 1 再跑一次（先按重置）</span></div>
+      </div>
+      <p data-en="Now the SET: store &quot;how many courses this department offers&quot; as a new DEPARTMENT column. Add the column with ALTER TABLE (in its parenthesised form), then compute it row by row with a correlated subquery — the inner query references the outer DEPARTMENT.name:">再看 SET：把「這個系開了幾門課」存成 DEPARTMENT 的一個新欄位。先用 ALTER TABLE 加欄位（這次是括號的寫法），再用相關子查詢逐列算出來 — 內層引用了外層的 DEPARTMENT.name：</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="ALTER TABLE DEPARTMENT ADD ( total_courses DECIMAL(2) );&#10;SELECT name, total_courses&#10;FROM DEPARTMENT;&#10;UPDATE DEPARTMENT&#10;SET total_courses = ( SELECT COUNT(title)&#10;                      FROM COURSE&#10;                      WHERE COURSE.offered_by = DEPARTMENT.name );&#10;SELECT name, total_courses&#10;FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="Example (from the slides): a correlated subquery in SET fills in each department's course count">範例（講義）：在 SET 裡放相關子查詢，填入每個系的開課數</div>
+        <textarea class="console-input" spellcheck="false">ALTER TABLE DEPARTMENT ADD ( total_courses DECIMAL(2) );
+SELECT name, total_courses
+FROM DEPARTMENT;
+UPDATE DEPARTMENT
+SET total_courses = ( SELECT COUNT(title)
+                      FROM COURSE
+                      WHERE COURSE.offered_by = DEPARTMENT.name );
+SELECT name, total_courses
+FROM DEPARTMENT;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="NULL in the first SELECT; numbers appear only after the UPDATE">第一次 SELECT 是 NULL，UPDATE 之後才有數字</span></div>
+      </div>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="UPDATE DEPARTMENT&#10;SET budget = budget + ( SELECT COUNT(*)&#10;                        FROM COURSE&#10;                        WHERE COURSE.offered_by = DEPARTMENT.name ) * 1000&#10;WHERE name IN ( SELECT offered_by&#10;                FROM COURSE&#10;                WHERE credits = 12 );&#10;SELECT name, budget&#10;FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="Subqueries in both WHERE and SET: departments with a 12-credit course get budget + (course count × 1000)">WHERE 和 SET 都放子查詢：開了 12 學分課的系，預算加「開課數 × 1000」</div>
+        <textarea class="console-input" spellcheck="false">UPDATE DEPARTMENT
+SET budget = budget + ( SELECT COUNT(*)
+                        FROM COURSE
+                        WHERE COURSE.offered_by = DEPARTMENT.name ) * 1000
+WHERE name IN ( SELECT offered_by
+                FROM COURSE
+                WHERE credits = 12 );
+SELECT name, budget
+FROM DEPARTMENT;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Guess which departments' budgets change and by how much">先猜：哪幾個系的預算會變、各加多少？</span></div>
+      </div>
+      <div class="callout"><strong data-en="Careful: a stored, computed column goes stale">小心：存下來的「算出來的欄位」會過期</strong><span data-en="The numbers stored in total_courses are only a snapshot from the moment of the UPDATE. Add or remove courses later and they do not update by themselves. To always be current, compute on demand, or use the view from the previous chapter — compare the two below:">上面存進 total_courses 的數字只是「UPDATE 當下的快照」。之後新增或刪除課程，它不會自動更新。想要永遠是最新的，可以每次查詢時現算，或用上一章的 view — 下面把兩者放在一起比：</span></div>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="ALTER TABLE DEPARTMENT ADD ( total_courses DECIMAL(2) );&#10;UPDATE DEPARTMENT&#10;SET total_courses = ( SELECT COUNT(title)&#10;                      FROM COURSE&#10;                      WHERE COURSE.offered_by = DEPARTMENT.name );&#10;CREATE VIEW VDEPT( name, total_courses ) AS (&#10;  SELECT name, COUNT(cnum)&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;  GROUP BY name&#10;);&#10;INSERT INTO COURSE VALUES ('MATH222', 'Algebra', 6, 'Mathematics');&#10;SELECT name, total_courses FROM DEPARTMENT;&#10;SELECT * FROM VDEPT;">
+        <div class="console-topbar" data-en="A stored column vs a view: after adding a Mathematics course, which one is up to date?">存下來的欄位 vs view：新增一門 Mathematics 的課之後，誰是最新的？</div>
+        <textarea class="console-input" spellcheck="false">ALTER TABLE DEPARTMENT ADD ( total_courses DECIMAL(2) );
+UPDATE DEPARTMENT
+SET total_courses = ( SELECT COUNT(title)
+                      FROM COURSE
+                      WHERE COURSE.offered_by = DEPARTMENT.name );
+CREATE VIEW VDEPT( name, total_courses ) AS (
+  SELECT name, COUNT(cnum)
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by
+  GROUP BY name
+);
+INSERT INTO COURSE VALUES ('MATH222', 'Algebra', 6, 'Mathematics');
+SELECT name, total_courses FROM DEPARTMENT;
+SELECT * FROM VDEPT;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Compare Mathematics' total_courses in the two SELECTs">比較兩次 SELECT 裡 Mathematics 的 total_courses</span></div>
+      </div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 3 (UPDATE + correlated subquery) — total credits per department">🧪 練習 3（UPDATE ＋ 相關子查詢）— 每個系的學分總和</div>
+        <p data-en="Add a total_credits column to DEPARTMENT and fill it with the sum of credits of each department's courses. The skeleton is ready, but its subquery currently counts courses (COUNT) — change it to sum the credits, then run.">幫 DEPARTMENT 新增欄位 total_credits，填入「每個系開的課，學分加起來是多少」。骨架已經寫好，但子查詢現在算的是「課程數」（COUNT）— 請改成算學分總和，再執行。</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="ALTER TABLE DEPARTMENT ADD ( total_credits DECIMAL(4) );&#10;UPDATE DEPARTMENT&#10;SET total_credits = ( SELECT COUNT(title)&#10;                      FROM COURSE&#10;                      WHERE COURSE.offered_by = DEPARTMENT.name );&#10;SELECT name, total_credits&#10;FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="Practice 3: change COUNT(title) so it sums the credits">練習 3：把 COUNT(title) 改成算學分總和</div>
+        <textarea class="console-input" spellcheck="false">ALTER TABLE DEPARTMENT ADD ( total_credits DECIMAL(4) );
+UPDATE DEPARTMENT
+SET total_credits = ( SELECT COUNT(title)
+                      FROM COURSE
+                      WHERE COURSE.offered_by = DEPARTMENT.name );
+SELECT name, total_credits
+FROM DEPARTMENT;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="After editing, guess the three values">改完先猜：三個系各是多少？</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">UPDATE DEPARTMENT
+SET total_credits = ( SELECT SUM(credits)
+                      FROM COURSE
+                      WHERE COURSE.offered_by = DEPARTMENT.name );</div>
+          <p data-en="Computer Science 12, Physics 18, Mathematics 12. COUNT tells you how many courses; adding up the credits needs SUM(credits). The correlated-subquery mechanics are identical: the inner query is recomputed each time with the name of the department the outer query is currently on.">Computer Science 12、Physics 18、Mathematics 12。COUNT 數的是「有幾門課」，要「學分加起來」要用 SUM(credits)。相關子查詢的做法完全一樣：內層每次都用外層目前那個系的名字，重新算一次。</p>
+          </div>
+        </details>
+      </div>
+      <div class="tip"><strong data-en="Chapter summary:">這章的重點整理：</strong><span data-en="TRUNCATE is fast but cannot be rolled back and has no WHERE. CREATE TABLE ... AS creates a table plus a snapshot (no constraints); INSERT ... SELECT loads a pre-designed table (matched by position). DELETE / UPDATE may carry subqueries in WHERE or SET: = for one value, IN for several, EXISTS for &quot;does any exist&quot;; a subquery that references the outer table is a correlated subquery. Preview a wide DELETE / UPDATE with a SELECT first.">TRUNCATE 快但不能 ROLLBACK 也不能加 WHERE。CREATE TABLE ... AS 是建表加快照（無限制條件）；INSERT ... SELECT 灌進事先設計好的表（依位置對應）。DELETE / UPDATE 的 WHERE 或 SET 可以放子查詢：一個值用 =，好幾個值用 IN，「存在與否」用 EXISTS；子查詢引用外層的表就是相關子查詢。大範圍的 DELETE / UPDATE 前，先用 SELECT 預覽。</span></div>
     </section>
 
     <section id="functions">
@@ -1952,6 +2325,11 @@ function scalarSubquery(subText, outerRow) {
   if (wherePart) { const ast = parseBooleanExpr(wherePart); filtered = filtered.filter(r => truthy(evaluate(ast, r, [r]))); }
   const item = parseSelectItem(selectPart);
   if (item.star) throw new Error('純量子查詢只能回傳一個值，不能用 *');
+  const isAgg = item.isAgg || /\b(COUNT|SUM|AVG|MIN|MAX)\s*\(/i.test(selectPart);
+  if (!isAgg) {
+    if (filtered.length > 1) throw new Error('子查詢回傳了 ' + filtered.length + ' 列，但這裡只能比對一個值 — 想跟多個值比對，請改用 IN');
+    if (filtered.length === 0) return null;
+  }
   return evaluate(item.ast, filtered[0] || Object.assign({}, outerRow), filtered);
 }
 function preprocessScalar(str) {
@@ -2388,8 +2766,9 @@ function runSingleSelect(sqlIn) {
 // 不會影響頁面上其他主控台使用的共用 TABLES）
 // ============================================================
 function cloneStore(names) {
-  const store = {};
-  names.forEach(n => { store[n] = (TABLES[n] || []).map(r => Object.assign({}, r)); });
+  const store = {}; store.__cols = {};
+  // 記住每張表的欄位順序：就算之後表被清空，INSERT INTO T VALUES (...) 也知道要怎麼對應欄位
+  names.forEach(n => { store[n] = (TABLES[n] || []).map(r => Object.assign({}, r)); store.__cols[n] = Object.keys((TABLES[n] || [])[0] || {}); });
   return store;
 }
 // 在 store 的內容暫時取代全域 TABLES 的狀況下執行 fn()，執行完畢還原全域 TABLES。
@@ -2433,18 +2812,57 @@ function splitStatements(script) {
   return parts;
 }
 // 執行單一句 DDL/DML（或 SELECT）語句，直接修改 store。回傳 {message} 或 {result:{columns,rows}}。
+// 把資料表的一列變成「表名.欄位」形式，這樣 DELETE / UPDATE 的條件裡才能寫 DEPARTMENT.name，
+// 讓內層的相關子查詢引用得到外層這一列。
+function dmlContext(row, tableName) { const ctx = {}; for (const k in row) ctx[tableName + '.' + k] = row[k]; return ctx; }
+function compileCondition(text) {
+  const ex = preprocessExists(text);
+  const sc = preprocessScalar(preprocessSubqueries(ex.text));
+  return resolveScalar(resolveExists(parseBooleanExpr(sc.text), ex.subqueries), sc.subqueries);
+}
+// ---- 交易：COMMIT / ROLLBACK ----
+// 沙盒一開始的狀態視為「已 COMMIT」。DML（INSERT/UPDATE/DELETE）在 COMMIT 之前可以 ROLLBACK 復原；
+// DDL（CREATE / DROP / ALTER / TRUNCATE）跟真的 MySQL 一樣會「隱式 COMMIT」，之後再也回不去。
+function snapshotStore(store) {
+  const snap = { tables: {}, cols: JSON.parse(JSON.stringify(store.__cols || {})), views: JSON.parse(JSON.stringify(store.__views || [])) };
+  Object.keys(store).forEach(k => { if (!k.startsWith('__')) snap.tables[k] = store[k].map(r => Object.assign({}, r)); });
+  return snap;
+}
+function restoreStore(store, snap) {
+  Object.keys(store).forEach(k => { if (!k.startsWith('__')) delete store[k]; });
+  Object.keys(snap.tables).forEach(k => { store[k] = snap.tables[k].map(r => Object.assign({}, r)); });
+  store.__cols = JSON.parse(JSON.stringify(snap.cols));
+  store.__views = JSON.parse(JSON.stringify(snap.views));
+}
 function execOne(stmt, store) {
   const s = stmt.replace(/\s+/g, ' ').trim();
   if (!s) return null;
+  if (!store.__snap) store.__snap = snapshotStore(store);
+  if (/^COMMIT$/i.test(s)) { store.__snap = snapshotStore(store); return { message: '已 COMMIT — 目前的變更變成永久的，之後 ROLLBACK 也回不去了。' }; }
+  if (/^START\s+TRANSACTION$|^BEGIN$/i.test(s)) { store.__snap = snapshotStore(store); return { message: '已開始一段交易（先前尚未 COMMIT 的變更視同已 COMMIT）。' }; }
+  if (/^ROLLBACK$/i.test(s)) { restoreStore(store, store.__snap); return { message: '已 ROLLBACK — 回到上一次 COMMIT（或一開始）的狀態。' }; }
+  const isDDL = /^(CREATE|DROP|ALTER|TRUNCATE)\b/i.test(s);
+  if (isDDL) store.__snap = snapshotStore(store);   // DDL 執行前，先把尚未 COMMIT 的 DML 隱式 COMMIT 掉
+  const out = execOneRaw(stmt, store);
+  if (isDDL) store.__snap = snapshotStore(store);   // DDL 本身也立刻成為永久的
+  return out;
+}
+function execOneRaw(stmt, store) {
+  const s = stmt.replace(/\s+/g, ' ').trim();
+  if (!s) return null;
   let m;
-  if (m = /^CREATE\s+TABLE\s+([A-Za-z_]\w*)\s+AS\s*\(([\s\S]*)\)$/i.exec(s)) {
+  if (m = /^CREATE\s+TABLE\s+([A-Za-z_]\w*)\s+AS\s*(\([\s\S]*\)|SELECT[\s\S]*|WITH[\s\S]*)$/i.exec(s)) {
     const tname = m[1].toUpperCase();
-    const result = withScopedTables(store, () => runQuery(m[2]));
+    if (store[tname]) throw new Error('資料表已經存在: ' + m[1] + '（要重建請先 DROP TABLE）');
+    const body = m[2][0] === '(' ? extractParen(m[2], 0).content : m[2];
+    const result = withScopedTables(store, () => runQuery(body));
     store[tname] = result.rows.map(r => Object.assign({}, r));
-    return { message: `已建立資料表 ${m[1]}，並存入子查詢的 ${store[tname].length} 筆結果。` };
+    store.__cols = store.__cols || {}; store.__cols[tname] = result.columns.slice();
+    return { message: `已建立資料表 ${m[1]}，並存入子查詢的 ${store[tname].length} 筆結果（欄位：${result.columns.join(', ')}）。` };
   }
   if (m = /^CREATE\s+TABLE\s+([A-Za-z_]\w*)\s*\(([\s\S]*)\)$/i.exec(s)) {
     const tname = m[1].toUpperCase();
+    if (store[tname]) throw new Error('資料表已經存在: ' + m[1] + '（要重建請先 DROP TABLE）');
     const cols = splitTopLevelCommas(m[2]).filter(c => !/^CONSTRAINT\b/i.test(c.trim()));
     const colNames = cols.map(c => c.trim().split(/\s+/)[0]);
     store[tname] = [];
@@ -2479,29 +2897,42 @@ function execOne(stmt, store) {
     delete store[tname];
     return { message: `已刪除資料表 ${m[1]}。` };
   }
+  if (/^TRUNCATE\s+TABLE\s+\w+\s+WHERE\b/i.test(s)) throw new Error('TRUNCATE TABLE 沒有 WHERE 子句 — 它只能一次清空「整張表」。想只刪一部分資料，請改用 DELETE ... WHERE ...');
   if (m = /^TRUNCATE\s+TABLE\s+([A-Za-z_]\w*)$/i.exec(s)) {
     const tname = m[1].toUpperCase();
     if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
     store[tname] = [];
     return { message: `已清空資料表 ${m[1]} 的所有資料列。` };
   }
-  if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+ADD\s+(?:COLUMN\s+)?([A-Za-z_]\w*)\b/i.exec(s)) {
+  if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+ADD\s*\(([\s\S]+)\)$/i.exec(s)) {
+    const tname = m[1].toUpperCase();
+    if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
+    const newCols = splitTopLevelCommas(m[2]).map(x => x.trim().split(/\s+/)[0]);
+    newCols.forEach(col => {
+      store[tname].forEach(r => { if (!(col in r)) r[col] = null; });
+      store.__cols = store.__cols || {}; store.__cols[tname] = store.__cols[tname] || []; store.__cols[tname].push(col);
+    });
+    return { message: `已新增欄位 ${newCols.join(', ')} 到 ${m[1]}（既有資料列該欄位為 NULL）。` };
+  }
+  if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+ADD\s+(?:COLUMN\s+)?(?!(?:CONSTRAINT|PRIMARY|FOREIGN|UNIQUE|CHECK|INDEX|KEY)\b)([A-Za-z_]\w*)\b/i.exec(s)) {
     const tname = m[1].toUpperCase(), col = m[2];
     if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
     store[tname].forEach(r => { if (!(col in r)) r[col] = null; });
     store.__cols = store.__cols || {}; store.__cols[tname] = store.__cols[tname] || []; store.__cols[tname].push(col);
     return { message: `已新增欄位 ${col} 到 ${m[1]}（既有資料列該欄位為 NULL）。` };
   }
-  if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+DROP\s+(?:COLUMN\s+)?([A-Za-z_]\w*)\b/i.exec(s)) {
+  if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+DROP\s+(?:COLUMN\s+)?(?!(?:CONSTRAINT|PRIMARY|FOREIGN|UNIQUE|CHECK|INDEX|KEY)\b)([A-Za-z_]\w*)\b/i.exec(s)) {
     const tname = m[1].toUpperCase(), col = m[2];
     if (!store[tname]) throw new Error('資料表不存在: ' + m[1]);
     store[tname].forEach(r => { delete r[col]; });
+    if (store.__cols && store.__cols[tname]) store.__cols[tname] = store.__cols[tname].filter(x => x !== col);
     return { message: `已刪除欄位 ${col}。` };
   }
   if (m = /^ALTER\s+TABLE\s+([A-Za-z_]\w*)\s+RENAME\s+TO\s+([A-Za-z_]\w*)$/i.exec(s)) {
     const oldT = m[1].toUpperCase(), newT = m[2].toUpperCase();
     if (!store[oldT]) throw new Error('資料表不存在: ' + m[1]);
     store[newT] = store[oldT]; delete store[oldT];
+    if (store.__cols && store.__cols[oldT]) { store.__cols[newT] = store.__cols[oldT]; delete store.__cols[oldT]; }
     return { message: `已將資料表 ${m[1]} 更名為 ${m[2]}。` };
   }
   if (/^ALTER\s+TABLE\b/i.test(s)) {
@@ -2524,6 +2955,7 @@ function execOne(stmt, store) {
       }
       explicitCols = inner.split(',').map(c => c.trim());
       rest = rest.slice(paren.end).trim();
+      if (rest[0] === '(' && /^\(\s*SELECT\b/i.test(rest)) rest = extractParen(rest, 0).content.trim();
     }
     if (/^VALUES\s*\(/i.test(rest)) {
       const vmm = /^VALUES\s*\(([\s\S]*)\)$/i.exec(rest);
@@ -2550,13 +2982,22 @@ function execOne(stmt, store) {
     const whereIdx = findTopLevelKeyword(after, 'WHERE', 0);
     const setText = whereIdx === -1 ? after : after.slice(0, whereIdx);
     const whereText = whereIdx === -1 ? null : after.slice(whereIdx + 5).trim();
-    const setParts = splitTopLevelCommas(setText).map(p => { const idx = p.indexOf('='); return { col: p.slice(0, idx).trim(), ast: parseValueExpr(p.slice(idx + 1).trim()) }; });
-    const whereAst = whereText ? parseBooleanExpr(whereText) : null;
-    let count = 0;
-    store[tname].forEach(row => {
-      if (!whereAst || truthy(evaluate(whereAst, row, [row]))) { setParts.forEach(sp => { row[sp.col] = evaluate(sp.ast, row, [row]); }); count++; }
+    return withScopedTables(store, () => {
+      const setParts = splitTopLevelCommas(setText).map(p => {
+        const idx = p.indexOf('=');
+        const sc = preprocessScalar(p.slice(idx + 1).trim());
+        return { col: p.slice(0, idx).trim(), ast: resolveScalar(parseValueExpr(sc.text), sc.subqueries) };
+      });
+      const whereAst = whereText ? compileCondition(whereText) : null;
+      // 兩階段：先對「更新前」的每一列算出新值，全部算好才一起寫回（子查詢看到的永遠是更新前的資料）
+      const plan = [];
+      store[tname].forEach(row => {
+        const ctx = dmlContext(row, m[1]);
+        if (!whereAst || truthy(evaluate(whereAst, ctx, [ctx]))) plan.push({ row, vals: setParts.map(sp => evaluate(sp.ast, ctx, [ctx])) });
+      });
+      plan.forEach(p => { setParts.forEach((sp, i) => { p.row[sp.col] = p.vals[i]; }); });
+      return { message: `已更新 ${plan.length} 筆資料。` };
     });
-    return { message: `已更新 ${count} 筆資料。` };
   }
   if (m = /^DELETE\s+FROM\s+([A-Za-z_]\w*)/i.exec(s)) {
     const tname = m[1].toUpperCase();
@@ -2564,10 +3005,13 @@ function execOne(stmt, store) {
     const after = s.slice(m[0].length);
     const whereIdx = findTopLevelKeyword(after, 'WHERE', 0);
     const whereText = whereIdx === -1 ? null : after.slice(whereIdx + 5).trim();
-    const whereAst = whereText ? parseBooleanExpr(whereText) : null;
-    const before = store[tname].length;
-    store[tname] = store[tname].filter(row => whereAst ? !truthy(evaluate(whereAst, row, [row])) : false);
-    return { message: `已刪除 ${before - store[tname].length} 筆資料。` };
+    return withScopedTables(store, () => {
+      const whereAst = whereText ? compileCondition(whereText) : null;
+      const keep = store[tname].filter(row => { if (!whereAst) return false; const ctx = dmlContext(row, m[1]); return !truthy(evaluate(whereAst, ctx, [ctx])); });
+      const removed = store[tname].length - keep.length;
+      store[tname] = keep;
+      return { message: `已刪除 ${removed} 筆資料。` };
+    });
   }
   if (/^(SELECT|WITH)\b/i.test(s)) {
     const result = withScopedTables(store, () => runQuery(s));
@@ -2603,7 +3047,7 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp
 //   hl-func   函數名稱 (COUNT, UPPER, SUBSTR, CONCAT ...)
 //   hl-string 字串常值
 const HL_GROUPS = [
-  { cls: 'hl-ddl', words: ['CREATE TABLE', 'CREATE VIEW', 'DROP VIEW', 'DROP TABLE', 'ALTER TABLE', 'TRUNCATE TABLE', 'ADD COLUMN', 'DROP COLUMN', 'RENAME TO', 'PRIMARY KEY', 'FOREIGN KEY', 'NOT NULL', 'REFERENCES', 'CONSTRAINT', 'UNIQUE', 'CHECK', 'INSERT INTO', 'DELETE FROM', 'CREATE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'TABLE', 'VIEW', 'TRUNCATE', 'MODIFY', 'INSERT', 'DELETE', 'UPDATE', 'SET', 'VALUES', 'DEFAULT', 'CASCADE'] },
+  { cls: 'hl-ddl', words: ['CREATE TABLE', 'CREATE VIEW', 'DROP VIEW', 'DROP TABLE', 'START TRANSACTION', 'COMMIT', 'ROLLBACK', 'ALTER TABLE', 'TRUNCATE TABLE', 'ADD COLUMN', 'DROP COLUMN', 'RENAME TO', 'PRIMARY KEY', 'FOREIGN KEY', 'NOT NULL', 'REFERENCES', 'CONSTRAINT', 'UNIQUE', 'CHECK', 'INSERT INTO', 'DELETE FROM', 'CREATE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'TABLE', 'VIEW', 'TRUNCATE', 'MODIFY', 'INSERT', 'DELETE', 'UPDATE', 'SET', 'VALUES', 'DEFAULT', 'CASCADE'] },
   { cls: 'hl-clause', words: ['LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN', 'NATURAL JOIN', 'CROSS JOIN', 'GROUP BY', 'ORDER BY', 'UNION ALL', 'SELECT', 'FROM', 'WHERE', 'JOIN', 'ON', 'USING', 'HAVING', 'UNION', 'WITH', 'OUTER', 'INTO'] },
   { cls: 'hl-logic', words: ['IS NOT NULL', 'IS NULL', 'NOT IN', 'NOT EXISTS', 'NOT', 'AND', 'OR', 'IN', 'IS', 'NULL', 'LIKE', 'BETWEEN', 'EXISTS', 'DISTINCT', 'AS', 'ASC', 'DESC'] },
   { cls: 'hl-func', words: ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'UPPER', 'LOWER', 'SUBSTR', 'CONCAT', 'INSTR', 'IFNULL', 'LENGTH', 'DUAL'] },
@@ -2854,6 +3298,18 @@ const QUIZ = [
   { correct: 1,
     zh: { q: 'inline view 裡有 count(*)，外層查詢想引用它。該怎麼辦？', opts: ['外層直接寫 T.count(*)', '在內層幫它取別名（例如 count(*) total），外層用 T.total', '不可能，外層拿不到內層的計算結果'], explain: '沒有名字的計算欄位，外層無法引用。幫它取別名（total），外層就能像一般欄位一樣用 T.total。' },
     en: { q: 'An inline view contains count(*) and the outer query wants to use it. What should you do?', opts: ['Write T.count(*) in the outer query', 'Give it an alias in the inner query (e.g. count(*) total) and use T.total outside', 'It is impossible; the outer query cannot see computed values'], explain: 'A computed column without a name cannot be referenced from outside. Give it an alias (total) and the outer query can use T.total like any other column.' } },
+  { correct: 1,
+    zh: { q: '用 CREATE TABLE ... AS (SELECT ...) 建出來的新表，有哪些限制條件？', opts: ['原表的主鍵、外鍵、CHECK 全部自動複製過來', '只有 NULL / NOT NULL；主鍵、外鍵等要事後用 ALTER TABLE 補上', '完全沒有任何限制條件，連 NOT NULL 也沒有'], explain: 'CREATE TABLE ... AS 只保留欄位的 NULL / NOT NULL，其他限制條件都不會帶過來，需要的話要用 ALTER TABLE ADD CONSTRAINT 補上。' },
+    en: { q: 'What constraints does a table created with CREATE TABLE ... AS (SELECT ...) have?', opts: ['The original table\'s primary key, foreign keys and CHECKs are all copied over', 'Only NULL / NOT NULL; primary and foreign keys must be added afterwards with ALTER TABLE', 'None at all — not even NOT NULL'], explain: 'CREATE TABLE ... AS keeps only each column\'s NULL / NOT NULL; no other constraint comes along, so add them with ALTER TABLE ADD CONSTRAINT if you need them.' } },
+  { correct: 1,
+    zh: { q: 'INSERT INTO T (SELECT b, a FROM S) — SELECT 出來的兩欄，會怎麼對應到 T 的欄位？', opts: ['依欄位名稱對應（b 對 T 的 b，a 對 T 的 a）', '依位置對應（第一欄放進 T 的第一個欄位，依此類推）', '沒辦法對應，一定會報錯'], explain: 'INSERT ... SELECT 只看位置，不看名稱。順序寫反，資料就會被灌進錯的欄位，所以 SELECT 清單的順序要跟目標表的欄位順序一致。' },
+    en: { q: 'In INSERT INTO T (SELECT b, a FROM S), how are the two selected columns matched to T\'s columns?', opts: ['By name (b to T\'s b, a to T\'s a)', 'By position (the first column goes into T\'s first column, and so on)', 'They cannot be matched; it always errors'], explain: 'INSERT ... SELECT looks only at position, not names. Reverse the order and the data lands in the wrong columns, so the SELECT list must follow the target table\'s column order.' } },
+  { correct: 2,
+    zh: { q: 'DELETE FROM COURSE WHERE offered_by = (SELECT name FROM DEPARTMENT); 而 DEPARTMENT 有 3 列，會怎樣？', opts: ['刪掉所有能配對的課', '只用第一列來比較', '報錯：子查詢回傳好幾個值，不能用 = 比較，要改用 IN'], explain: '= 只能跟「一個值」比。子查詢可能回傳好幾個值時，要用 IN。發生錯誤時，一列都不會被刪掉。' },
+    en: { q: 'DELETE FROM COURSE WHERE offered_by = (SELECT name FROM DEPARTMENT); — DEPARTMENT has 3 rows. What happens?', opts: ['Every matching course is deleted', 'Only the first row is used for the comparison', 'An error: the subquery returns several values, which = cannot compare — use IN instead'], explain: '= can compare against only ONE value. When a subquery may return several, use IN. When the error occurs, no row is deleted.' } },
+  { correct: 0,
+    zh: { q: '下列哪一個語句執行之後，還能用 ROLLBACK（COMMIT 之前）復原？', opts: ['DELETE FROM COURSE;', 'TRUNCATE TABLE COURSE;', 'DROP TABLE COURSE;'], explain: 'DELETE 是 DML，COMMIT 之前可以 ROLLBACK。TRUNCATE 和 DROP TABLE 是 DDL，執行時會隱式 COMMIT，之後無法復原。' },
+    en: { q: 'Which statement can still be undone with ROLLBACK (before COMMIT) after it runs?', opts: ['DELETE FROM COURSE;', 'TRUNCATE TABLE COURSE;', 'DROP TABLE COURSE;'], explain: 'DELETE is DML and can be rolled back before COMMIT. TRUNCATE and DROP TABLE are DDL: they do an implicit COMMIT when they run and cannot be undone.' } },
 ];
 const quizContainer = document.getElementById('quiz-container');
 let quizScore = 0, quizAnswered = 0;
@@ -2914,6 +3370,11 @@ const FLASH = [
   { zh: { term: 'View 不存資料', def: 'View 存的只是（名稱，SELECT 定義）。每次查詢才把定義代進去現算，所以底下資料表一改，view 立刻跟著變。' }, en: { term: 'A view holds no data', def: 'A view stores only a (name, SELECT definition) pair. It is recomputed on each query, so any change to the underlying table shows up in the view immediately.' } },
   { zh: { term: 'WITH 的三條語法規則', def: '① 名稱 AS ( SELECT ... ) ② 定義之間用逗號，最後一個後面不能有逗號 ③ 後面的定義可以用前面的名字。' }, en: { term: 'Three syntax rules for WITH', def: '1) name AS ( SELECT ... ) 2) commas between definitions, none after the last one 3) later definitions may use earlier names.' } },
   { zh: { term: 'Inline view 要有別名', def: '每個 inline view 都要取別名，而且裡面的計算欄位（例如 count(*)）也要取別名，外層才引用得到。' }, en: { term: 'Inline views need aliases', def: 'Every inline view needs an alias, and computed columns inside it (like count(*)) need aliases too, or the outer query cannot reference them.' } },
+  { zh: { term: 'DELETE vs TRUNCATE vs DROP', def: 'DELETE：可加 WHERE、能 ROLLBACK、表還在。TRUNCATE：整張表清空、不能 WHERE、不能 ROLLBACK、較快、表還在。DROP TABLE：連表的定義一起刪掉。' }, en: { term: 'DELETE vs TRUNCATE vs DROP', def: 'DELETE: WHERE allowed, can be rolled back, table stays. TRUNCATE: empties the whole table, no WHERE, no ROLLBACK, faster, table stays. DROP TABLE: removes the table definition too.' } },
+  { zh: { term: 'DDL 的隱式 COMMIT', def: 'CREATE / DROP / ALTER / TRUNCATE 執行時會先把前面還沒 COMMIT 的 DML 一起變成永久的，所以之後 ROLLBACK 什麼都救不回來。' }, en: { term: 'Implicit COMMIT of DDL', def: 'CREATE / DROP / ALTER / TRUNCATE first make any earlier uncommitted DML permanent, so a later ROLLBACK has nothing left to undo.' } },
+  { zh: { term: 'CREATE TABLE ... AS', def: '建表＋灌入查詢結果一步完成，是 DDL；只保留 NULL / NOT NULL，沒有主鍵外鍵；是「快照」，原表之後的變動不會跟著變（跟 view 相反）。' }, en: { term: 'CREATE TABLE ... AS', def: 'Creates the table and loads a query result in one step; it is DDL; keeps only NULL / NOT NULL, no keys; it is a snapshot that does not follow later changes to the source (unlike a view).' } },
+  { zh: { term: 'INSERT ... SELECT', def: '把查詢結果灌進已存在的表，是 DML、能 ROLLBACK；欄位依「位置」對應，SELECT 清單順序要跟目標表一致。' }, en: { term: 'INSERT ... SELECT', def: 'Loads a query result into an existing table; it is DML and can be rolled back; columns are matched by position, so the SELECT list order must follow the target table.' } },
+  { zh: { term: 'DELETE / UPDATE 的子查詢', def: '一個值用 =，好幾個值用 IN，「有沒有」用 EXISTS；子查詢引用外層表就是相關子查詢。大範圍修改前先用 SELECT 預覽。' }, en: { term: 'Subqueries in DELETE / UPDATE', def: '= for one value, IN for several, EXISTS for "does any exist"; a subquery referencing the outer table is correlated. Preview a wide change with a SELECT first.' } },
 ];
 const flashContainer = document.getElementById('flash-container');
 function renderFlash() {
