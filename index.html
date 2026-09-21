@@ -179,6 +179,40 @@
   .answer-body{ padding:12px 14px 2px; }
   ol.steps{ margin:8px 0 14px; padding-left:22px; }
   ol.steps li{ margin:3px 0; }
+  ul.facts{ margin:12px 0 16px; padding-left:20px; }
+  ul.facts li{ margin:6px 0; max-width:74ch; }
+  /* ---- 架構圖 ---- */
+  .arch{ display:grid; grid-template-columns:1fr auto 2fr; grid-template-areas:"cl net sv" ". . files"; gap:10px 14px; align-items:stretch; margin:14px 0 8px; }
+  .arch-col{ grid-area:cl; display:flex; flex-direction:column; gap:10px; justify-content:center; }
+  .arch-net{ grid-area:net; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--ink-soft); font-size:1.5rem; text-align:center; }
+  .arch-net small{ font-size:.7rem; max-width:7em; }
+  .arch-server{ grid-area:sv; border:2px solid var(--ink-soft); border-radius:8px; padding:10px; background:var(--paper-card); display:flex; flex-direction:column; gap:8px; }
+  .arch-title{ font-family:var(--serif); font-weight:700; font-size:.92rem; color:var(--ink); }
+  .arch-box, .arch-layer, .arch-thread, .arch-files{ border:1px solid var(--rule); border-radius:6px; background:#fff; transition:background .2s, border-color .2s, box-shadow .2s; }
+  .arch-box{ padding:9px 12px; display:flex; flex-direction:column; font-size:.9rem; }
+  .arch-box small{ color:var(--ink-soft); font-size:.74rem; }
+  .arch-threads{ display:flex; gap:8px; }
+  .arch-thread{ flex:1; text-align:center; padding:4px 6px; font-family:var(--mono); font-size:.78rem; color:var(--ink-soft); }
+  .arch-layer{ padding:8px 12px; display:flex; flex-direction:column; font-size:.86rem; }
+  .arch-layer span{ color:var(--ink-soft); font-size:.78rem; }
+  .arch-files{ grid-area:files; padding:8px 12px; font-size:.84rem; text-align:center; color:var(--ink-soft); }
+  .arch .hl{ background:var(--mustard-soft); border-color:var(--mustard); box-shadow:0 0 0 2px rgba(185,130,46,.35); color:var(--ink); }
+  .arch .hl span, .arch .hl small{ color:var(--ink); }
+  .arch-ctrl{ display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 8px; }
+  .arch-ctrl button{ border:1px solid var(--rule); background:var(--paper-card); border-radius:4px; padding:6px 14px; font-size:.86rem; cursor:pointer; font-family:var(--sans); color:var(--ink); }
+  .arch-ctrl button:hover:not(:disabled){ border-color:var(--teal); color:var(--teal); }
+  .arch-ctrl button:disabled{ opacity:.4; cursor:default; }
+  .arch-text{ background:var(--teal-soft); border-left:3px solid var(--teal); padding:10px 14px; border-radius:0 4px 4px 0; font-size:.95rem; margin:0 0 16px; min-height:3.2em; }
+  @media (max-width:640px){ .arch{ grid-template-columns:1fr; grid-template-areas:"cl" "net" "sv" "files"; } .arch-net{ flex-direction:row; gap:8px; } }
+  /* ---- 終端機 ---- */
+  .term-cmd{ white-space:pre-wrap; margin-top:12px; color:var(--console-text); }
+  .term-cmd:first-child{ margin-top:0; }
+  .term-prompt.sh{ color:#7EC8E3; font-weight:700; }
+  .term-prompt.sql{ color:var(--console-accent); font-weight:700; }
+  .term-out{ white-space:pre-wrap; color:#B9CCC3; margin:2px 0 0; }
+  .term-note{ white-space:pre-wrap; color:#8FA79C; font-style:italic; margin:2px 0 0; }
+  .term-err{ white-space:pre-wrap; color:var(--console-error); margin:2px 0 0; }
+  .console.server .console-result table{ margin:4px 0 0; }
   .console-result{
     background:var(--console-panel); padding:16px 18px; border-top:1px solid rgba(255,255,255,0.06);
     font-family:var(--mono); font-size:.88rem; color:var(--console-text); overflow-x:auto;
@@ -271,6 +305,7 @@
     <a href="#nested" data-en="Nested / EXISTS">巢狀查詢 / EXISTS</a>
     <a href="#views" data-en="Views / WITH">View 與 WITH</a>
     <a href="#advanceddml" data-en="Advanced DDL/DML">進階 DDL/DML</a>
+    <a href="#serverarch" data-en="Server Architecture">資料庫伺服器架構</a>
     <a href="#functions" data-en="Functions & Calculator">函數與計算機</a>
     <a href="#quiz" data-en="Quiz">互動測驗</a>
     <a href="#flashcards" data-en="Flashcards">詞彙卡</a>
@@ -1820,8 +1855,342 @@ SET total_credits = ( SELECT SUM(credits)
       <div class="tip"><strong data-en="Chapter summary:">這章的重點整理：</strong><span data-en="TRUNCATE is fast but cannot be rolled back and has no WHERE. CREATE TABLE ... AS creates a table plus a snapshot (no constraints); INSERT ... SELECT loads a pre-designed table (matched by position). DELETE / UPDATE may carry subqueries in WHERE or SET: = for one value, IN for several, EXISTS for &quot;does any exist&quot;; a subquery that references the outer table is a correlated subquery. Preview a wide DELETE / UPDATE with a SELECT first.">TRUNCATE 快但不能 ROLLBACK 也不能加 WHERE。CREATE TABLE ... AS 是建表加快照（無限制條件）；INSERT ... SELECT 灌進事先設計好的表（依位置對應）。DELETE / UPDATE 的 WHERE 或 SET 可以放子查詢：一個值用 =，好幾個值用 IN，「存在與否」用 EXISTS；子查詢引用外層的表就是相關子查詢。大範圍的 DELETE / UPDATE 前，先用 SELECT 預覽。</span></div>
     </section>
 
+    <section id="serverarch">
+      <h2 data-en="18. Architecture of a Relational Database Server">18. 資料庫伺服器架構</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="The app suddenly cannot reach the database, a colleague asks &quot;why can I log in but not CREATE TABLE?&quot;, you must verify server settings before a release, a freshly installed database needs its root account locked down — none of these are SQL syntax problems; they are server-architecture problems: who is connected, who is authenticated, which privileges exist, what the settings are. Knowing the architecture tells you which layer to look at.">App 突然連不上資料庫、同事問「為什麼我登入了卻不能 CREATE TABLE？」、上線前要確認伺服器設定、新裝好的資料庫要先把 root 鎖起來 — 這些都不是 SQL 語法的問題，而是伺服器架構的問題：誰在連線、驗證誰、有沒有權限、設定值是多少。懂架構，才知道問題出在哪一層。</span></div>
+      <p data-en="The previous 17 chapters were about how to talk to a database (SQL). This chapter turns to the party that listens: what a database server (MySQL, as the example) looks like, how you connect to it, how it is configured, and how databases are organized into separate areas.">前面 17 章都在學「怎麼跟資料庫說話」（SQL）。這一章換個角度，看「聽你說話的那一端」：資料庫伺服器（以 MySQL 為例）長什麼樣子、怎麼連進去、怎麼設定，以及資料庫是怎麼分區管理的。</p>
+      <table class="static-tbl">
+        <tr><th data-en="Kind of command">指令的種類</th><th data-en="Example">例子</th><th data-en="Typed at the prompt">在哪個提示字元下</th><th data-en="Handled by">誰處理</th></tr>
+        <tr><td data-en="Operating-system (shell) command">作業系統的 shell 指令</td><td><code>service mysql start</code>、<code>cat /etc/...</code></td><td><code>$</code></td><td data-en="The operating system">作業系統</td></tr>
+        <tr><td data-en="Starting the mysql client">啟動 mysql 客戶端</td><td><code>mysql -u root -p</code></td><td><code>$</code></td><td data-en="The mysql command-line program">mysql 命令列程式</td></tr>
+        <tr><td data-en="SQL and server-management statements">SQL 與伺服器管理語句</td><td><code>show databases;</code>、<code>use csit115;</code>、<code>SELECT ...</code></td><td><code>mysql&gt;</code></td><td data-en="The database server">資料庫伺服器</td></tr>
+      </table>
+      <div class="tip"><span data-en="The prompt tells you who you are talking to: $ is the operating system, mysql> is the database. The terminal simulator below colours them differently. An SQL statement ends with a semicolon ; (and may span several lines) — without it the client just keeps waiting for more input, the formatting rule from chapter 1.">看提示字元就知道現在在跟誰講話：$ 是作業系統，mysql> 才是資料庫。下面的終端機模擬器會用不同顏色標出來。SQL 語句要用分號 ; 結尾（可以跨好幾行），沒加分號客戶端就會一直等你繼續打字 — 這也是第 1 章講過的格式規則。</span></div>
+      <div class="callout"><strong data-en="About the terminals below:">關於下面的「終端機」：</strong><span data-en="They are a MySQL server simulator written for this page: it has accounts and privileges, several databases, system variables, a data dictionary, and error messages that look like the real thing. Each run starts from a freshly installed server and replays the whole script line by line — so just edit the script and run it again. It implements only the commands this chapter uses; it is not a full MySQL.">它們是本頁自己寫的 MySQL 伺服器模擬器：有帳號與權限、有多個資料庫、有系統變數、有資料字典，錯誤訊息也照真的 MySQL 的樣子。每次按執行，都從一台「剛裝好的伺服器」重新開始，把整份腳本逐行跑一遍 — 所以你可以直接改腳本再重跑。它只實作本章講義用到的指令，不是完整的 MySQL。</span></div>
+      <h3 data-en="18.1 Client-server architecture — the journey of one connection">18.1 Client-Server 架構 — 一次連線的旅程</h3>
+      <p data-en="In a client-server architecture many clients connect to one database server over a local or wide-area network. Your app, your reporting tool and the mysql command line are all &quot;clients&quot;; the &quot;server&quot; is what actually manages the data. Use the buttons below to follow one connection plus one SELECT step by step through the server:">Client-server 架構指的是：很多個客戶端，透過區域網路或廣域網路，連到同一台資料庫伺服器。你的 App、報表工具、mysql 命令列，都是「客戶端」；真正管理資料的是「伺服器」。按下面的按鈕，一步一步看一次連線＋一句 SELECT 在伺服器裡走過哪些地方：</p>
+      <div class="arch" id="arch1">
+        <div class="arch-col">
+          <div class="arch-box" id="a-c1"><b data-en="Client A">客戶端 A</b><small data-en="mysql command line">mysql 命令列</small></div>
+          <div class="arch-box" id="a-c2"><b data-en="Client B">客戶端 B</b><small data-en="web back-end">網站後端程式</small></div>
+          <div class="arch-box" id="a-c3"><b data-en="Client C">客戶端 C</b><small data-en="reporting tool">報表工具</small></div>
+        </div>
+        <div class="arch-net"><span>⇄</span><small data-en="local / wide-area network">區域網路 / 廣域網路</small></div>
+        <div class="arch-server">
+          <div class="arch-title" data-en="Database server (mysqld)">資料庫伺服器 (mysqld)</div>
+          <div class="arch-threads"><div class="arch-thread" id="a-t1">thread 1</div><div class="arch-thread" id="a-t2">thread 2</div><div class="arch-thread" id="a-t3">thread 3</div></div>
+          <div class="arch-layer" id="a-l3"><b data-en="Services layer">服務層</b><span data-en="connection handling · authentication · security">連線處理 · 驗證 · 安全</span></div>
+          <div class="arch-layer" id="a-l2"><b data-en="Processing layer">處理層</b><span data-en="parsing · optimization · caching · built-in functions · DDL / DML">語法分析 · 優化 · 快取 · 內建函數 · DDL / DML</span></div>
+          <div class="arch-layer" id="a-l1"><b data-en="Storage engines">儲存引擎</b><span>InnoDB · MyISAM · MEMORY · CSV</span></div>
+        </div>
+        <div class="arch-files" id="a-f" data-en="💾 Data files (datadir: /var/lib/mysql/)">💾 資料檔案（datadir：/var/lib/mysql/）</div>
+      </div>
+      <div class="arch-ctrl">
+        <button id="arch-prev" type="button" data-en="← Previous">← 上一步</button>
+        <button id="arch-next" type="button" data-en="Next →">下一步 →</button>
+        <button id="arch-restart" type="button" data-en="↺ Start over">↺ 重來</button>
+      </div>
+      <div class="arch-text" id="arch-text"></div>
+      <table class="static-tbl">
+        <tr><th data-en="Layer">層</th><th data-en="What it does">負責什麼</th><th data-en="Not specific to MySQL?">跟 MySQL 有關嗎</th></tr>
+        <tr><td data-en="Services layer">服務層</td><td data-en="Network client / server tools: connection handling, authentication, security">網路上的 client / server 工具：連線處理、驗證、安全</td><td data-en="No — the same ideas exist in every database server">不專屬於 MySQL，每個資料庫伺服器都有這一層</td></tr>
+        <tr><td data-en="Processing layer">處理層</td><td data-en="DDL and DML processing: query analysis, optimization, caching, all built-in functions, data entry and modification, creating database structures">DDL 與 DML 的處理：查詢分析、優化、快取、所有內建函數、資料輸入與修改、建立資料庫結構</td><td data-en="Largely MySQL's own SQL engine">主要是 MySQL 自己的 SQL 引擎</td></tr>
+        <tr><td data-en="Storage engines">儲存引擎</td><td data-en="Store and retrieve the data — e.g. InnoDB, MyISAM, MEMORY, CSV">負責存與取資料，例如 InnoDB、MyISAM、MEMORY、CSV</td><td data-en="Pluggable: each table may use a different engine">可抽換：不同的資料表可以選不同的引擎</td></tr>
+      </table>
+      <ul class="facts">
+        <li><span data-en="&lt;b>One thread per connection.&lt;/b> When several clients are connected at once, each connection gets its own thread inside the server, and one thread runs on a single core / CPU."><b>一個連線一條 thread。</b>同時有好幾個客戶端連進來時，每個連線在伺服器裡各有自己的 thread，一條 thread 只會跑在一個核心 / CPU 上。</span></li>
+        <li><span data-en="&lt;b>Authentication = user name + originating host + password.&lt;/b> A MySQL account is really a user@host pair, so root@localhost and a root connecting from another machine are different accounts."><b>驗證 = 使用者名稱 ＋ 來源主機 ＋ 密碼。</b>MySQL 的帳號其實是「user@host」一組，所以 root@localhost 跟從別台機器連來的 root 是不同的帳號。</span></li>
+        <li><span data-en="&lt;b>Being authenticated does not mean you may do anything.&lt;/b> Once connected, the server still checks whether the account has the privilege to touch each table. &quot;Who you are&quot; and &quot;what you may do&quot; are two separate questions."><b>驗證通過 ≠ 想做什麼都行。</b>連線成功之後，伺服器還會檢查這個帳號有沒有權限存取那些資料表。「你是誰」跟「你能做什麼」是兩件事。</span></li>
+      </ul>
+      <p data-en="Practice: which layer takes care of each of these? Think first, then click — after answering you get the reason.">練習：下面每一件事，是哪一層在負責？先想再點，答完會告訴你原因。</p>
+      <div id="layer-quiz"></div>
+      <div class="quiz-score" id="layer-score"></div>
+      <h3 data-en="18.2 Starting, stopping and checking the server">18.2 啟動、停止與查看伺服器狀態</h3>
+      <p data-en="A database server is usually started automatically when the operating system boots. To pause or restart it you type commands into the operating-system shell (not inside mysql>):">資料庫伺服器通常在作業系統開機時自動啟動。要暫停或重啟它，是在作業系統的 shell（不是在 mysql> 裡）下指令：</p>
+      <div class="skeleton skeleton-code">service mysql stop      -- 停止伺服器
+service mysql start     -- 啟動伺服器
+service mysql status    -- 查看伺服器狀態</div>
+      <div class="console server" data-default="service mysql status&#10;service mysql stop&#10;service mysql status&#10;mysql -u root&#10;service mysql start&#10;mysql -u root">
+        <div class="console-topbar" data-en="What happens when a client tries to connect while the server is stopped?">伺服器停掉的時候，客戶端連得進去嗎？</div>
+        <textarea class="console-input" spellcheck="false">service mysql status
+service mysql stop
+service mysql status
+mysql -u root
+service mysql start
+mysql -u root</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Guess what happens on line 4, mysql -u root, then run">先猜第 4 行 mysql -u root 會發生什麼事，再執行</span></div>
+      </div>
+      <div class="tip"><span data-en="When you cannot reach the database and see ERROR 2002 (Can't connect to local MySQL server through socket), do not suspect the password first — ask &quot;is the server running?&quot; and start with service mysql status.">連不上資料庫時，看到 ERROR 2002（Can't connect to local MySQL server through socket）第一個要想的不是密碼錯了，而是「伺服器有沒有在跑」— 先 service mysql status。</span></div>
+      <h3 data-en="18.3 System initialization variables and configuration files">18.3 系統初始化變數與設定檔</h3>
+      <p data-en="When the server starts it first reads its system initialization variables, which determine what the server can do and how it behaves — for instance which directory holds the data (datadir), which port it listens on (port), and whether table names are case-sensitive (lower_case_table_names). They live in configuration files. To find where those files are:">伺服器啟動的時候，會先讀取「系統初始化變數」，這些變數決定了伺服器的功能與行為 — 例如資料放在哪個目錄（datadir）、用哪個埠（port）、表名要不要分大小寫（lower_case_table_names）。它們寫在設定檔裡。要知道設定檔在哪：</p>
+      <div class="console server" data-default="mysql --help | grep &quot;Default options&quot; -A 1&#10;cat /etc/mysql/mysql.conf.d/mysqld.cnf">
+        <div class="console-topbar" data-en="Find where the configuration files are, then print the contents of one of them">找出設定檔的位置，再把其中一個設定檔的內容印出來</div>
+        <textarea class="console-input" spellcheck="false">mysql --help | grep "Default options" -A 1
+cat /etc/mysql/mysql.conf.d/mysqld.cnf</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="The first line lists the files that are read in order by default">第一行列出的是「預設會依序讀取」的設定檔路徑</span></div>
+      </div>
+      <p data-en="While the server is running you can inspect the current values with SHOW VARIABLES from mysql>, narrowing them down with LIKE (% matches any characters):">伺服器跑起來之後，可以在 mysql> 裡用 SHOW VARIABLES 查看變數的目前值，用 LIKE 縮小範圍（% 代表任意字元）：</p>
+      <table class="static-tbl">
+        <tr><th data-en="Statement">語句</th><th data-en="Shows">顯示</th></tr>
+        <tr><td><code>show variables;</code></td><td data-en="The variables of the current connection (session) — 487 in the slides' server">目前這條連線（session）的變數值 — 講義的伺服器上是 487 個</td></tr>
+        <tr><td><code>show global variables;</code></td><td data-en="The global values — the defaults for NEW connections (487)">全域（global）的值 — 之後「新連線」的預設值（487 個）</td></tr>
+        <tr><td><code>show variables like '%update%';</code></td><td data-en="Only the variables whose name contains update">只列出名稱裡有 update 的變數</td></tr>
+        <tr><td><code>show variables like 'lower_case_table%';</code></td><td data-en="Only the variables whose name starts with lower_case_table">只列出名稱以 lower_case_table 開頭的變數</td></tr>
+      </table>
+      <pstyle="font-size:.88rem;color:var(--ink-soft)" data-en="(The slides' MySQL server has 501 variables in all; the simulator carries only a few dozen common ones — enough for practice.)">（講義的 MySQL 伺服器共有 501 個變數；這個模擬器只放了其中幾十個常用的，夠練習用。）</p>
+      <p data-en="To change a value use SET. But not every variable can be changed: a dynamic variable can be changed immediately with SET; a non-dynamic (read-only) one cannot — you get ERROR 1238. There is also the session-versus-global distinction. The script below runs the main cases in one go:">要改變數的值用 SET。但不是每個變數都能改：「動態變數」可以用 SET 立刻改；「非動態」（唯讀）變數 SET 不動，會出現 ERROR 1238。另外還有 session 和 global 的差別。下面這份腳本把幾種情況一次跑給你看：</p>
+      <div class="console server" data-default="mysql -u root&#10;show variables like '%update%';&#10;show variables like 'lower_case_table%';&#10;set sql_safe_updates=1;&#10;show variables like 'sql_safe%';&#10;set lower_case_table_names=1;&#10;set max_connections=200;&#10;set global max_connections=200;&#10;show variables like 'max_conn%';">
+        <div class="console-topbar" data-en="Look up variables, SET a dynamic one, hit a read-only one, and see session versus global">查變數、SET 動態變數、撞到唯讀變數、session 與 global 的差別</div>
+        <textarea class="console-input" spellcheck="false">mysql -u root
+show variables like '%update%';
+show variables like 'lower_case_table%';
+set sql_safe_updates=1;
+show variables like 'sql_safe%';
+set lower_case_table_names=1;
+set max_connections=200;
+set global max_connections=200;
+show variables like 'max_conn%';</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Every error is deliberate — read what the messages say">每一個錯誤都是刻意的 — 看看錯誤訊息怎麼說</span></div>
+      </div>
+      <table class="static-tbl">
+        <tr><th></th><th data-en="Dynamic variable">動態變數</th><th data-en="Non-dynamic (read-only) variable">非動態（唯讀）變數</th></tr>
+        <tr><td data-en="Example">例子</td><td><code>sql_safe_updates</code>、<code>autocommit</code>、<code>wait_timeout</code></td><td><code>lower_case_table_names</code>、<code>datadir</code>、<code>port</code></td></tr>
+        <tr><td data-en="Change it with">怎麼改</td><td><code>SET var = value;</code></td><td data-en="Only in the configuration file">只能改設定檔</td></tr>
+        <tr><td data-en="Takes effect">生效時間</td><td data-en="At once">立刻</td><td data-en="After the server is restarted">伺服器重新啟動之後</td></tr>
+        <tr><td data-en="If you try SET anyway">硬要用 SET</td><td>—</td><td>ERROR 1238: ... is a read only variable</td></tr>
+      </table>
+      <p data-en="To change a non-dynamic variable, follow these steps in order:">要改非動態變數，要照這個順序做：</p>
+      <ol class="steps">
+        <li><code>service mysql stop</code> — <span data-en="stop the server">停止伺服器</span></li>
+        <li><span data-en="edit the variable in the configuration file (e.g. mysqld.cnf)">在設定檔（例如 mysqld.cnf）裡改變數的值</span></li>
+        <li><code>service mysql start</code> — <span data-en="start the server; it reads the file again">啟動伺服器，它會重新讀取設定檔</span></li>
+      </ol>
+      <div class="callout"><strong data-en="The two scopes of SET:">SET 的兩個範圍：</strong><span data-en="A SET without GLOBAL changes only the current connection (session); SET GLOBAL changes the default for future connections and needs the SUPER privilege. Some variables (like max_connections) exist only at the global level, and a plain SET on them gives ERROR 1229.">沒寫 GLOBAL 的 SET 只改「目前這條連線」（session）；SET GLOBAL 改的是「之後新連線」的預設值，需要 SUPER 權限。有些變數（例如 max_connections）只有 global 的版本，用不帶 GLOBAL 的 SET 會出現 ERROR 1229。</span></div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 1 (change one value) — turn on &quot;safe update mode&quot;">🧪 練習 1（改一個值）— 開啟「安全更新模式」</div>
+        <p data-en="sql_safe_updates protects you from slips: when it is on, an UPDATE / DELETE without a WHERE is refused. The script below currently sets it to 0 (off), so DELETE FROM COURSE empties the whole table — change 0 to 1 and run it again.">sql_safe_updates 是保護你不要手滑的變數：開啟後，沒有 WHERE 的 UPDATE / DELETE 會被擋下來。下面的腳本現在是把它設成 0（關閉），所以 DELETE FROM COURSE 會把整張表清空 — 請把 0 改成 1，再執行。</p>
+      <div class="console server" data-default="mysql -u root&#10;use csit115;&#10;set sql_safe_updates=0;&#10;delete from COURSE;&#10;select count(*) from COURSE;">
+        <div class="console-topbar" data-en="Practice 1: change set sql_safe_updates=0 to 1">練習 1：把 set sql_safe_updates=0 改成 1</div>
+        <textarea class="console-input" spellcheck="false">mysql -u root
+use csit115;
+set sql_safe_updates=0;
+delete from COURSE;
+select count(*) from COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="After editing, guess: does the DELETE succeed? What is the final count(*)?">改完先猜：DELETE 會成功嗎？最後的 count(*) 是多少？</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">mysql -u root
+use csit115;
+set sql_safe_updates=1;
+delete from COURSE;
+select count(*) from COURSE;</div>
+          <p data-en="With 1, the DELETE is stopped by ERROR 1175 (You are using safe update mode ...) and COURSE still has 6 rows — a safety net for a forgotten WHERE. (Real MySQL is stricter and also refuses a WHERE that does not use a key column; the simulator only checks that a WHERE exists.) If you truly want to empty the table, first running set sql_safe_updates=0 is a deliberate step, not a slip.">改成 1 之後，DELETE 會出現 ERROR 1175（You are using safe update mode ...）被擋下來，COURSE 還是 6 筆。這是「漏寫 WHERE」的安全網。（真正的 MySQL 更嚴格，連 WHERE 沒用到索引欄位也會擋；這個模擬器只檢查有沒有 WHERE。）要真的想清空整張表，先 set sql_safe_updates=0 是刻意的、不會手滑的動作。</p>
+          </div>
+        </details>
+      </div>
+      <h3 data-en="18.4 After installation: accounts, passwords and the data dictionary">18.4 安裝之後：帳號、密碼與資料字典</h3>
+      <p data-en="A freshly installed MySQL has just one account, root, and it has NO password — mysql -u root gets you straight in. That is an obvious security risk, so the first job after installation is to give root a password:">剛安裝好的 MySQL，只有一個 root 帳號，而且「沒有密碼」— 直接輸入 mysql -u root 就能進去。這是明顯的安全風險，所以裝好後的第一件事，就是幫 root 設密碼：</p>
+      <ol class="steps">
+        <li><code>mysql -u root</code> — <span data-en="connect (no password yet)">連進去（還沒有密碼）</span></li>
+        <li><code>ALTER USER 'root'@'localhost' IDENTIFIED BY '密碼';</code></li>
+        <li><span data-en="From now on connect with">之後連線要用</span> <code>mysql -u root -p</code> <span data-en="(the client asks for the password)">（客戶端會問密碼）</span></li>
+      </ol>
+      <div class="console server" data-default="mysql -u root&#10;select user, host, hex(authentication_string) from mysql.user;&#10;ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyPass123';&#10;select user, host, hex(authentication_string) from mysql.user;&#10;exit&#10;mysql -u root&#10;mysql -u root -p">
+        <div class="console-topbar" data-en="The whole flow: log in with no password → set one → afterwards you cannot get in without it">完整流程：沒密碼登入 → 設密碼 → 之後不帶密碼就進不去</div>
+        <textarea class="console-input" spellcheck="false">mysql -u root
+select user, host, hex(authentication_string) from mysql.user;
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyPass123';
+select user, host, hex(authentication_string) from mysql.user;
+exit
+mysql -u root
+mysql -u root -p</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Compare root's row in the two selects, and the results of the last two connection attempts">比較兩次 select 裡 root 那一列的變化，以及最後兩行連線的結果</span></div>
+      </div>
+      <div class="callout"><strong data-en="The database does not store the password:">資料庫裡存的不是密碼：</strong><span data-en="authentication_string holds the password hashed twice with SHA-1, with a * in front — seen through HEX(), the leading 2A is the * character. For root it starts empty (no password) and a long string appears only after ALTER USER. So even the database administrator cannot read the original password; the server can only check whether what you type hashes to the same value.">authentication_string 存的是「密碼做兩次 SHA-1 雜湊」的結果，前面再加一個 * — 用 HEX() 看的話，開頭的 2A 就是 * 這個字元。root 一開始是空的（沒有密碼），ALTER USER 之後才出現一長串。所以連資料庫管理員都看不到原本的密碼，只能驗證「你輸入的密碼雜湊之後對不對得上」。</span></div>
+      <p data-en="Another common mix-up: MySQL's root and the operating system's root are entirely different things. whoami shows the operating-system user; SELECT CURRENT_USER() shows the MySQL account.">另一個常見的誤會：MySQL 的 root 跟作業系統的 root 完全是兩回事。whoami 看到的是作業系統的使用者；SELECT CURRENT_USER() 看到的才是 MySQL 的帳號。</p>
+      <div class="console server" data-default="whoami&#10;mysql -u root&#10;select current_user();">
+        <div class="console-topbar" data-en="The operating-system user versus the MySQL account">作業系統的使用者 vs MySQL 的帳號</div>
+        <textarea class="console-input" spellcheck="false">whoami
+mysql -u root
+select current_user();</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Are the two names the same?">兩個名字一樣嗎？</span></div>
+      </div>
+      <p data-en="And what databases, tables and user privileges exist? That information about the database system itself lives in a special database, information_schema, usually called the data dictionary. Nobody types its content; the server computes it from its current state — and you can query it with ordinary SELECTs:">那資料庫裡有哪些資料庫、資料表、使用者權限？這些「關於資料庫本身的資訊」放在一個特別的資料庫 information_schema 裡，通常叫「資料字典」。它的內容不是誰輸入的，而是伺服器依目前狀態現算出來的 — 你可以用平常的 SELECT 來查它：</p>
+      <div class="console server" data-default="mysql -u root&#10;show databases;&#10;use information_schema;&#10;show tables;&#10;select * from user_privileges;">
+        <div class="console-topbar" data-en="List the databases → enter the data dictionary → see its tables → look at the users' privileges">列出資料庫 → 進入資料字典 → 看有哪些表 → 看使用者的權限</div>
+        <textarea class="console-input" spellcheck="false">mysql -u root
+show databases;
+use information_schema;
+show tables;
+select * from user_privileges;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Compare the PRIVILEGE_TYPE and IS_GRANTABLE of root and csit115">比較 root 和 csit115 兩個帳號的 PRIVILEGE_TYPE 與 IS_GRANTABLE</span></div>
+      </div>
+      <p data-en="root clearly holds every privilege and IS_GRANTABLE is YES (it can pass privileges on to others); csit115 has only the four data-manipulation privileges SELECT / INSERT / UPDATE / DELETE and cannot pass them on. The next part uses it to show what &quot;not enough privilege&quot; looks like.">看得出來 root 什麼權限都有、而且 IS_GRANTABLE 是 YES（可以再把權限授權給別人）；csit115 只有 SELECT / INSERT / UPDATE / DELETE 四個資料操作權限，也不能轉授權。下一段就用它來看「權限不夠」是什麼情況。</p>
+      <div class="console server" data-default="mysql -u root&#10;use csit115;&#10;create table BOOKING(id INTEGER, guest VARCHAR(50));&#10;select table_schema, table_name from information_schema.tables where table_schema = 'csit115';&#10;select column_name, ordinal_position from information_schema.columns where table_name = 'BOOKING';">
+        <div class="console-topbar" data-en="The data dictionary is live: create a table and it shows up in information_schema at once">資料字典是「活的」：建一張表，馬上在 information_schema 查得到</div>
+        <textarea class="console-input" spellcheck="false">mysql -u root
+use csit115;
+create table BOOKING(id INTEGER, guest VARCHAR(50));
+select table_schema, table_name from information_schema.tables where table_schema = 'csit115';
+select column_name, ordinal_position from information_schema.columns where table_name = 'BOOKING';</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Which table did you just create? Is the column order right?">哪一張表是剛剛才建的？欄位順序對不對？</span></div>
+      </div>
+      <h3 data-en="18.5 Databases — creating, switching and reaching across them">18.5 資料庫 — 建立、切換與跨資料庫存取</h3>
+      <p data-en="To create tables you first need a database — a database is like a folder holding a group of related tables, and one server can hold many databases.">要建立資料表，得先有「資料庫」— 一個資料庫就像一個資料夾，裡面放著一組相關的資料表。一台伺服器可以同時有很多個資料庫。</p>
+      <table class="static-tbl">
+        <tr><th data-en="Statement">語句</th><th data-en="What it does">作用</th><th data-en="Privilege needed">需要的權限</th></tr>
+        <tr><td><code>CREATE DATABASE name;</code></td><td data-en="Create a database">建立資料庫</td><td>CREATE</td></tr>
+        <tr><td><code>DROP DATABASE name;</code></td><td data-en="Delete a database and everything in it">刪除資料庫（連同裡面所有東西）</td><td>DROP</td></tr>
+        <tr><td><code>SHOW DATABASES;</code></td><td data-en="List the databases you may see">列出你看得到的資料庫</td><td>—</td></tr>
+        <tr><td><code>USE name;</code></td><td data-en="Make it the default database">設成預設資料庫</td><td data-en="Access to that database">能存取那個資料庫</td></tr>
+        <tr><td><code>SHOW TABLES;</code></td><td data-en="List the tables of the default database">列出預設資料庫裡的資料表</td><td>—</td></tr>
+      </table>
+      <p data-en="Without further qualification SELECT * FROM COURSE means the COURSE in the default database. Only one database can be the default at a time; to reach a table in another database, prefix the table name with &quot;database.&quot;:">沒有指定的話，寫 SELECT * FROM COURSE 指的是「預設資料庫」裡的 COURSE。同一時間只能有一個預設資料庫；要存取別的資料庫裡的表，就在表名前面加上「資料庫名稱.」：</p>
+      <div class="console server" data-default="mysql -u root&#10;show databases;&#10;use csit115;&#10;select * from COURSE;&#10;use university;&#10;select * from COURSE;&#10;use csit115;&#10;select * from university.COURSE;&#10;select database();">
+        <div class="console-topbar" data-en="The default database and the db.table prefix: both databases have a COURSE, with different content">預設資料庫與 db.table 前綴：兩個資料庫都有 COURSE，但內容不同</div>
+        <textarea class="console-input" spellcheck="false">mysql -u root
+show databases;
+use csit115;
+select * from COURSE;
+use university;
+select * from COURSE;
+use csit115;
+select * from university.COURSE;
+select database();</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Which queries return csit115's COURSE and which university's? Which database does database() report?">哪幾個查詢回傳的是 csit115 的 COURSE？哪幾個是 university 的？最後一行 database() 是哪個？</span></div>
+      </div>
+      <div class="console server" data-default="mysql -u root&#10;create database demo;&#10;create database demo;&#10;use demo;&#10;show tables;&#10;create table T(a INTEGER);&#10;show tables;&#10;drop database demo;&#10;select database();&#10;select * from T;">
+        <div class="console-topbar" data-en="Create a database → build a table in it → drop the database (the default database goes with it)">建立資料庫 → 進去建表 → 刪掉資料庫（預設資料庫也跟著沒了）</div>
+        <textarea class="console-input" spellcheck="false">mysql -u root
+create database demo;
+create database demo;
+use demo;
+show tables;
+create table T(a INTEGER);
+show tables;
+drop database demo;
+select database();
+select * from T;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="What does the second create database do? What does database() return after the drop? And querying T?">第二個 create database 會怎樣？drop 之後 database() 回傳什麼？再查 T 呢？</span></div>
+      </div>
+      <div class="callout"><strong data-en="Careful with DROP DATABASE:">小心 DROP DATABASE：</strong><span data-en="DROP DATABASE deletes the database together with every table and row in it; it is DDL and cannot be rolled back. That is why it requires its own DROP privilege — the privilege split from the previous section exists precisely so that not everybody can do such a thing.">DROP DATABASE 會把資料庫「連同裡面所有資料表和資料」一起刪掉，是 DDL，不能 ROLLBACK。所以它需要專門的 DROP 權限 — 上一節的權限分工，就是為了不讓每個人都能做這種事。</span></div>
+      <p data-en="Now switch to a less privileged account, csit115 (its password is csit115 as well), and see where you are still stopped after authentication succeeds:">換一個權限有限的帳號 csit115（密碼也是 csit115）來看看，「驗證通過」之後還會被擋在哪裡：</p>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 2 (predict, then check) — four ways to lack a privilege">🧪 練習 2（先猜再驗證）— 權限不夠的四種情況</div>
+        <p data-en="Log in as csit115. Do not run it yet — guess which of the six statements below succeed and which are refused; and for the refused ones, is the error about a database, a table, or the SUPER privilege?">用 csit115 登入。先不要執行，猜猜看：下面 6 條指令，哪些會成功、哪些會被擋？被擋的話，錯誤是關於「資料庫」、還是「資料表」、還是「SUPER 權限」？</p>
+      <div class="console server" data-default="mysql -u csit115 -pcsit115&#10;show databases;&#10;create database demo;&#10;use university;&#10;select * from university.COURSE;&#10;use csit115;&#10;create table X(a INTEGER);&#10;delete from COURSE where cnum = 'CSCI111';&#10;set global max_connections=200;">
+        <div class="console-topbar" data-en="Practice 2: what csit115 can and cannot do">練習 2：csit115 帳號能做什麼、不能做什麼</div>
+        <textarea class="console-input" spellcheck="false">mysql -u csit115 -pcsit115
+show databases;
+create database demo;
+use university;
+select * from university.COURSE;
+use csit115;
+create table X(a INTEGER);
+delete from COURSE where cnum = 'CSCI111';
+set global max_connections=200;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Write down your predicted result for each line, then run to check">先把每一行的結果寫下來，再按執行對答案</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">show databases;                  → 只有 information_schema、csit115（看不到 university、mysql）
+create database demo;            → ERROR 1044 Access denied ... to database 'demo'
+use university;                  → ERROR 1044 Access denied ... to database 'university'
+select * from university.COURSE; → ERROR 1142 SELECT command denied ...
+create table X(a INTEGER);       → ERROR 1142 CREATE command denied ...
+delete from COURSE where ...;    → Query OK（DELETE 是 csit115 有的權限）
+set global max_connections=200;  → ERROR 1227 ... need the SUPER privilege</div>
+          <p data-en="csit115 holds only SELECT / INSERT / UPDATE / DELETE and may access only the csit115 database. So: creating a database needs the CREATE privilege at database level (1044); reaching a database or its tables without permission gives 1044 / 1142; creating a table needs CREATE (1142); changing a global variable needs SUPER (1227). All it can do is manipulate data in its own database. Two accounts that both logged in successfully can do very different things — exactly why authentication and privileges are kept apart.">csit115 只有 SELECT / INSERT / UPDATE / DELETE，而且只能存取 csit115 這個資料庫。所以：建立資料庫是「資料庫層級」的 CREATE 權限（1044）；存取沒有權限的資料庫或它的表是 1044 / 1142；建立資料表需要 CREATE 權限（1142）；改全域變數需要 SUPER（1227）。它做得到的只有自己資料庫裡的資料操作。同一個「登入成功」的帳號，能做的事可以差很多 — 這正是「驗證」和「權限」要分開的原因。</p>
+          </div>
+        </details>
+      </div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 3 (change one thing) — compare two COURSE tables without switching database">🧪 練習 3（改一個地方）— 不切換資料庫，同時比較兩個 COURSE</div>
+        <p data-en="The default database is csit115. You want to know how many courses the COURSE table of csit115 and the COURSE table of university each have, without switching with USE in between. Both queries currently name the same table — change the second one to the university table and run it again.">預設資料庫是 csit115。想分別知道「csit115 的 COURSE」和「university 的 COURSE」各有幾門課，而且中間不能用 USE 切換。目前兩個查詢寫的是同一張表 — 請把第二個改成查 university 那張，再執行。</p>
+      <div class="console server" data-default="mysql -u root&#10;use csit115;&#10;select count(*) from COURSE;&#10;select count(*) from COURSE;">
+        <div class="console-topbar" data-en="Practice 3: point the second select at COURSE in the university database">練習 3：把第二個 select 的表改成 university 資料庫裡的 COURSE</div>
+        <textarea class="console-input" spellcheck="false">mysql -u root
+use csit115;
+select count(*) from COURSE;
+select count(*) from COURSE;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Every run starts from a freshly installed server and executes line by line">每次按執行，都從「剛裝好的伺服器」重新開始，逐行執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="After editing, guess the two numbers">改完先猜：兩個數字各是多少？</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">mysql -u root
+use csit115;
+select count(*) from COURSE;
+select count(*) from university.COURSE;</div>
+          <p data-en="COURSE in csit115 has 6 courses and COURSE in university has 3. An unprefixed COURSE always means the default database; the university. prefix reaches the other database without switching — a single query can even use tables from both databases at once.">csit115 的 COURSE 有 6 門課，university 的 COURSE 有 3 門課。沒有前綴的 COURSE 一律指「預設資料庫」；加上 university. 前綴就能在不切換的情況下存取另一個資料庫 — 同一句查詢裡甚至可以同時用到兩個資料庫的表。</p>
+          </div>
+        </details>
+      </div>
+      <div class="tip"><strong data-en="Chapter summary:">這章的重點整理：</strong><span data-en="The server has three layers: services (connections, authentication, security) → processing (analysis, optimization, caching, DDL/DML) → storage engines (store and retrieve data); one thread per connection. Authentication checks user + originating host + password, and privileges are checked after that. At startup the server reads the system variables from its configuration files: dynamic ones are changed with SET, read-only ones need stop → edit the file → start; GLOBAL is the default for new connections, SESSION the current one. The first job after installation is a password for root. The data dictionary information_schema describes the database system itself. Tables live inside databases: USE sets the default database and the db.table prefix reaches the others.">伺服器有三層：服務層（連線、驗證、安全）→ 處理層（分析、優化、快取、DDL/DML）→ 儲存引擎（存取資料）；每個連線一條 thread。驗證看「使用者＋來源主機＋密碼」，驗證之後還要檢查權限。伺服器啟動時讀設定檔裡的系統變數：動態變數用 SET 改，唯讀變數要「停止→改設定檔→啟動」；GLOBAL 是新連線的預設、SESSION 是目前連線。裝好第一件事是幫 root 設密碼。資料字典 information_schema 記錄資料庫本身的資訊。資料表放在資料庫裡：USE 設預設資料庫，db.table 前綴存取其他資料庫。</span></div>
+    </section>
+
     <section id="functions">
-      <h2 data-en="18. Common Functions + SQL as a Calculator">18. 常用函數 + SQL 當計算機</h2>
+      <h2 data-en="19. Common Functions + SQL as a Calculator">19. 常用函數 + SQL 當計算機</h2>
       <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Formatting an amount as &quot;$1,234&quot;, concatenating a name into &quot;Mr. Wang&quot;, or comparing an email case-insensitively &mdash; this everyday text and number wrangling is what SQL functions are for.">訂單金額要顯示成「NT$1,234」這種格式、姓名要拼接成「王小明 先生」、比較顧客輸入的 Email 時不管大小寫 — 這些日常的文字跟數字加工，都是靠 SQL 函數完成。</span></div>
       <h3 data-en="Row functions — computed once per row">Row 函數 — 每一列各算一次</h3>
       <div class="console" data-default="SELECT UPPER(name) FROM DEPARTMENT;">
@@ -1934,19 +2303,19 @@ WHERE </textarea>
     </section>
 
     <section id="quiz">
-      <h2 data-en="19. Interactive Quiz — testing the syntax skeleton, not rote facts">19. 互動測驗 — 測語法骨架，不是背知識</h2>
+      <h2 data-en="20. Interactive Quiz — testing the syntax skeleton, not rote facts">20. 互動測驗 — 測語法骨架，不是背知識</h2>
       <p data-en="Pick an answer to see right away whether it's correct, with an explanation; check your total score once you've answered them all.">選完會馬上顯示對錯跟解釋，全部答完看總分。</p>
       <div id="quiz-container"></div>
       <div class="quiz-score" id="quiz-score"></div>
     </section>
 
     <section id="flashcards">
-      <h2 data-en="20. Flashcards — click to flip">20. 詞彙卡 — 點一下翻面</h2>
+      <h2 data-en="21. Flashcards — click to flip">21. 詞彙卡 — 點一下翻面</h2>
       <div class="flash-grid" id="flash-container"></div>
     </section>
 
     <section id="schema">
-      <h2 data-en="21. Schema Quick Reference">21. 資料表結構速查</h2>
+      <h2 data-en="22. Schema Quick Reference">22. 資料表結構速查</h2>
       <p data-en="Every example on this page runs against the tables below — come back here any time to look up column names and sample data.">本頁所有範例都跑在下面這幾張表上，隨時可以回來查欄位名稱跟資料內容。</p>
       <div class="schema-grid">
         <div class="schema-card"><h4>DEPARTMENT</h4><ul>
@@ -2147,7 +2516,7 @@ class ExprParser {
         this.expectType('RPAREN');
         return { type: 'FUNC', name: upper, args: [arg] };
       }
-      if (upper === 'UPPER' || upper === 'LOWER' || upper === 'LENGTH') {
+      if (upper === 'UPPER' || upper === 'LOWER' || upper === 'LENGTH' || upper === 'HEX') {
         this.next(); this.expectType('LPAREN'); const arg = this.parseAdditive(); this.expectType('RPAREN');
         return { type: 'FUNC', name: upper, args: [arg] };
       }
@@ -2208,9 +2577,13 @@ function parseValueExpr(text) { return new ExprParser(tokenize(text)).parseAddit
 function resolveColumn(name, row) {
   if (name.includes('.')) {
     if (Object.prototype.hasOwnProperty.call(row, name)) return row[name];
+    const lower = name.toLowerCase(), hit = Object.keys(row).filter(k => k.toLowerCase() === lower);
+    if (hit.length === 1) return row[hit[0]];
     throw new Error('找不到欄位: ' + name);
   }
-  const matches = Object.keys(row).filter(k => k.slice(k.indexOf('.') + 1) === name);
+  let matches = Object.keys(row).filter(k => k.slice(k.indexOf('.') + 1) === name);
+  // 欄位名稱不分大小寫（跟真的資料庫一樣）：完全一樣的找不到，才用大小寫不同但拼法相同的
+  if (matches.length === 0) matches = Object.keys(row).filter(k => k.slice(k.indexOf('.') + 1).toLowerCase() === name.toLowerCase());
   if (matches.length === 0) throw new Error('找不到欄位: ' + name);
   if (matches.length > 1) throw new Error('欄位名稱不明確，請加上表名前綴，例如 alias.' + name);
   return row[matches[0]];
@@ -2224,6 +2597,7 @@ function applySimpleFunc(name, args) {
     case 'UPPER': return String(args[0] ?? '').toUpperCase();
     case 'LOWER': return String(args[0] ?? '').toLowerCase();
     case 'LENGTH': return String(args[0] ?? '').length;
+    case 'HEX': { const v = args[0]; if (v === null || v === undefined) return null; return typeof v === 'number' ? Math.floor(v).toString(16).toUpperCase() : bytesToHex(utf8Bytes(v)); }
     case 'IFNULL': return (args[0] === null || args[0] === undefined) ? args[1] : args[0];
     case 'SUBSTR': { const s = args[0], start = args[1], len = args[2]; const str = String(s ?? ''); const from = start - 1; return len !== undefined ? str.substr(from, len) : str.substr(from); }
     case 'CONCAT': return args.map(a => String(a ?? '')).join('');
@@ -2482,11 +2856,12 @@ function parseFromClause(fromPart) {
       const sub = runQuery(inner);
       return { rows: sub.rows, alias };
     }
-    const tableName = readIdentifier(str, pos);
+    const tnm = /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?/.exec(str.slice(pos));
+    const tableName = tnm ? tnm[0] : null;
     if (!tableName) throw new Error('無法解析 FROM 子句');
     pos += tableName.length; skipSpaces();
     if (/^AS\b/i.test(str.slice(pos))) { pos += 2; skipSpaces(); }
-    let alias = tableName;
+    let alias = tableName.indexOf('.') === -1 ? tableName : tableName.split('.').pop();   // university.COURSE 的別名預設是 COURSE
     const idm = readIdentifier(str, pos);
     if (idm && !RESERVED.has(idm.toUpperCase())) { alias = idm; pos += idm.length; }
     const tbl = TABLES[tableName.toUpperCase()];
@@ -3035,6 +3410,270 @@ function runScript(script, store) {
 // ============================================================
 
 // ============================================================
+// MySQL 伺服器模擬器（第 18 章的「終端機」用）
+// 每次按執行都從一台「剛裝好」的伺服器重新開始，逐行執行 shell 指令 / mysql 客戶端指令 / SQL。
+// ============================================================
+function sha1Bytes(bytes) {
+  const rotl = (n, s) => ((n << s) | (n >>> (32 - s))) >>> 0;
+  const ml = bytes.length * 8;
+  const msg = bytes.slice(); msg.push(0x80);
+  while (msg.length % 64 !== 56) msg.push(0);
+  const hi = Math.floor(ml / 0x100000000), lo = ml >>> 0;
+  [hi, lo].forEach(w => { msg.push((w >>> 24) & 255, (w >>> 16) & 255, (w >>> 8) & 255, w & 255); });
+  let h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 = 0x10325476, h4 = 0xC3D2E1F0;
+  for (let i = 0; i < msg.length; i += 64) {
+    const w = new Array(80);
+    for (let j = 0; j < 16; j++) w[j] = ((msg[i + 4 * j] << 24) | (msg[i + 4 * j + 1] << 16) | (msg[i + 4 * j + 2] << 8) | msg[i + 4 * j + 3]) >>> 0;
+    for (let j = 16; j < 80; j++) w[j] = rotl(w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16], 1);
+    let a = h0, b = h1, c = h2, d = h3, e = h4;
+    for (let j = 0; j < 80; j++) {
+      let f, k;
+      if (j < 20) { f = (b & c) | (~b & d); k = 0x5A827999; }
+      else if (j < 40) { f = b ^ c ^ d; k = 0x6ED9EBA1; }
+      else if (j < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
+      else { f = b ^ c ^ d; k = 0xCA62C1D6; }
+      const t = (rotl(a, 5) + f + e + k + w[j]) >>> 0;
+      e = d; d = c; c = rotl(b, 30); b = a; a = t;
+    }
+    h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0; h4 = (h4 + e) >>> 0;
+  }
+  const out = [];
+  [h0, h1, h2, h3, h4].forEach(h => out.push((h >>> 24) & 255, (h >>> 16) & 255, (h >>> 8) & 255, h & 255));
+  return out;
+}
+function utf8Bytes(s) { return Array.from(new TextEncoder().encode(String(s))); }
+function bytesToHex(b) { return b.map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase(); }
+// MySQL 5.7 存的不是密碼，而是「密碼做兩次 SHA-1」再前面加一個 *
+function mysqlAuthString(pw) { return pw ? '*' + bytesToHex(sha1Bytes(sha1Bytes(utf8Bytes(pw)))) : ''; }
+
+// [名稱, 值, 旗標]  d=可用 SET 動態修改  g=只能 SET GLOBAL  b=ON/OFF 型
+const SERVER_VARS = [
+  ['auto_increment_increment', '1', 'd'], ['auto_increment_offset', '1', 'd'], ['autocommit', 'ON', 'db'],
+  ['automatic_sp_privileges', 'ON', 'dgb'], ['avoid_temporal_upgrade', 'OFF', 'dgb'], ['basedir', '/usr/', ''],
+  ['character_set_server', 'latin1', 'd'], ['datadir', '/var/lib/mysql/', ''], ['date_format', '%Y-%m-%d', ''],
+  ['default_storage_engine', 'InnoDB', 'd'], ['innodb_buffer_pool_size', '134217728', 'dg'], ['innodb_flush_log_at_trx_commit', '1', 'dg'],
+  ['log_slave_updates', 'OFF', ''], ['low_priority_updates', 'OFF', 'db'], ['lower_case_table_names', '0', ''],
+  ['max_connections', '151', 'dg'], ['max_user_connections', '0', 'dg'], ['pid_file', '/var/run/mysqld/mysqld.pid', ''],
+  ['port', '3306', ''], ['socket', '/var/run/mysqld/mysqld.sock', ''], ['sql_mode', 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES', 'd'],
+  ['sql_safe_updates', 'OFF', 'db'], ['time_zone', 'SYSTEM', 'd'], ['tmpdir', '/tmp', ''], ['transaction_isolation', 'REPEATABLE-READ', 'd'],
+  ['version', '5.7.42', ''], ['version_comment', 'MySQL Community Server (GPL)', ''], ['wait_timeout', '28800', 'd'],
+];
+const MYSQLD_CNF = "[mysqld]\nuser            = mysql\npid-file        = /var/run/mysqld/mysqld.pid\nsocket          = /var/run/mysqld/mysqld.sock\nport            = 3306\nbasedir         = /usr\ndatadir         = /var/lib/mysql\ntmpdir          = /tmp\nlc-messages-dir = /usr/share/mysql\nexplicit_defaults_for_timestamp";
+const SOCK_ERR = "ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/run/mysqld/mysqld.sock' (2)";
+
+function newServer() {
+  const csit = cloneStore(['DEPARTMENT', 'COURSE', 'EMPLOYEE', 'STUDENT', 'ENROLMENT']);
+  const uni = {
+    COURSE: [
+      { cnum: 'MATH101', title: 'Calculus I', credits: 6, offered_by: 'Mathematics' },
+      { cnum: 'ARTS201', title: 'Modern Art', credits: 6, offered_by: 'Arts' },
+      { cnum: 'HIST110', title: 'World History', credits: 12, offered_by: 'Arts' },
+    ],
+    __cols: { COURSE: ['cnum', 'title', 'credits', 'offered_by'] },
+  };
+  const gvars = {}; const meta = {};
+  SERVER_VARS.forEach(([n, v, f]) => { gvars[n] = v; meta[n] = f; });
+  return {
+    running: true, mode: 'shell', user: null, db: null, connId: 7,
+    dbs: { csit115: csit, university: uni, performance_schema: { __cols: {} }, sys: { __cols: {} } },
+    users: [
+      { user: 'root', host: 'localhost', plain: '', privs: ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP', 'ALTER', 'INDEX', 'SUPER', 'SHUTDOWN'], grant: 'YES' },
+      { user: 'mysql.sys', host: 'localhost', plain: null, fixed: '*THISISNOTAVALIDPASSWORDTHATCANBEUSEDHERE', privs: ['USAGE'], grant: 'NO' },
+      { user: 'csit115', host: 'localhost', plain: 'csit115', privs: ['SELECT', 'INSERT', 'UPDATE', 'DELETE'], grant: 'NO' },
+    ],
+    gvars, svars: Object.assign({}, gvars), meta,
+  };
+}
+function srvAuth(u) { return u.fixed !== undefined ? u.fixed : mysqlAuthString(u.plain); }
+function srvUser(srv) { return srv.users.find(u => u.user === srv.user); }
+function srvHas(srv, priv) { const u = srvUser(srv); return !!u && u.privs.indexOf(priv) !== -1; }
+function srvVisibleDbs(srv) {
+  const all = ['information_schema', 'mysql'].concat(Object.keys(srv.dbs).sort());
+  return srv.user === 'root' ? all.sort() : ['information_schema', 'csit115'].filter(d => all.indexOf(d) !== -1);
+}
+function srvCanSeeDb(srv, db) { return srvVisibleDbs(srv).indexOf(db) !== -1; }
+// information_schema / mysql 是「資料字典」：內容不是存起來的，是依伺服器目前狀態現算的
+function srvVirtualDb(srv, name) {
+  if (name === 'mysql') return { USER: srv.users.map(u => ({ user: u.user, host: u.host, authentication_string: srvAuth(u) })) };
+  if (name !== 'information_schema') return null;
+  const schemata = [], tables = [], columns = [], privs = [];
+  srvVisibleDbs(srv).forEach(d => {
+    schemata.push({ CATALOG_NAME: 'def', SCHEMA_NAME: d });
+    const st = srv.dbs[d];
+    if (st) Object.keys(st).filter(k => !k.startsWith('__')).forEach(t => {
+      tables.push({ TABLE_SCHEMA: d, TABLE_NAME: t, TABLE_ROWS: st[t].length });
+      const cols = (st.__cols && st.__cols[t]) || Object.keys(st[t][0] || {});
+      cols.forEach((cn, i) => columns.push({ TABLE_SCHEMA: d, TABLE_NAME: t, COLUMN_NAME: cn, ORDINAL_POSITION: i + 1 }));
+    });
+  });
+  ['SCHEMATA', 'TABLES', 'COLUMNS', 'USER_PRIVILEGES'].forEach(t => tables.push({ TABLE_SCHEMA: 'information_schema', TABLE_NAME: t, TABLE_ROWS: null }));
+  srv.users.filter(u => srv.user === 'root' || u.user === srv.user).forEach(u => u.privs.forEach(p => privs.push({ GRANTEE: "'" + u.user + "'@'" + u.host + "'", TABLE_CATALOG: 'def', PRIVILEGE_TYPE: p, IS_GRANTABLE: u.grant })));
+  return { SCHEMATA: schemata, TABLES: tables, COLUMNS: columns, USER_PRIVILEGES: privs };
+}
+function srvDbTables(srv, db) {
+  const v = srvVirtualDb(srv, db);
+  if (v) return v;
+  const st = srv.dbs[db]; if (!st) return null;
+  const out = {}; Object.keys(st).filter(k => !k.startsWith('__')).forEach(k => { out[k] = st[k]; }); return out;
+}
+function srvScope(srv) {
+  const scope = { DUAL: TABLES.DUAL };
+  Object.keys(srv.dbs).concat(['information_schema', 'mysql']).forEach(d => {
+    if (!srvCanSeeDb(srv, d)) return;
+    const t = srvDbTables(srv, d);
+    Object.keys(t).forEach(tn => { scope[(d + '.' + tn).toUpperCase()] = t[tn]; if (d === srv.db) scope[tn.toUpperCase()] = t[tn]; });
+  });
+  return scope;
+}
+function srvLike(name, pat) {
+  const re = new RegExp('^' + pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*').replace(/_/g, '.') + '$', 'i');
+  return re.test(name);
+}
+function srvFixTableErr(srv, e) {
+  const m = /^(?:找不到資料表|資料表不存在): (\S+)/.exec(e.message);
+  if (!m) return e.message;
+  if (!srv.db && m[1].indexOf('.') === -1) return 'ERROR 1046 (3D000): No database selected';
+  return "ERROR 1146 (42S02): Table '" + (m[1].indexOf('.') === -1 ? srv.db + '.' + m[1] : m[1]) + "' doesn't exist";
+}
+const CLIENT_HELP = "這個終端機模擬器支援：\n  service mysql start | stop | status | restart\n  mysql -u <user> [-p[<password>]]     (連線：root 一開始沒有密碼；csit115 的密碼是 csit115)\n  mysql --help | grep \"Default options\" -A 1\n  cat /etc/mysql/mysql.conf.d/mysqld.cnf\n  whoami\n進入 mysql> 之後：\n  show databases; use <db>; show tables; show [global] variables [like '...']; set [global] <var> = <value>;\n  create database <db>; drop database <db>; alter user 'u'@'h' identified by '...';\n  以及 SELECT / INSERT / UPDATE / DELETE / CREATE TABLE ... 等前面學過的 SQL\n  exit 離開 mysql 回到 shell";
+
+// 回傳輸出陣列：{kind:'text'|'note'|'error'|'table', ...}
+function serverExec(srv, text) {
+  const out = []; const T = t => out.push({ kind: 'text', text: t }), N = t => out.push({ kind: 'note', text: t }), E = t => out.push({ kind: 'error', text: t });
+  let cmd = text.trim();
+  if (srv.mode === 'shell') {
+    cmd = cmd.replace(/;\s*$/, '');
+    let m;
+    if (m = /^(?:sudo\s+)?service\s+mysql\s+(start|stop|status|restart)$/i.exec(cmd)) {
+      const a = m[1].toLowerCase();
+      if (a === 'stop') { srv.running = false; N('（沒有輸出 — MySQL 伺服器已停止，所有客戶端都連不上了）'); }
+      else if (a === 'start') { srv.running = true; N('（沒有輸出 — MySQL 伺服器已啟動）'); }
+      else if (a === 'restart') { srv.running = true; N('（沒有輸出 — MySQL 伺服器已重新啟動，會重新讀取設定檔）'); }
+      else T(srv.running ? '● mysql.service - MySQL Community Server\n   Active: active (running)' : '● mysql.service - MySQL Community Server\n   Active: inactive (dead)');
+      return out;
+    }
+    if (/^mysql\s+--help\s*\|\s*grep\s+"?Default options"?\s+-A\s+1$/i.test(cmd)) { T('Default options are read from the following files in the given order:\n/etc/my.cnf /etc/mysql/my.cnf ~/.my.cnf'); return out; }
+    if (/^cat\s+\/etc\/mysql\/mysql\.conf\.d\/mysqld\.cnf$/i.test(cmd)) { T(MYSQLD_CNF); return out; }
+    if (/^whoami$/i.test(cmd)) { T('student'); return out; }
+    if (/^(help|\?)$/i.test(cmd)) { T(CLIENT_HELP); return out; }
+    if (/^(exit|logout|quit)$/i.test(cmd)) { N('（已經在最外層的 shell 了）'); return out; }
+    if (m = /^mysql\b(.*)$/i.exec(cmd)) {
+      const args = m[1]; const um = /-u\s*(\S+)/.exec(args); const pm = /(?:^|\s)-p(\S*)/.exec(args);
+      const uname = um ? um[1] : 'student';
+      if (!srv.running) { E(SOCK_ERR); return out; }
+      const u = srv.users.find(x => x.user === uname);
+      const hasPw = !!(u && u.plain);
+      if (!u) { E("ERROR 1045 (28000): Access denied for user '" + uname + "'@'localhost' (using password: " + (pm ? 'YES' : 'NO') + ')'); return out; }
+      if (pm && pm[1] === '') { T('Enter password: ********'); }
+      else if (pm && (pm[1] !== (u.plain || ''))) { E("ERROR 1045 (28000): Access denied for user '" + uname + "'@'localhost' (using password: YES)"); return out; }
+      else if (!pm && hasPw) { E("ERROR 1045 (28000): Access denied for user '" + uname + "'@'localhost' (using password: NO)"); return out; }
+      srv.user = uname; srv.mode = 'sql'; srv.connId++; srv.db = null; srv.svars = Object.assign({}, srv.gvars);
+      T('Welcome to the MySQL monitor.  Commands end with ; or \\g.\nYour MySQL connection id is ' + srv.connId + '\nServer version: 5.7.42 MySQL Community Server (GPL)');
+      if (uname === 'root' && !hasPw) N('⚠ 注意：root 剛剛「沒有密碼」就登入成功了 — 這就是講義說的安全風險，裝好之後第一件事就是幫 root 設密碼。');
+      return out;
+    }
+    E('bash: ' + cmd.split(/\s+/)[0] + ': command not found' + (/^(select|show|use|create|drop|insert|update|delete|set|alter)\b/i.test(cmd) ? '   （這是 SQL，要先用 mysql -u root 連進 mysql> 才能下）' : ''));
+    return out;
+  }
+  // ---------- mysql> ----------
+  cmd = cmd.replace(/;\s*$/, '').trim();
+  let m;
+  if (/^(exit|quit|\\q)$/i.test(cmd)) { srv.mode = 'shell'; srv.user = null; srv.db = null; T('Bye'); return out; }
+  if (/^(service|sudo|cat|whoami|mysql)\b/i.test(cmd)) { E('ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near \'' + cmd.slice(0, 30) + "'   （這是 shell 指令，要先用 exit 離開 mysql>）"); return out; }
+  const me = "'" + srv.user + "'@'localhost'";
+  if (m = /^show\s+databases$/i.exec(cmd)) { out.push({ kind: 'table', columns: ['Database'], rows: srvVisibleDbs(srv).map(d => ({ Database: d })) }); return out; }
+  if (m = /^use\s+`?(\w+)`?$/i.exec(cmd)) {
+    const d = m[1];
+    if (['information_schema', 'mysql'].concat(Object.keys(srv.dbs)).indexOf(d) === -1) { E("ERROR 1049 (42000): Unknown database '" + d + "'"); return out; }
+    if (!srvCanSeeDb(srv, d)) { E('ERROR 1044 (42000): Access denied for user ' + me + " to database '" + d + "'"); return out; }
+    srv.db = d; T('Database changed'); return out;
+  }
+  if (m = /^create\s+database\s+(if\s+not\s+exists\s+)?`?(\w+)`?$/i.exec(cmd)) {
+    const d = m[2];
+    if (!srvHas(srv, 'CREATE')) { E('ERROR 1044 (42000): Access denied for user ' + me + " to database '" + d + "'"); return out; }
+    if (srv.dbs[d] || d === 'information_schema' || d === 'mysql') { if (m[1]) { T('Query OK, 0 rows affected, 1 warning'); return out; } E("ERROR 1007 (HY000): Can't create database '" + d + "'; database exists"); return out; }
+    srv.dbs[d] = { __cols: {} }; T('Query OK, 1 row affected'); return out;
+  }
+  if (m = /^drop\s+database\s+(if\s+exists\s+)?`?(\w+)`?$/i.exec(cmd)) {
+    const d = m[2];
+    if (!srvHas(srv, 'DROP')) { E('ERROR 1044 (42000): Access denied for user ' + me + " to database '" + d + "'"); return out; }
+    if (d === 'information_schema' || d === 'mysql') { E('ERROR 1044 (42000): Access denied for user ' + me + " to database '" + d + "'"); return out; }
+    if (!srv.dbs[d]) { if (m[1]) { T('Query OK, 0 rows affected, 1 warning'); return out; } E("ERROR 1008 (HY000): Can't drop database '" + d + "'; database doesn't exist"); return out; }
+    const n = Object.keys(srv.dbs[d]).filter(k => !k.startsWith('__')).length;
+    delete srv.dbs[d]; if (srv.db === d) srv.db = null; T('Query OK, ' + n + ' rows affected'); return out;
+  }
+  if (m = /^show\s+tables$/i.exec(cmd)) {
+    if (!srv.db) { E('ERROR 1046 (3D000): No database selected'); return out; }
+    const names = Object.keys(srvDbTables(srv, srv.db)).sort();
+    out.push({ kind: 'table', columns: ['Tables_in_' + srv.db], rows: names.map(n => { const r = {}; r['Tables_in_' + srv.db] = n; return r; }) }); return out;
+  }
+  if (m = /^show\s+(global\s+|session\s+)?variables(?:\s+like\s+'([^']*)')?$/i.exec(cmd)) {
+    const src = (m[1] || '').trim().toLowerCase() === 'global' ? srv.gvars : srv.svars;
+    const rows = Object.keys(src).sort().filter(n => !m[2] || srvLike(n, m[2])).map(n => ({ Variable_name: n, Value: src[n] }));
+    out.push({ kind: 'table', columns: ['Variable_name', 'Value'], rows }); return out;
+  }
+  if (m = /^set\s+(global\s+|session\s+)?(?:@@(?:global\.|session\.)?)?(\w+)\s*=\s*(.+)$/i.exec(cmd)) {
+    const isGlobal = /global/i.test(m[1] || ''); const name = m[2].toLowerCase(); let val = m[3].trim().replace(/^'(.*)'$/, '$1');
+    const flags = srv.meta[name];
+    if (flags === undefined) { E("ERROR 1193 (HY000): Unknown system variable '" + name + "'"); return out; }
+    if (flags.indexOf('d') === -1) { E("ERROR 1238 (HY000): Variable '" + name + "' is a read only variable"); return out; }
+    if (isGlobal && !srvHas(srv, 'SUPER')) { E('ERROR 1227 (42000): Access denied; you need (at least one of) the SUPER privilege(s) for this operation'); return out; }
+    if (!isGlobal && flags.indexOf('g') !== -1) { E("ERROR 1229 (HY000): Variable '" + name + "' is a GLOBAL variable and should be set with SET GLOBAL"); return out; }
+    if (flags.indexOf('b') !== -1) { const u = val.toUpperCase(); val = (u === '1' || u === 'ON' || u === 'TRUE') ? 'ON' : (u === '0' || u === 'OFF' || u === 'FALSE') ? 'OFF' : null; if (val === null) { E("ERROR 1231 (42000): Variable '" + name + "' can't be set to the value of '" + m[3].trim() + "'"); return out; } }
+    if (isGlobal) srv.gvars[name] = val; else srv.svars[name] = val;
+    if (isGlobal && flags.indexOf('g') === -1) { /* GLOBAL 只影響「之後新的連線」，目前這個連線的 session 值不變 */ }
+    if (isGlobal && flags.indexOf('g') !== -1) srv.svars[name] = val;
+    T('Query OK, 0 rows affected'); return out;
+  }
+  if (m = /^alter\s+user\s+'([^']+)'@'([^']+)'\s+identified\s+by\s+'([^']*)'$/i.exec(cmd)) {
+    const u = srv.users.find(x => x.user === m[1] && x.host === m[2]);
+    if (!u) { E("ERROR 1396 (HY000): Operation ALTER USER failed for '" + m[1] + "'@'" + m[2] + "'"); return out; }
+    if (srv.user !== 'root' && srv.user !== u.user) { E('ERROR 1227 (42000): Access denied; you need (at least one of) the CREATE USER privilege(s) for this operation'); return out; }
+    u.plain = m[3]; u.fixed = undefined; T('Query OK, 0 rows affected'); return out;
+  }
+  if (/^(grant|revoke|create\s+user|drop\s+user)\b/i.test(cmd)) { E('（這個模擬器沒有實作 GRANT / REVOKE / CREATE USER — 那是第 20、21 章「存取控制與使用者管理」的內容）'); return out; }
+  // ---------- 一般 SQL ----------
+  const dbList = Object.keys(srv.dbs).concat(['information_schema', 'mysql']);
+  const isSelect = /^(select|with)\b/i.test(cmd);
+  if (isSelect) {
+    let sql = cmd.replace(/\bCURRENT_USER\s*\(\s*\)|\bUSER\s*\(\s*\)/gi, "'" + srv.user + "@localhost'").replace(/\bDATABASE\s*\(\s*\)/gi, srv.db ? "'" + srv.db + "'" : 'NULL');
+    if (findTopLevelKeyword(sql, 'FROM', 0) === -1) sql += ' FROM DUAL';
+    const refs = []; sql.replace(/\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b/g, (all, d, t) => { if (dbList.indexOf(d) !== -1) refs.push([d, t]); return all; });
+    for (const [d, t] of refs) if (!srvCanSeeDb(srv, d)) { E('ERROR 1142 (42000): SELECT command denied to user ' + me + " for table '" + t + "'"); return out; }
+    if (!srvHas(srv, 'SELECT') && srv.user !== 'root') { E('ERROR 1142 (42000): SELECT command denied to user ' + me); return out; }
+    try {
+      const res = withScopedTables(srvScope(srv), () => runQuery(sql));
+      out.push({ kind: 'table', columns: res.columns, rows: res.rows });
+    } catch (e) { E(srvFixTableErr(srv, e)); }
+    return out;
+  }
+  const need = /^create\s+(table|view)/i.test(cmd) ? 'CREATE' : /^drop\s+(table|view)/i.test(cmd) ? 'DROP' : /^alter\s+table/i.test(cmd) ? 'ALTER' : /^truncate/i.test(cmd) ? 'DROP' : /^insert/i.test(cmd) ? 'INSERT' : /^update/i.test(cmd) ? 'UPDATE' : /^delete/i.test(cmd) ? 'DELETE' : /^(commit|rollback|start\s+transaction|begin)$/i.test(cmd) ? null : undefined;
+  if (need === undefined) { E("ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '" + cmd.slice(0, 30) + "'"); return out; }
+  if (need === null) { try { const r = execOne(cmd, srv.dbs[srv.db] || { __cols: {} }); T('Query OK'); } catch (e) { E(e.message); } return out; }
+  if (!srv.db) { E('ERROR 1046 (3D000): No database selected'); return out; }
+  if (!srv.dbs[srv.db]) { E('ERROR 1044 (42000): Access denied for user ' + me + " to database '" + srv.db + "'"); return out; }
+  if (!srvHas(srv, need)) { E('ERROR 1142 (42000): ' + need + ' command denied to user ' + me + " for table '" + ((/(?:table|from|into|update)\s+`?(\w+)/i.exec(cmd) || [])[1] || '?') + "'"); return out; }
+  if (/^(update|delete)\b/i.test(cmd) && srv.svars.sql_safe_updates === 'ON' && findTopLevelKeyword(cmd, 'WHERE', 0) === -1) { E('ERROR 1175 (HY000): You are using safe update mode and you tried to update a table without a WHERE that uses a KEY column. To disable safe mode, toggle the option in Preferences -> SQL Editor and reconnect.   （或用 set sql_safe_updates=0）'); return out; }
+  try { const r = execOne(cmd, srv.dbs[srv.db]); T('Query OK — ' + (r && r.message ? r.message : '完成')); }
+  catch (e) { E(srvFixTableErr(srv, e)); }
+  return out;
+}
+// 把整份腳本拆成一條一條指令逐行執行。shell 模式一行一個指令；mysql> 模式下 SQL 要用分號結尾（可以跨行）。
+function serverRun(script) {
+  const srv = newServer(); const items = []; let buf = [];
+  const run = lines => { const text = lines.join('\n'); items.push({ mode: srv.mode, lines, outs: serverExec(srv, text) }); };
+  script.split('\n').forEach(raw => {
+    const line = raw.replace(/\s+$/, '');
+    if (!line.trim()) return;
+    if (!buf.length && (srv.mode === 'shell' || /^(exit|quit|\\q)\s*;?$/i.test(line.trim()) || /^(service|sudo|cat|whoami|mysql)\b/i.test(line.trim()))) { run([line]); return; }
+    buf.push(line);
+    if (/;\s*$/.test(line)) { run(buf); buf = []; }
+  });
+  if (buf.length) items.push({ mode: srv.mode, lines: buf, outs: [{ kind: 'note', text: '（這句沒有以分號 ; 結尾 — 客戶端會以為你還沒打完，一直在等你繼續輸入，所以沒有被執行）' }] });
+  return { items, srv };
+}
+
+// ============================================================
 // UI 綁定
 // ============================================================
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -3180,7 +3819,7 @@ document.querySelectorAll('.skeleton.skeleton-code').forEach(el => {
 });
 
 // ---- 一般唯讀主控台（單一 SELECT / WITH ... SELECT / UNION 等） ----
-document.querySelectorAll('.console:not(.sandbox)').forEach(el => {
+document.querySelectorAll('.console:not(.sandbox):not(.server)').forEach(el => {
   const ta = el.querySelector('.console-input');
   const btn = el.querySelector('.run-btn');
   const resultEl = el.querySelector('.console-result');
@@ -3310,6 +3949,24 @@ const QUIZ = [
   { correct: 0,
     zh: { q: '下列哪一個語句執行之後，還能用 ROLLBACK（COMMIT 之前）復原？', opts: ['DELETE FROM COURSE;', 'TRUNCATE TABLE COURSE;', 'DROP TABLE COURSE;'], explain: 'DELETE 是 DML，COMMIT 之前可以 ROLLBACK。TRUNCATE 和 DROP TABLE 是 DDL，執行時會隱式 COMMIT，之後無法復原。' },
     en: { q: 'Which statement can still be undone with ROLLBACK (before COMMIT) after it runs?', opts: ['DELETE FROM COURSE;', 'TRUNCATE TABLE COURSE;', 'DROP TABLE COURSE;'], explain: 'DELETE is DML and can be rolled back before COMMIT. TRUNCATE and DROP TABLE are DDL: they do an implicit COMMIT when they run and cannot be undone.' } },
+  { correct: 1,
+    zh: { q: '下列哪一件事是「服務層」負責，而不是處理層？', opts: ['分析並優化一句 SELECT', '檢查使用者名稱、來源主機和密碼', '執行內建函數 UPPER()'], explain: '服務層負責連線處理、驗證與安全；語法分析、優化、快取、內建函數與 DDL / DML 的處理在處理層；真正存取資料檔案的是儲存引擎。' },
+    en: { q: 'Which of these is the job of the services layer rather than the processing layer?', opts: ['Analyzing and optimizing a SELECT', 'Checking the user name, originating host and password', 'Running the built-in function UPPER()'], explain: 'The services layer handles connections, authentication and security; parsing, optimization, caching, built-in functions and DDL / DML processing are the processing layer; the storage engine actually reads and writes the data files.' } },
+  { correct: 0,
+    zh: { q: 'MySQL 驗證一條連線，依據的是哪三樣東西？', opts: ['使用者名稱、來源主機、密碼', '使用者名稱、資料庫名稱、密碼', 'IP 位址、MAC 位址、密碼'], explain: 'MySQL 的帳號其實是「user@host」的組合，所以 root@localhost 跟 root@遠端主機 是兩個不同的帳號。驗證通過之後，才會再逐一檢查權限。' },
+    en: { q: 'What three things does MySQL use to authenticate a connection?', opts: ['User name, originating host, password', 'User name, database name, password', 'IP address, MAC address, password'], explain: 'A MySQL account is really a user@host pair, so root@localhost and root@some-remote-host are different accounts. Privileges are checked only after authentication succeeds.' } },
+  { correct: 2,
+    zh: { q: 'lower_case_table_names 是「非動態」變數。想改它的值，正確的做法是？', opts: ['SET lower_case_table_names = 1;', 'SET GLOBAL lower_case_table_names = 1;', '停止伺服器 → 修改設定檔 → 重新啟動伺服器'], explain: '非動態（唯讀）變數不能用 SET 改，會出現 ERROR 1238 ... is a read only variable。只能改設定檔，而且要重新啟動伺服器才會重新讀取。' },
+    en: { q: 'lower_case_table_names is a non-dynamic variable. What is the correct way to change it?', opts: ['SET lower_case_table_names = 1;', 'SET GLOBAL lower_case_table_names = 1;', 'Stop the server → edit the configuration file → start the server again'], explain: 'Non-dynamic (read-only) variables cannot be changed with SET — you get ERROR 1238 ... is a read only variable. Edit the configuration file and restart the server so it is read again.' } },
+  { correct: 0,
+    zh: { q: 'MySQL 剛安裝好、root 還沒有密碼時，第一件該做的事是？', opts: ['ALTER USER \'root\'@\'localhost\' IDENTIFIED BY \'新密碼\';', 'DROP USER root;', '什麼都不用做，因為 root 只能從本機連線'], explain: '剛裝好時任何人都能不用密碼以 root 登入，這是明顯的安全風險，所以要立刻用 ALTER USER 幫 root 設密碼。' },
+    en: { q: 'Right after installing MySQL, root has no password. What should you do first?', opts: ['ALTER USER \'root\'@\'localhost\' IDENTIFIED BY \'new password\';', 'DROP USER root;', 'Nothing — root can only connect locally'], explain: 'Straight after installation anyone can log in as root without a password — an obvious security risk — so set one at once with ALTER USER.' } },
+  { correct: 1,
+    zh: { q: '目前的預設資料庫是 csit115。不切換資料庫，要怎麼查 university 資料庫裡的 COURSE 表？', opts: ['SELECT * FROM COURSE;', 'SELECT * FROM university.COURSE;', '沒有辦法，一定要先 USE university;'], explain: '同一時間只能有一個預設資料庫，但可以在資料表名稱前面加上「資料庫名稱.」的前綴，直接存取其他資料庫的資料表。' },
+    en: { q: 'The default database is csit115. How can you query the COURSE table of the university database without switching?', opts: ['SELECT * FROM COURSE;', 'SELECT * FROM university.COURSE;', 'You cannot — you must USE university; first'], explain: 'Only one database can be the default at a time, but prefixing a table name with "database." lets you access tables in other databases directly.' } },
+  { correct: 1,
+    zh: { q: 'mysql.user 資料表裡的 authentication_string 存的是什麼？', opts: ['明文密碼', '密碼做兩次 SHA-1 雜湊後的結果（前面加一個 *）', '密碼的 Base64 編碼'], explain: '資料庫不存明文密碼，只存雜湊值。用 HEX() 看的話，開頭的 2A 就是 * 這個字元。所以就連資料庫管理員也看不到原本的密碼。' },
+    en: { q: 'What does authentication_string in the mysql.user table hold?', opts: ['The plain-text password', 'The password hashed twice with SHA-1 (prefixed with a *)', 'The password Base64-encoded'], explain: 'The database never stores the plain password, only a hash. Viewed with HEX(), the leading 2A is the * character. Not even a database administrator can read the original password.' } },
 ];
 const quizContainer = document.getElementById('quiz-container');
 let quizScore = 0, quizAnswered = 0;
@@ -3375,6 +4032,14 @@ const FLASH = [
   { zh: { term: 'CREATE TABLE ... AS', def: '建表＋灌入查詢結果一步完成，是 DDL；只保留 NULL / NOT NULL，沒有主鍵外鍵；是「快照」，原表之後的變動不會跟著變（跟 view 相反）。' }, en: { term: 'CREATE TABLE ... AS', def: 'Creates the table and loads a query result in one step; it is DDL; keeps only NULL / NOT NULL, no keys; it is a snapshot that does not follow later changes to the source (unlike a view).' } },
   { zh: { term: 'INSERT ... SELECT', def: '把查詢結果灌進已存在的表，是 DML、能 ROLLBACK；欄位依「位置」對應，SELECT 清單順序要跟目標表一致。' }, en: { term: 'INSERT ... SELECT', def: 'Loads a query result into an existing table; it is DML and can be rolled back; columns are matched by position, so the SELECT list order must follow the target table.' } },
   { zh: { term: 'DELETE / UPDATE 的子查詢', def: '一個值用 =，好幾個值用 IN，「有沒有」用 EXISTS；子查詢引用外層表就是相關子查詢。大範圍修改前先用 SELECT 預覽。' }, en: { term: 'Subqueries in DELETE / UPDATE', def: '= for one value, IN for several, EXISTS for "does any exist"; a subquery referencing the outer table is correlated. Preview a wide change with a SELECT first.' } },
+  { zh: { term: 'Client-Server 三層', def: '服務層（連線處理、驗證、安全）→ 處理層（分析、優化、快取、內建函數、DDL/DML）→ 儲存引擎（InnoDB、MyISAM、MEMORY、CSV，負責存取資料）。' }, en: { term: 'Client-server: three layers', def: 'Services (connection handling, authentication, security) → processing (analysis, optimization, caching, built-in functions, DDL/DML) → storage engines (InnoDB, MyISAM, MEMORY, CSV — store and retrieve data).' } },
+  { zh: { term: '驗證 vs 權限', def: '驗證回答「你是誰」（使用者名稱＋來源主機＋密碼）；權限回答「你能做什麼」（能不能 SELECT / CREATE 某張表）。先驗證，再逐一檢查權限。' }, en: { term: 'Authentication vs privileges', def: 'Authentication answers "who are you" (user name + originating host + password); privileges answer "what may you do" (may you SELECT / CREATE this table). Authenticate first, then check privileges.' } },
+  { zh: { term: '一個連線一條 thread', def: '每個客戶端連線在伺服器內各有一條專屬的 thread，一條 thread 只跑在一個核心 / CPU 上。' }, en: { term: 'One thread per connection', def: 'Every client connection gets its own thread inside the server, and a thread runs on a single core / CPU.' } },
+  { zh: { term: '動態 vs 非動態變數', def: '動態變數可用 SET 立刻改；非動態（唯讀）變數改不了，要停止伺服器、改設定檔、再重新啟動。' }, en: { term: 'Dynamic vs non-dynamic variables', def: 'Dynamic variables can be changed at once with SET; non-dynamic (read-only) ones cannot — stop the server, edit the config file, start it again.' } },
+  { zh: { term: 'GLOBAL vs SESSION 變數', def: 'GLOBAL 是「之後新連線」的預設值；SESSION 是「目前這條連線」的值。SET 預設只改 SESSION；改 GLOBAL 要用 SET GLOBAL，而且需要 SUPER 權限。' }, en: { term: 'GLOBAL vs SESSION variables', def: 'GLOBAL holds the defaults for new connections; SESSION holds the values of the current connection. SET changes only SESSION by default; SET GLOBAL is needed for GLOBAL and requires the SUPER privilege.' } },
+  { zh: { term: '預設資料庫與 db.table', def: '同一時間只有一個預設資料庫（USE 設定）；要存取其他資料庫的表，在表名前加「資料庫名.」，例如 university.COURSE。' }, en: { term: 'Default database and db.table', def: 'Only one database is the default at a time (set with USE); reach tables of other databases by prefixing "database.", e.g. university.COURSE.' } },
+  { zh: { term: 'information_schema（資料字典）', def: '一個特別的資料庫，裡面的表記錄「資料庫本身的資訊」：有哪些資料庫、資料表、欄位、使用者權限（例如 USER_PRIVILEGES）。內容是伺服器依目前狀態現算的。' }, en: { term: 'information_schema (data dictionary)', def: 'A special database whose tables describe the database system itself: which databases, tables, columns and user privileges exist (e.g. USER_PRIVILEGES). Its content is computed from the server\'s current state.' } },
+  { zh: { term: 'MySQL root ≠ 作業系統 root', def: 'MySQL 的 root 是資料庫帳號，跟作業系統的 root 完全無關；whoami 看到的是作業系統使用者，SELECT CURRENT_USER() 看到的才是 MySQL 帳號。' }, en: { term: 'MySQL root ≠ operating-system root', def: 'MySQL\'s root is a database account, entirely unrelated to the operating system\'s root; whoami shows the OS user, SELECT CURRENT_USER() shows the MySQL account.' } },
 ];
 const flashContainer = document.getElementById('flash-container');
 function renderFlash() {
@@ -3391,6 +4056,107 @@ function renderFlash() {
 renderQuiz();
 renderFlash();
 
+// ============================================================
+// 第 18 章：終端機、架構圖逐步導覽、「哪一層負責？」分類題
+// ============================================================
+document.querySelectorAll('.console.server').forEach(el => {
+  const ta = el.querySelector('.console-input');
+  const btn = el.querySelector('.run-btn');
+  const resetBtn = el.querySelector('.reset-btn');
+  const resultEl = el.querySelector('.console-result');
+  const defaultScript = el.dataset.default || ta.value;
+  const codeInput = enhanceCodeInput(ta);
+  function render(items) {
+    let html = '';
+    items.forEach(it => {
+      const sql = it.mode === 'sql';
+      html += '<div class="term-cmd">';
+      it.lines.forEach((l, i) => { html += '<span class="term-prompt ' + (sql ? 'sql' : 'sh') + '">' + (i === 0 ? (sql ? 'mysql&gt; ' : '$ ') : '    -&gt; ') + '</span>' + highlightSQL(l) + '\n'; });
+      html += '</div>';
+      it.outs.forEach(o => {
+        if (o.kind === 'text') html += '<div class="term-out">' + escapeHtml(o.text) + '</div>';
+        else if (o.kind === 'note') html += '<div class="term-note">' + escapeHtml(o.text) + '</div>';
+        else if (o.kind === 'error') html += '<div class="term-err">' + escapeHtml(o.text) + '</div>';
+        else if (o.kind === 'table') html += o.rows.length ? resultToHTML({ columns: o.columns, rows: o.rows }) : '<div class="term-out">Empty set</div>';
+      });
+    });
+    resultEl.innerHTML = html || '<span class="placeholder">（沒有輸出）</span>';
+  }
+  function run() {
+    try { render(serverRun(ta.value).items); }
+    catch (e) { resultEl.innerHTML = '<div class="console-error">⚠ ' + escapeHtml(e.message) + '</div>'; }
+  }
+  function reset() { ta.value = defaultScript; codeInput.refresh(); resultEl.innerHTML = '<span class="placeholder">已還原成原本的指令。</span>'; }
+  btn.addEventListener('click', run);
+  if (resetBtn) resetBtn.addEventListener('click', reset);
+  ta.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); } });
+});
+
+// ---- 一次連線的旅程（逐步導覽）----
+const ARCH_STEPS = [
+  { hl: ['a-c1'], zh: '客戶端 A 送出連線請求，帶著三樣東西：使用者名稱、自己是從哪一台主機連來的（來源主機）、密碼。', en: 'Client A sends a connection request carrying three things: a user name, the host it is connecting from, and a password.' },
+  { hl: ['a-l3', 'a-t1'], zh: '服務層收到連線，替這個客戶端開一條專屬的 thread。每個連線各自一條 thread，一條 thread 只會跑在某一個核心 / CPU 上 — 所以多個客戶端同時連進來，就會有 thread 2、thread 3……', en: 'The services layer accepts the connection and opens a dedicated thread for this client. Every connection gets its own thread, and one thread runs on a single core / CPU — so more clients simply means thread 2, thread 3 …' },
+  { hl: ['a-l3'], zh: '驗證（authentication）：檢查「使用者名稱＋來源主機＋密碼」對不對得上一個帳號。這一步回答的是「你是誰」。', en: 'Authentication: the server checks whether user name + originating host + password match an account. This answers "who are you?".' },
+  { hl: ['a-l3'], zh: '連線成功後，客戶端送出 SELECT ...。服務層先確認這個帳號有沒有權限（privilege）存取這張資料表。這一步回答的是「你能做什麼」。', en: 'Once connected, the client sends SELECT ... . The services layer first checks whether this account has the privilege to access that table. This answers "what may you do?".' },
+  { hl: ['a-l2'], zh: '處理層接手：分析語法、看懂這句話要做什麼、優化（決定最有效率的執行方式）、查有沒有快取、需要的話呼叫內建函數。', en: 'The processing layer takes over: it parses the statement, works out what it means, optimizes it (chooses the most efficient way to run it), checks the cache and calls built-in functions when needed.' },
+  { hl: ['a-l1', 'a-f'], zh: '儲存引擎（例如 InnoDB）負責實際去資料檔案裡讀取（或寫入）資料 — 資料表怎麼存在磁碟上，是這一層的事。', en: 'The storage engine (InnoDB, for example) actually reads (or writes) the data in the data files — how tables are laid out on disk is this layer\'s business.' },
+  { hl: ['a-t1', 'a-c1'], zh: '結果沿原路（儲存引擎 → 處理層 → 服務層）回到那條 thread，再送回客戶端 A。客戶端 B 同時也可以連進來，走的是它自己的 thread 2，彼此獨立。', en: 'The result travels back the same way (storage engine → processing layer → services layer) to that thread and on to client A. Client B can connect at the same time through its own thread 2, independently.' },
+];
+let archStep = 0;
+function renderArch() {
+  const box = document.getElementById('arch1'); if (!box) return;
+  box.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+  ARCH_STEPS[archStep].hl.forEach(id => { const e = document.getElementById(id); if (e) e.classList.add('hl'); });
+  document.getElementById('arch-text').textContent = (archStep + 1) + ' / ' + ARCH_STEPS.length + '　' + ARCH_STEPS[archStep][currentLang];
+  document.getElementById('arch-prev').disabled = archStep === 0;
+  document.getElementById('arch-next').disabled = archStep === ARCH_STEPS.length - 1;
+}
+if (document.getElementById('arch1')) {
+  document.getElementById('arch-prev').addEventListener('click', () => { if (archStep > 0) { archStep--; renderArch(); } });
+  document.getElementById('arch-next').addEventListener('click', () => { if (archStep < ARCH_STEPS.length - 1) { archStep++; renderArch(); } });
+  document.getElementById('arch-restart').addEventListener('click', () => { archStep = 0; renderArch(); });
+}
+
+// ---- 這件事是哪一層負責？ ----
+const LAYER_NAMES = { zh: ['服務層', '處理層', '儲存引擎'], en: ['Services', 'Processing', 'Storage engine'] };
+const LAYER_ITEMS = [
+  { ans: 0, zh: { q: '檢查使用者名稱、來源主機和密碼對不對', why: '驗證是服務層的工作（連線處理、驗證、安全）。' }, en: { q: 'Check that the user name, originating host and password are correct', why: 'Authentication belongs to the services layer (connection handling, authentication, security).' } },
+  { ans: 0, zh: { q: '替每一個客戶端連線開一條專屬的 thread', why: '連線處理是服務層的工作，每個連線一條 thread。' }, en: { q: 'Open a dedicated thread for each client connection', why: 'Connection handling is the services layer\'s job — one thread per connection.' } },
+  { ans: 0, zh: { q: '確認這個帳號有沒有權限存取某張資料表', why: '權限檢查屬於服務層的「安全」。' }, en: { q: 'Check whether this account may access a given table', why: 'Privilege checking is part of the services layer\'s "security".' } },
+  { ans: 1, zh: { q: '分析一句 SELECT 要做什麼，並決定最有效率的執行方式（優化）', why: '查詢的分析與優化是處理層。' }, en: { q: 'Analyze what a SELECT means and choose the most efficient way to run it (optimization)', why: 'Query analysis and optimization belong to the processing layer.' } },
+  { ans: 1, zh: { q: '執行內建函數，例如 UPPER()、IFNULL()', why: '所有內建函數都由處理層執行。' }, en: { q: 'Run built-in functions such as UPPER() or IFNULL()', why: 'Built-in functions are all executed by the processing layer.' } },
+  { ans: 1, zh: { q: '處理 INSERT / UPDATE / DELETE 與 CREATE TABLE 這類 DML / DDL 語句', why: 'DDL 與 DML 的處理（資料輸入、修改、建立資料庫結構）在處理層。' }, en: { q: 'Process DML / DDL statements such as INSERT / UPDATE / DELETE and CREATE TABLE', why: 'DDL / DML processing (data entry, modification, creating structures) sits in the processing layer.' } },
+  { ans: 1, zh: { q: '保存查詢的快取', why: '快取是處理層的功能之一。' }, en: { q: 'Keep a cache of query results', why: 'Caching is one of the processing layer\'s functions.' } },
+  { ans: 2, zh: { q: '真正把資料寫進檔案、再從檔案讀出來', why: '儲存與取回資料是儲存引擎的責任。' }, en: { q: 'Actually write the data into files and read it back', why: 'Storing and retrieving data is the storage engine\'s responsibility.' } },
+  { ans: 2, zh: { q: 'InnoDB、MyISAM、MEMORY、CSV 是這一層的不同實作', why: '這四個都是儲存引擎，可以依需求替不同的資料表選不同的引擎。' }, en: { q: 'InnoDB, MyISAM, MEMORY and CSV are different implementations of this layer', why: 'All four are storage engines; different tables can use different ones as needed.' } },
+];
+let layerScore = 0, layerAnswered = 0;
+function renderLayerQuiz() {
+  const box = document.getElementById('layer-quiz'); if (!box) return;
+  box.innerHTML = ''; layerScore = 0; layerAnswered = 0;
+  LAYER_ITEMS.forEach((item, qi) => {
+    const t = item[currentLang];
+    const div = document.createElement('div'); div.className = 'quiz-q';
+    const p = document.createElement('p'); p.className = 'prompt'; p.textContent = (qi + 1) + '. ' + t.q; div.appendChild(p);
+    const why = document.createElement('div'); why.className = 'quiz-explain'; why.textContent = t.why;
+    LAYER_NAMES[currentLang].forEach((name, oi) => {
+      const b = document.createElement('button'); b.className = 'quiz-opt layer-opt'; b.textContent = name;
+      b.addEventListener('click', () => {
+        if (b.disabled) return;
+        const all = div.querySelectorAll('.quiz-opt'); all.forEach(x => x.disabled = true);
+        if (oi === item.ans) { b.classList.add('correct'); layerScore++; } else { b.classList.add('wrong'); all[item.ans].classList.add('correct'); }
+        why.style.display = 'block'; layerAnswered++;
+        document.getElementById('layer-score').textContent = (currentLang === 'en' ? 'Score: ' : '目前分數：') + layerScore + ' / ' + LAYER_ITEMS.length + (layerAnswered === LAYER_ITEMS.length ? (currentLang === 'en' ? ' (all answered!)' : '（全部答完了！）') : '');
+      });
+      div.appendChild(b);
+    });
+    div.appendChild(why); box.appendChild(div);
+  });
+  document.getElementById('layer-score').textContent = '';
+}
+renderArch();
+renderLayerQuiz();
+
 // ---- 語言切換按鈕 ----
 function setLang(lang) {
   currentLang = lang;
@@ -3403,6 +4169,8 @@ function setLang(lang) {
   document.getElementById('lang-en').classList.toggle('active', lang === 'en');
   renderQuiz();
   renderFlash();
+  renderArch();
+  renderLayerQuiz();
   try { localStorage.setItem('sql-notes-lang', lang); } catch (e) {}
 }
 document.getElementById('lang-zh').addEventListener('click', () => setLang('zh'));
