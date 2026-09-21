@@ -836,7 +836,7 @@ WHERE name = offered_by AND chair = 'Peter';</textarea>
         <textarea class="console-input" spellcheck="false">SELECT COURSE.title, DEPARTMENT.name
 FROM COURSE JOIN DEPARTMENT;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder" data-en="6 courses x 3 departments = ?">6 門課 x 3 個系 = ？</span></div>
+        <div class="console-result"><span class="placeholder" data-en="6 courses x 4 departments = ?">6 門課 x 4 個系 = ？</span></div>
       </div>
     </section>
 
@@ -959,14 +959,14 @@ ON name = offered_by;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
         <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
       </div>
-      <p data-en="In this dataset every department offers at least one course, so nothing shows up as NULL yet. Add an extra condition to see a department come up empty:">在這份資料裡每個系都至少開了一門課，所以現在還看不到 NULL。加一個額外條件，讓某個系「配對不到」看看：</p>
-      <div class="console" data-default="SELECT name, title&#10;FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;ON name = offered_by AND credits = 999;">
-        <div class="console-topbar" data-en="No course has 999 credits, so every department is now unmatched">沒有課是 999 學分，所以現在每個系都配對不到</div>
+      <div class="tip"><span data-en="Look at the Biology row: Biology offers no course at all, so a plain JOIN would have dropped it, but the LEFT JOIN keeps it and pads title with NULL. That NULL row is the whole point of an OUTER JOIN.">看 Biology 那一列：Biology 系沒有開任何課，一般的 JOIN 會把它整列丟掉，但 LEFT JOIN 會把它保留下來，title 補上 NULL。這一列 NULL，就是 OUTER JOIN 存在的意義。</span></div>
+      <div class="console" data-default="SELECT name, title&#10;FROM DEPARTMENT JOIN COURSE&#10;ON name = offered_by;">
+        <div class="console-topbar" data-en="For contrast: the same query with a plain JOIN — where did Biology go?">對照組：同一句查詢改成一般的 JOIN — Biology 去哪了？</div>
         <textarea class="console-input" spellcheck="false">SELECT name, title
-FROM DEPARTMENT LEFT OUTER JOIN COURSE
-ON name = offered_by AND credits = 999;</textarea>
+FROM DEPARTMENT JOIN COURSE
+ON name = offered_by;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder" data-en="Guess: still 3 departments, but title is...?">猜猜看：還是 3 個系，但 title 會是？</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Compare the row count with the LEFT JOIN above">跟上面 LEFT JOIN 比較筆數</span></div>
       </div>
       <div class="console" data-default="SELECT name, title&#10;FROM DEPARTMENT RIGHT OUTER JOIN COURSE&#10;ON name = offered_by;">
         <div class="console-topbar" data-en="RIGHT JOIN: the course with no department (offered_by is NULL) is kept, with name padded as NULL">RIGHT JOIN：沒有系所的那門課（offered_by 是 NULL）會被保留，name 補 NULL</div>
@@ -1027,15 +1027,27 @@ WHERE name IN (
       </div>
 
       <h3 data-en="NOT IN — an ANTIJOIN">NOT IN — 一種 ANTIJOIN</h3>
-      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE name NOT IN (&#10;  SELECT offered_by FROM COURSE&#10;);">
+      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE name NOT IN (&#10;  SELECT offered_by FROM COURSE&#10;  WHERE offered_by IS NOT NULL&#10;);">
         <div class="console-topbar" data-en="Find the chairs of departments that offer no courses at all">找出完全沒有開課的系主任</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair
+FROM DEPARTMENT
+WHERE name NOT IN (
+  SELECT offered_by FROM COURSE
+  WHERE offered_by IS NOT NULL
+);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Run it — Biology is the only department with no course. Keep this one in mind, it comes back below">執行看看 — Biology 是唯一沒開課的系，答案應該是 Albert。這一題等一下也會再問一次</span></div>
+      </div>
+      <div class="callout"><strong data-en="The NOT IN + NULL trap:">NOT IN 遇到 NULL 的陷阱：</strong><span data-en=" the COURSE table has one course (ARTS100) whose offered_by is NULL. If the inner list contains even one NULL, then name NOT IN (...) can never be TRUE (each comparison against NULL is &quot;unknown&quot;), so the whole query returns 0 rows. That is why the query above adds WHERE offered_by IS NOT NULL. Run the next box, which leaves that line out, and compare.">COURSE 裡有一門課（ARTS100）的 offered_by 是 NULL。只要內層的名單裡混進哪怕一個 NULL，name NOT IN (...) 就永遠不會是 TRUE（跟 NULL 比較的結果是「不知道」），整句查詢會回傳 0 筆。所以上面那句特別加了 WHERE offered_by IS NOT NULL。執行下一個框（把那行拿掉），比較看看。</span></div>
+      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE name NOT IN (&#10;  SELECT offered_by FROM COURSE&#10;);">
+        <div class="console-topbar" data-en="The trap: same query without IS NOT NULL — the NULL in the list makes the result empty">陷阱示範：同一句拿掉 IS NOT NULL — 名單裡的 NULL 讓結果變成空的</div>
         <textarea class="console-input" spellcheck="false">SELECT chair
 FROM DEPARTMENT
 WHERE name NOT IN (
   SELECT offered_by FROM COURSE
 );</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder" data-en="Run it — keep this one in mind too">執行看看，這一題等一下也會再問一次</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess: how many rows? (Then compare with NOT EXISTS below, which has no such trap)">先猜有幾筆？（再跟下面完全沒有這個問題的 NOT EXISTS 比較）</span></div>
       </div>
       <div class="callout"><strong data-en="This is an ANTIJOIN:">這就是 ANTIJOIN：</strong><span data-en=" it's equivalent to &quot;find every row in DEPARTMENT that cannot be joined with any row in COURSE&quot; — the inner query finds every department that offers at least one course, and the outer query keeps only the departments NOT in that list.">等於「找出 DEPARTMENT 裡完全無法跟 COURSE 任何一列配對成功的列」— 內層查詢找出所有有開課的系，外層再保留「不在」那份名單裡的系。</span></div>
 
@@ -1074,7 +1086,7 @@ WHERE NOT EXISTS (
   WHERE offered_by = DEPARTMENT.name AND credits = 6
 );</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder" data-en="Guess which department this is, then run">猜猜看是哪個系，再執行</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess which departments these are (one has no course at all), then run">猜猜看是哪些系（其中一個根本沒開課），再執行</span></div>
       </div>
     </section>
 
@@ -1148,7 +1160,7 @@ WHERE CHAIRTOTAL.TOTALC > 1;</textarea>
          WHERE COURSE.offered_by = DEPARTMENT.name ) TOTALC
 FROM DEPARTMENT;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder" data-en="The Mathematics row has a NULL chair — but still 1 course">Mathematics 那一列的 chair 是 NULL — 還是有 1 門課</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Mathematics has a NULL chair but still 1 course; Biology has a chair but 0 courses">Mathematics 的 chair 是 NULL 但有 1 門課；Biology 有系主任、開課數卻是 0</span></div>
       </div>
       <div class="callout"><strong data-en="Indentation matters:">縮排很重要：</strong><span data-en="When SELECTs are stacked inside each other, align each level's SELECT / FROM / WHERE so you can see which clause belongs to which SELECT. Example 3 above is laid out that way.">多層 SELECT 疊在一起時，把每一層的 SELECT / FROM / WHERE 縮排對齊，才看得出哪個子句屬於哪一層 SELECT。上面範例 3 就是照這個原則排的。</span></div>
       <div class="callout"><strong data-en="Aliases are required:">別名不能省：</strong><span data-en="MySQL requires every inline view to have an alias (like MORETHAN1 or CHAIRTOTAL) and otherwise raises &quot;Every derived table must have its own alias&quot;. This page's mini-engine is more lenient and supplies one for you, but a real database will not.">MySQL 規定每個 inline view 都要有別名（例如 MORETHAN1、CHAIRTOTAL），沒有的話會報「Every derived table must have its own alias」。這個頁面的迷你引擎比較寬鬆，會自動幫你補一個別名，但真的資料庫不會。</span></div>
@@ -1228,7 +1240,7 @@ SELECT name
 FROM DC_COUNT
 WHERE total_courses > 1;</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder" data-en="Which department disappeared compared to the previous one?">跟上一個比，少了哪一個系？</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Which departments disappeared compared to the previous one?">跟上一個比，少了哪些系？</span></div>
       </div>
       <div class="callout"><strong data-en="Three syntax rules for WITH:">WITH 的三條語法規則：</strong><span data-en="1) Each definition is &quot;name AS ( SELECT ... )&quot;. 2) Separate definitions with commas, but there must be NO comma after the last definition. 3) A later definition may use names defined earlier.">① 每個定義是「名稱 AS ( SELECT ... )」。② 定義與定義之間用逗號隔開，但「最後一個定義後面」不能有逗號。③ 後面的定義可以用前面已經定義好的名字。</span></div>
       <div class="console" data-default="WITH DC AS (&#10;  SELECT name FROM DEPARTMENT&#10;),&#10;SELECT name&#10;FROM DC;">
@@ -1673,7 +1685,7 @@ SELECT * FROM COURSE;</textarea>
         </div>
         <div class="console-result"><span class="placeholder" data-en="What the first SELECT lists is exactly what the DELETE removes">第一個 SELECT 列出的，就是第二句 DELETE 會刪掉的</span></div>
       </div>
-      <p data-en="Second example (from the slides): delete the departments that offer no courses. This needs NOT EXISTS with a correlated subquery — the inner query references the outer DEPARTMENT.name, just as in chapter 15. Every department here offers a course, so we first delete Computer Science's courses to make it &quot;course-less&quot;, then delete such departments:">第二個範例（講義）：刪掉「沒有開任何課」的系。這需要 NOT EXISTS 加上相關子查詢 — 內層引用了外層的 DEPARTMENT.name，跟第 15 章一樣。這份資料每個系都有開課，所以我們先刪掉 Computer Science 的課，讓它變成「沒開課」，再刪掉這樣的系：</p>
+      <p data-en="Second example (from the slides): delete the departments that offer no courses. This needs NOT EXISTS with a correlated subquery — the inner query references the outer DEPARTMENT.name, just as in chapter 15. Biology already has no courses; we also delete Computer Science's courses so that two departments become &quot;course-less&quot;, then delete every such department:">第二個範例（講義）：刪掉「沒有開任何課」的系。這需要 NOT EXISTS 加上相關子查詢 — 內層引用了外層的 DEPARTMENT.name，跟第 15 章一樣。Biology 本來就沒開課；我們再刪掉 Computer Science 的課，讓兩個系都變成「沒開課」，然後把這樣的系全部刪掉：</p>
       <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="DELETE FROM COURSE&#10;WHERE offered_by = ( SELECT name&#10;                    FROM DEPARTMENT&#10;                    WHERE chair = 'Peter' );&#10;SELECT name FROM DEPARTMENT&#10;WHERE NOT EXISTS ( SELECT 'whatever'&#10;                   FROM COURSE&#10;                   WHERE COURSE.offered_by = DEPARTMENT.name );&#10;DELETE FROM DEPARTMENT&#10;WHERE NOT EXISTS ( SELECT 'whatever'&#10;                   FROM COURSE&#10;                   WHERE COURSE.offered_by = DEPARTMENT.name );&#10;SELECT * FROM DEPARTMENT;">
         <div class="console-topbar" data-en="NOT EXISTS with a correlated subquery: delete departments that offer no course">NOT EXISTS 相關子查詢：刪掉沒開任何課的系</div>
         <textarea class="console-input" spellcheck="false">DELETE FROM COURSE
@@ -1694,7 +1706,7 @@ SELECT * FROM DEPARTMENT;</textarea>
           <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
           <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
         </div>
-        <div class="console-result"><span class="placeholder" data-en="Guess which department gets deleted">先猜哪個系會被刪掉</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess which departments get deleted (the first SELECT shows them)">先猜哪些系會被刪掉（第一個 SELECT 會列出來）</span></div>
       </div>
       <div class="tip"><span data-en="The 'whatever' in SELECT 'whatever' can be anything — EXISTS only cares whether the inner query finds any row, not what it selects. That is why SELECT * or SELECT 1 work just as well.">SELECT 'whatever' 裡的 'whatever' 是什麼都可以 — EXISTS 只在乎「內層有沒有查到列」，不在乎 SELECT 了什麼。所以習慣寫 SELECT * 或 SELECT 1 都行。</span></div>
       <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="DELETE FROM COURSE&#10;WHERE offered_by = ( SELECT name&#10;                    FROM DEPARTMENT );">
@@ -1745,14 +1757,17 @@ WHERE cnum IN ( SELECT cnum
       </div>
       <h3 data-en="17.5 UPDATE with a subquery — a query result as the condition or the new value">17.5 UPDATE 搭配子查詢 — 用查詢結果當條件或新值</h3>
       <p data-en="An UPDATE's subquery can sit in the WHERE (which rows to update), in the SET (what the new value is), or in both. First the WHERE:">UPDATE 的子查詢可以放在 WHERE（決定「更新哪些列」）、SET（決定「新值是什麼」），也可以兩個地方都放。先看 WHERE：</p>
-      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="UPDATE DEPARTMENT&#10;SET total_staff_number = total_staff_number + 5&#10;WHERE name IN ( SELECT offered_by&#10;                FROM COURSE&#10;                GROUP BY offered_by&#10;                HAVING COUNT(cnum) > 20 );&#10;SELECT name, total_staff_number&#10;FROM DEPARTMENT;">
-        <div class="console-topbar" data-en="Example (from the slides): departments with more than 20 courses get +5 staff">範例（講義）：開課數超過 20 的系，教職員人數 +5</div>
-        <textarea class="console-input" spellcheck="false">UPDATE DEPARTMENT
+      <p data-en="The slide uses HAVING COUNT(cnum) > 20 — a real university has departments with dozens of courses. Our sample data only has 6 courses, so with 20 no department would qualify and the UPDATE would touch 0 rows. To actually see it work here, the example below uses > 1 (departments offering more than one course). The first SELECT shows the data before, the second shows it after:">講義用的是 HAVING COUNT(cnum) > 20 — 真實的大學，一個系開幾十門課很正常。但這份範例資料總共只有 6 門課，用 20 的話沒有任何系符合，UPDATE 會是 0 筆。為了讓你在這裡真的看到它運作，下面改成 > 1（開超過一門課的系）。第一個 SELECT 是更新「前」，第二個是更新「後」：</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="SELECT name, total_staff_number&#10;FROM DEPARTMENT;&#10;UPDATE DEPARTMENT&#10;SET total_staff_number = total_staff_number + 5&#10;WHERE name IN ( SELECT offered_by&#10;                FROM COURSE&#10;                GROUP BY offered_by&#10;                HAVING COUNT(cnum) > 1 );&#10;SELECT name, total_staff_number&#10;FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="Example (adapted from the slides): departments offering more than 1 course get +5 staff">範例（改編自講義）：開超過 1 門課的系，教職員人數 +5</div>
+        <textarea class="console-input" spellcheck="false">SELECT name, total_staff_number
+FROM DEPARTMENT;
+UPDATE DEPARTMENT
 SET total_staff_number = total_staff_number + 5
 WHERE name IN ( SELECT offered_by
                 FROM COURSE
                 GROUP BY offered_by
-                HAVING COUNT(cnum) > 20 );
+                HAVING COUNT(cnum) > 1 );
 SELECT name, total_staff_number
 FROM DEPARTMENT;</textarea>
         <div class="console-actions">
@@ -1760,7 +1775,7 @@ FROM DEPARTMENT;</textarea>
           <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
           <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
         </div>
-        <div class="console-result"><span class="placeholder" data-en="Guess: how many departments get +5? (Hint: the busiest one offers only 2 courses.) Then reset, change 20 to 1 and run again">先猜：有幾個系會被加人？（提示：最多的系只開了 2 門課）。之後把 20 改成 1 再跑一次（先按重置）</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess: which departments get +5? (Computer Science and Physics offer 2 courses each.) Then reset, change > 1 to > 20 like the slide, and see 0 rows affected">先猜：哪些系會被加人？（Computer Science 和 Physics 各開 2 門課。）之後先按重置，把 > 1 改成講義的 > 20，看看是不是 0 筆</span></div>
       </div>
       <p data-en="Now the SET: store &quot;how many courses this department offers&quot; as a new DEPARTMENT column. Add the column with ALTER TABLE (in its parenthesised form), then compute it row by row with a correlated subquery — the inner query references the outer DEPARTMENT.name:">再看 SET：把「這個系開了幾門課」存成 DEPARTMENT 的一個新欄位。先用 ALTER TABLE 加欄位（這次是括號的寫法），再用相關子查詢逐列算出來 — 內層引用了外層的 DEPARTMENT.name：</p>
       <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="ALTER TABLE DEPARTMENT ADD ( total_courses DECIMAL(2) );&#10;SELECT name, total_courses&#10;FROM DEPARTMENT;&#10;UPDATE DEPARTMENT&#10;SET total_courses = ( SELECT COUNT(title)&#10;                      FROM COURSE&#10;                      WHERE COURSE.offered_by = DEPARTMENT.name );&#10;SELECT name, total_courses&#10;FROM DEPARTMENT;">
@@ -1840,7 +1855,7 @@ FROM DEPARTMENT;</textarea>
           <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
           <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
         </div>
-        <div class="console-result"><span class="placeholder" data-en="After editing, guess the three values">改完先猜：三個系各是多少？</span></div>
+        <div class="console-result"><span class="placeholder" data-en="After editing, guess the four values — what will Biology (no courses) get?">改完先猜：四個系各是多少？沒開課的 Biology 會得到什麼？</span></div>
       </div>
         <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
           <div class="answer-body">
@@ -1848,7 +1863,7 @@ FROM DEPARTMENT;</textarea>
 SET total_credits = ( SELECT SUM(credits)
                       FROM COURSE
                       WHERE COURSE.offered_by = DEPARTMENT.name );</div>
-          <p data-en="Computer Science 12, Physics 18, Mathematics 12. COUNT tells you how many courses; adding up the credits needs SUM(credits). The correlated-subquery mechanics are identical: the inner query is recomputed each time with the name of the department the outer query is currently on.">Computer Science 12、Physics 18、Mathematics 12。COUNT 數的是「有幾門課」，要「學分加起來」要用 SUM(credits)。相關子查詢的做法完全一樣：內層每次都用外層目前那個系的名字，重新算一次。</p>
+          <p data-en="Computer Science 12, Physics 18, Mathematics 12, Biology NULL. COUNT tells you how many courses; adding up the credits needs SUM(credits). Biology has no courses, so SUM has nothing to add and returns NULL (not 0) — whereas COUNT would have given 0. The correlated-subquery mechanics are identical: the inner query is recomputed each time with the name of the department the outer query is currently on.">Computer Science 12、Physics 18、Mathematics 12、Biology NULL。COUNT 數的是「有幾門課」，要「學分加起來」要用 SUM(credits)。Biology 沒開課，SUM 沒有東西可加，回傳的是 NULL（不是 0）— 換成 COUNT 才會是 0。相關子查詢的做法完全一樣：內層每次都用外層目前那個系的名字，重新算一次。</p>
           </div>
         </details>
       </div>
@@ -2372,6 +2387,7 @@ const TABLES = {
     { name: 'Computer Science', code: 'CSCI1', total_staff_number: 20, chair: 'Peter', budget: 500000.0 },
     { name: 'Physics', code: 'PHYS1', total_staff_number: 15, chair: 'Mary', budget: 300000.0 },
     { name: 'Mathematics', code: 'MATH1', total_staff_number: 10, chair: null, budget: 200000.0 },
+    { name: 'Biology', code: 'BIOL1', total_staff_number: 8, chair: 'Albert', budget: 150000.0 },
   ],
   COURSE: [
     { cnum: 'CSCI111', title: 'C++', credits: 6, offered_by: 'Computer Science' },
@@ -2623,7 +2639,7 @@ function computeAggregate(name, argAst, rows) {
     return rows.filter(r => { const v = evaluate(argAst, r, [r]); return v !== null && v !== undefined; }).length;
   }
   const vals = rows.map(r => evaluate(argAst, r, [r])).filter(v => v !== null && v !== undefined);
-  if (name === 'SUM') return vals.reduce((a, b) => a + b, 0);
+  if (name === 'SUM') return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
   if (name === 'AVG') return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
   if (name === 'MAX') return vals.length ? Math.max(...vals) : null;
   if (name === 'MIN') return vals.length ? Math.min(...vals) : null;
@@ -2636,7 +2652,7 @@ function evaluate(node, row, groupRows) {
     case 'OR': return truthy(evaluate(node.left, row, groupRows)) || truthy(evaluate(node.right, row, groupRows));
     case 'NOT': return !truthy(evaluate(node.expr, row, groupRows));
     case 'ISNULL': { const v = evaluate(node.expr, row, groupRows); const isNull = (v === null || v === undefined); return node.negate ? !isNull : isNull; }
-    case 'IN': { const v = evaluate(node.expr, row, groupRows); const list = node.list.map(n => evaluate(n, row, groupRows)); const found = list.some(x => x == v); return node.negate ? !found : found; }
+    case 'IN': { const v = evaluate(node.expr, row, groupRows); const list = node.list.map(n => evaluate(n, row, groupRows)); if (v === null || v === undefined) return false; const found = list.some(x => x !== null && x !== undefined && x == v); if (found) return !node.negate; if (node.negate && list.some(x => x === null || x === undefined)) return false; return node.negate; }
     case 'LIKE': { const v = evaluate(node.expr, row, groupRows); const p = evaluate(node.pattern, row, groupRows); return likeMatch(String(v ?? ''), String(p)); }
     case 'BETWEEN': { const v = evaluate(node.expr, row, groupRows); const lo = evaluate(node.lo, row, groupRows); const hi = evaluate(node.hi, row, groupRows); return v >= lo && v <= hi; }
     case 'CMP': {
@@ -3944,8 +3960,8 @@ const QUIZ = [
     zh: { q: 'INSERT INTO T (SELECT b, a FROM S) — SELECT 出來的兩欄，會怎麼對應到 T 的欄位？', opts: ['依欄位名稱對應（b 對 T 的 b，a 對 T 的 a）', '依位置對應（第一欄放進 T 的第一個欄位，依此類推）', '沒辦法對應，一定會報錯'], explain: 'INSERT ... SELECT 只看位置，不看名稱。順序寫反，資料就會被灌進錯的欄位，所以 SELECT 清單的順序要跟目標表的欄位順序一致。' },
     en: { q: 'In INSERT INTO T (SELECT b, a FROM S), how are the two selected columns matched to T\'s columns?', opts: ['By name (b to T\'s b, a to T\'s a)', 'By position (the first column goes into T\'s first column, and so on)', 'They cannot be matched; it always errors'], explain: 'INSERT ... SELECT looks only at position, not names. Reverse the order and the data lands in the wrong columns, so the SELECT list must follow the target table\'s column order.' } },
   { correct: 2,
-    zh: { q: 'DELETE FROM COURSE WHERE offered_by = (SELECT name FROM DEPARTMENT); 而 DEPARTMENT 有 3 列，會怎樣？', opts: ['刪掉所有能配對的課', '只用第一列來比較', '報錯：子查詢回傳好幾個值，不能用 = 比較，要改用 IN'], explain: '= 只能跟「一個值」比。子查詢可能回傳好幾個值時，要用 IN。發生錯誤時，一列都不會被刪掉。' },
-    en: { q: 'DELETE FROM COURSE WHERE offered_by = (SELECT name FROM DEPARTMENT); — DEPARTMENT has 3 rows. What happens?', opts: ['Every matching course is deleted', 'Only the first row is used for the comparison', 'An error: the subquery returns several values, which = cannot compare — use IN instead'], explain: '= can compare against only ONE value. When a subquery may return several, use IN. When the error occurs, no row is deleted.' } },
+    zh: { q: 'DELETE FROM COURSE WHERE offered_by = (SELECT name FROM DEPARTMENT); 而 DEPARTMENT 有 4 列，會怎樣？', opts: ['刪掉所有能配對的課', '只用第一列來比較', '報錯：子查詢回傳好幾個值，不能用 = 比較，要改用 IN'], explain: '= 只能跟「一個值」比。子查詢可能回傳好幾個值時，要用 IN。發生錯誤時，一列都不會被刪掉。' },
+    en: { q: 'DELETE FROM COURSE WHERE offered_by = (SELECT name FROM DEPARTMENT); — DEPARTMENT has 4 rows. What happens?', opts: ['Every matching course is deleted', 'Only the first row is used for the comparison', 'An error: the subquery returns several values, which = cannot compare — use IN instead'], explain: '= can compare against only ONE value. When a subquery may return several, use IN. When the error occurs, no row is deleted.' } },
   { correct: 0,
     zh: { q: '下列哪一個語句執行之後，還能用 ROLLBACK（COMMIT 之前）復原？', opts: ['DELETE FROM COURSE;', 'TRUNCATE TABLE COURSE;', 'DROP TABLE COURSE;'], explain: 'DELETE 是 DML，COMMIT 之前可以 ROLLBACK。TRUNCATE 和 DROP TABLE 是 DDL，執行時會隱式 COMMIT，之後無法復原。' },
     en: { q: 'Which statement can still be undone with ROLLBACK (before COMMIT) after it runs?', opts: ['DELETE FROM COURSE;', 'TRUNCATE TABLE COURSE;', 'DROP TABLE COURSE;'], explain: 'DELETE is DML and can be rolled back before COMMIT. TRUNCATE and DROP TABLE are DDL: they do an implicit COMMIT when they run and cannot be undone.' } },
