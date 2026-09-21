@@ -171,6 +171,14 @@
   .verdict{ display:inline-block; font-family:var(--sans); font-weight:700; font-size:.85rem; margin:14px 0 -6px; }
   .verdict.bad{ color:#C0553B; }
   .verdict.good{ color:var(--teal); }
+  .exercise{ background:#FBF6EA; border:1px solid #E5D4AC; border-left:4px solid var(--mustard); border-radius:4px; padding:14px 18px 6px; margin:24px 0; }
+  .exercise-title{ font-family:var(--serif); font-weight:700; font-size:1.02rem; color:#8A5E1E; margin-bottom:6px; }
+  details.answer{ margin:6px 0 14px; border:1px solid var(--rule); border-radius:4px; background:#fff; }
+  details.answer summary{ cursor:pointer; padding:9px 14px; font-weight:600; color:var(--teal); font-size:.92rem; }
+  details.answer[open] summary{ border-bottom:1px solid var(--rule); }
+  .answer-body{ padding:12px 14px 2px; }
+  ol.steps{ margin:8px 0 14px; padding-left:22px; }
+  ol.steps li{ margin:3px 0; }
   .console-result{
     background:var(--console-panel); padding:16px 18px; border-top:1px solid rgba(255,255,255,0.06);
     font-family:var(--mono); font-size:.88rem; color:var(--console-text); overflow-x:auto;
@@ -1037,31 +1045,366 @@ WHERE NOT EXISTS (
 
     <section id="views">
       <h2 data-en="16. Views and the WITH Clause">16. View 與 WITH 子句</h2>
-      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Finance runs the same complex monthly rollup every month for reporting. Instead of rewriting a long query each time, save the logic as a VIEW &mdash; afterwards it's just SELECT * FROM that view, and anyone else can reuse it without understanding the underlying complexity.">財務部每個月都要跑同一組複雜的彙總計算來產生月報 — 與其每次重寫一長串 SQL，不如把邏輯存成一個 VIEW，之後只要 SELECT * FROM 這個 view 就好，其他人也能直接拿去用，不用搞懂背後複雜的邏輯。</span></div>
-      <p data-en="An inline view is a SELECT wrapped in parentheses and used as if it were a table — you've already used it inside FROM. The WITH clause lets you name one or more inline views up front and reuse them, which keeps a complex query readable.">Inline view 就是把一個 SELECT 包在括號裡，當成一張表來用 — 前面在 FROM 子句裡已經用過。WITH 子句可以先把一個或多個 inline view 取名字放在前面，後面重複使用，讓複雜的查詢維持可讀性。</p>
-      <div class="console" data-default="WITH DEPT_COURSE AS (&#10;  SELECT name, cnum FROM DEPARTMENT LEFT OUTER JOIN COURSE ON DEPARTMENT.name = COURSE.offered_by&#10;),&#10;DC_COUNT AS (&#10;  SELECT name, COUNT(cnum) AS total_courses FROM DEPT_COURSE GROUP BY name&#10;)&#10;SELECT name FROM DC_COUNT WHERE total_courses > 1;">
-        <div class="console-topbar" data-en="Two chained CTEs: first join+select, then group+count on top of it">兩個串接的 CTE：先做 JOIN+SELECT，再對它做 GROUP BY+COUNT</div>
-        <textarea class="console-input" spellcheck="false">WITH DEPT_COURSE AS (
-  SELECT name, cnum FROM DEPARTMENT LEFT OUTER JOIN COURSE ON DEPARTMENT.name = COURSE.offered_by
-),
-DC_COUNT AS (
-  SELECT name, COUNT(cnum) AS total_courses FROM DEPT_COURSE GROUP BY name
-)
-SELECT name FROM DC_COUNT WHERE total_courses > 1;</textarea>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Finance runs the same complex monthly rollup every month for reporting. Instead of rewriting a long query each time, save the logic as a VIEW — afterwards it is just SELECT * FROM that view, and anyone else can reuse it without understanding the underlying complexity.">財務部每個月都要跑同一組複雜的彙總計算來產生月報 — 與其每次重寫一長串 SQL，不如把邏輯存成一個 VIEW，之後只要 SELECT * FROM 這個 view 就好，其他人也能直接拿去用，不用搞懂背後複雜的邏輯。</span></div>
+      <p data-en="When a problem is too complex to write in one go, SQL gives you three tools to break it into simple pieces: inline views, the WITH clause, and relational views. The logic is identical in all three — a named SELECT used as if it were a table — they only differ in how long it lives and who can use it.">一個問題太複雜、一次寫不出來的時候，SQL 給你三種工具，把它拆成幾個簡單的小查詢：inline view、WITH 子句、關聯式 view。三者的「邏輯」完全一樣 — 都是「一個有名字的 SELECT，被當成一張表來用」— 差別只在「活多久、誰能用」。</p>
+      <table class="static-tbl">
+        <tr><th data-en="Tool">工具</th><th data-en="Where you write it">寫在哪裡</th><th data-en="How long it lives">活多久</th><th data-en="Who can use it">誰能用</th></tr>
+        <tr><td>Inline view</td><td data-en="In parentheses after FROM">FROM 後面的括號裡</td><td data-en="Only while this one query runs">只有這句查詢執行的期間</td><td data-en="Only this query">只有這句查詢</td></tr>
+        <tr><td data-en="WITH clause (CTE)">WITH 子句 (CTE)</td><td data-en="At the very start of the query">整句查詢的最前面</td><td data-en="Only while this one query runs">只有這句查詢執行的期間</td><td data-en="Only this query — but it can reference the same name many times">只有這句查詢（但裡面可以重複引用同一個名字）</td></tr>
+        <tr><td data-en="Relational view">關聯式 view</td><td data-en="Stored in the database with CREATE VIEW">用 CREATE VIEW 存進資料庫</td><td data-en="Until you DROP VIEW">直到你 DROP VIEW</td><td data-en="Anyone with permission, in any query">任何有權限的人、任何查詢</td></tr>
+      </table>
+      <div class="tip"><span data-en="None of the three stores any data — only the definition of the SELECT is kept. The data always stays in the underlying tables and is recomputed each time it is used.">三者「都不存資料」— 存的只是那段 SELECT 的定義。資料一直都在底下的資料表裡，每次用到才現算。</span></div>
+      <h3 data-en="16.1 Inline views — a SELECT in parentheses used as a temporary table">16.1 Inline view — 括號裡的 SELECT 當成一張暫時的表</h3>
+      <p data-en="An inline view is a SELECT wrapped in ( ) followed by a name (an alias), placed anywhere a table name could go. It exists only while the statement runs.">Inline view 就是把一個 SELECT 用 ( ) 包起來、後面接一個名字（別名），然後放在任何能放資料表名稱的地方。它只在這句查詢執行的期間存在。</p>
+      <p data-en="This whole subsection solves one question: find the chairs of departments that offer more than 1 course. You first need &quot;how many courses does each department offer&quot;, then filter on that number — a perfect two-step problem.">這一節都在解同一題：找出「開超過 1 門課」的系的系主任。這題要先知道「每個系開幾門課」，再拿這個數字來篩選 — 正是拆成兩步的好例子。</p>
+      <div class="console" data-default="SELECT count(*)&#10;FROM COURSE&#10;WHERE COURSE.offered_by = 'Physics';">
+        <div class="console-topbar" data-en="Step 1: run the inner query on its own to see what it computes (fixed to Physics for now)">步驟 1：先單獨看看內層查詢在算什麼（這裡先固定成 Physics）</div>
+        <textarea class="console-input" spellcheck="false">SELECT count(*)
+FROM COURSE
+WHERE COURSE.offered_by = 'Physics';</textarea>
         <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
-        <div class="console-result"><span class="placeholder" data-en="Run it">執行看看</span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess the answer, then run">先猜答案，再執行</span></div>
       </div>
-      <p data-en="Note the comma between CTE definitions, and no comma before the final SELECT.">注意 CTE 定義之間要用逗號隔開，最後的 SELECT 前面不加逗號。</p>
-      <h3 data-en="Relational views (CREATE VIEW)">關聯式 View（CREATE VIEW）</h3>
-      <p data-en="A relational view is a stored, named SELECT statement — a &quot;virtual table&quot; with no storage of its own; every time you query it, its definition is substituted in and re-run. Its logic is exactly the inline-view/WITH pattern above, just saved permanently under a name.">關聯式 View 就是把一個具名的 SELECT 儲存起來 — 一張沒有自己儲存空間的「虛擬表」，每次查詢它就會把定義代進去重新跑一次。它的邏輯跟上面的 inline view / WITH 完全一樣，只是永久存了一個名字。</p>
-      <div class="skeleton skeleton-code">CREATE VIEW VDEPT(name, total_courses) AS
-( SELECT name, count(COURSE.cnum)
+      <p data-en="Example 1: put that inner query into WHERE, replacing the fixed 'Physics' with the department name of the outer row currently being examined:">範例 1：把這個內層查詢放進 WHERE，把固定的 'Physics' 換成外層目前那一列的系名稱：</p>
+      <div class="console" data-default="SELECT DEPARTMENT.chair&#10;FROM DEPARTMENT&#10;WHERE ( SELECT count(*)&#10;        FROM COURSE&#10;        WHERE COURSE.offered_by = DEPARTMENT.name ) > 1;">
+        <div class="console-topbar" data-en="Example 1: the inner query references the outer DEPARTMENT.name, so it is re-evaluated once per outer row">範例 1：內層引用外層的 DEPARTMENT.name，所以外層每一列都會代進去重新算一次</div>
+        <textarea class="console-input" spellcheck="false">SELECT DEPARTMENT.chair
+FROM DEPARTMENT
+WHERE ( SELECT count(*)
+        FROM COURSE
+        WHERE COURSE.offered_by = DEPARTMENT.name ) > 1;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Should be the chairs of the two departments that offer 2 courses">應該是開了 2 門課的兩個系的系主任</span></div>
+      </div>
+      <p data-en="If you want to show &quot;how many&quot; as well as filter on it, turn the inner query into a temporary table you can JOIN:">如果不只想篩選，還想把「開了幾門」也顯示出來，就把內層查詢做成一張能 JOIN 的暫時表：</p>
+      <div class="console" data-default="SELECT DEPARTMENT.chair, MORETHAN1.total&#10;FROM DEPARTMENT JOIN (&#10;  SELECT offered_by, count(*) total&#10;  FROM COURSE&#10;  GROUP BY offered_by&#10;  HAVING count(*) > 1&#10;) MORETHAN1&#10;ON DEPARTMENT.name = MORETHAN1.offered_by;">
+        <div class="console-topbar" data-en="Example 2: the inner query groups and filters into a temporary table MORETHAN1, which is then joined with DEPARTMENT">範例 2：內層先分組並篩選成暫時表 MORETHAN1，再跟 DEPARTMENT JOIN</div>
+        <textarea class="console-input" spellcheck="false">SELECT DEPARTMENT.chair, MORETHAN1.total
+FROM DEPARTMENT JOIN (
+  SELECT offered_by, count(*) total
+  FROM COURSE
+  GROUP BY offered_by
+  HAVING count(*) > 1
+) MORETHAN1
+ON DEPARTMENT.name = MORETHAN1.offered_by;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Compare with example 1: one extra column, total">跟範例 1 比：多了一欄 total</span></div>
+      </div>
+      <div class="tip"><span data-en="The alias in count(*) total is what lets the outer query say MORETHAN1.total — a computed column without a name cannot be referenced from outside the inline view.">內層的 count(*) total 幫計算結果取了別名 total，外層才能用 MORETHAN1.total 引用它 — inline view 裡「沒有名字」的計算欄位，外層是拿不到的。</span></div>
+      <p data-en="Example 3: make &quot;courses per department&quot; a column in the SELECT list, wrap the whole thing as an inline view, then filter in the outer query:">範例 3：把「每個系開幾門課」直接做成 SELECT 清單裡的一個欄位，整段包成 inline view，外層再篩選：</p>
+      <div class="console" data-default="SELECT chair, TOTALC&#10;FROM ( SELECT chair,&#10;              ( SELECT count(*)&#10;                FROM COURSE&#10;                WHERE COURSE.offered_by = DEPARTMENT.name ) TOTALC&#10;       FROM DEPARTMENT ) CHAIRTOTAL&#10;WHERE CHAIRTOTAL.TOTALC > 1;">
+        <div class="console-topbar" data-en="Example 3: two levels of SELECT — the inner SELECT list itself hides a subquery">範例 3：兩層 SELECT — 內層的 SELECT 清單裡還藏著一個子查詢</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair, TOTALC
+FROM ( SELECT chair,
+              ( SELECT count(*)
+                FROM COURSE
+                WHERE COURSE.offered_by = DEPARTMENT.name ) TOTALC
+       FROM DEPARTMENT ) CHAIRTOTAL
+WHERE CHAIRTOTAL.TOTALC > 1;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Same answer as example 2">跟範例 2 的答案應該一樣（多了 TOTALC 欄）</span></div>
+      </div>
+      <p data-en="Curious what the inner layer does by itself? Run just the part inside the parentheses — every department is listed, including ones that would fail the > 1 filter:">想看內層那一層單獨做了什麼？只執行括號裡的那段（每個系都會列出來，包括沒有達到 > 1 的）：</p>
+      <div class="console" data-default="SELECT chair,&#10;       ( SELECT count(*)&#10;         FROM COURSE&#10;         WHERE COURSE.offered_by = DEPARTMENT.name ) TOTALC&#10;FROM DEPARTMENT;">
+        <div class="console-topbar" data-en="Inner layer only: one row per department plus its course count">只跑內層：每個系一列，加上它開了幾門課</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair,
+       ( SELECT count(*)
+         FROM COURSE
+         WHERE COURSE.offered_by = DEPARTMENT.name ) TOTALC
+FROM DEPARTMENT;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="The Mathematics row has a NULL chair — but still 1 course">Mathematics 那一列的 chair 是 NULL — 還是有 1 門課</span></div>
+      </div>
+      <div class="callout"><strong data-en="Indentation matters:">縮排很重要：</strong><span data-en="When SELECTs are stacked inside each other, align each level's SELECT / FROM / WHERE so you can see which clause belongs to which SELECT. Example 3 above is laid out that way.">多層 SELECT 疊在一起時，把每一層的 SELECT / FROM / WHERE 縮排對齊，才看得出哪個子句屬於哪一層 SELECT。上面範例 3 就是照這個原則排的。</span></div>
+      <div class="callout"><strong data-en="Aliases are required:">別名不能省：</strong><span data-en="MySQL requires every inline view to have an alias (like MORETHAN1 or CHAIRTOTAL) and otherwise raises &quot;Every derived table must have its own alias&quot;. This page's mini-engine is more lenient and supplies one for you, but a real database will not.">MySQL 規定每個 inline view 都要有別名（例如 MORETHAN1、CHAIRTOTAL），沒有的話會報「Every derived table must have its own alias」。這個頁面的迷你引擎比較寬鬆，會自動幫你補一個別名，但真的資料庫不會。</span></div>
+      <div class="tip"><span data-en="All three examples give the same answer (Peter and Mary). Use example 1 when you only need to filter; use 2 or 3 when you also want to show the number. There is no single right style — the point is to split the big problem into small ones first.">三個範例答案都一樣（Peter、Mary）。只要篩選就用範例 1；還想顯示數字，用範例 2 或 3。寫法沒有絕對的對錯，重點是先把大問題拆成小問題。</span></div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 1 (inline view) — departments whose total credits exceed 12">🧪 練習 1（inline view）— 開課學分總和超過 12 的系</div>
+        <p data-en="Find the chairs of departments whose offered courses add up to more than 12 credits. The skeleton below already has the inner inline view and the outer JOIN, but the HAVING condition is currently > 0 (so every department shows up) — change it to what the question asks for, then run.">找出「開的課，學分加起來超過 12」的系的系主任。下面的骨架已經把內層 inline view 和外層 JOIN 都寫好了，但 HAVING 的條件現在是 > 0（所以每個系都會出現）— 請把它改成題目要的條件，再執行。</p>
+      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT JOIN (&#10;  SELECT offered_by, SUM(credits) total&#10;  FROM COURSE&#10;  GROUP BY offered_by&#10;  HAVING SUM(credits) > 0&#10;) T&#10;ON DEPARTMENT.name = T.offered_by;">
+        <div class="console-topbar" data-en="Practice 1: change HAVING SUM(credits) > 0 to the condition the question asks for">練習 1：把 HAVING SUM(credits) > 0 改成題目要的條件</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair
+FROM DEPARTMENT JOIN (
+  SELECT offered_by, SUM(credits) total
+  FROM COURSE
+  GROUP BY offered_by
+  HAVING SUM(credits) > 0
+) T
+ON DEPARTMENT.name = T.offered_by;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="After editing, guess how many departments remain">改完先猜：應該剩下幾個系？</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">SELECT chair
+FROM DEPARTMENT JOIN (
+  SELECT offered_by, SUM(credits) total
+  FROM COURSE
+  GROUP BY offered_by
+  HAVING SUM(credits) > 12
+) T
+ON DEPARTMENT.name = T.offered_by;</div>
+          <p data-en="Credit totals: Computer Science 12, Physics 18, Mathematics 12. &quot;More than 12&quot; is > 12 (12 itself does not count), so only Physics remains — the answer is Mary. Writing >= 12 by mistake would keep all three departments — the boundary trap again.">各系學分總和：Computer Science 12、Physics 18、Mathematics 12。「超過 12」是 > 12（不含 12 本身），所以只剩 Physics，答案是 Mary。如果誤寫成 >= 12，三個系都會留下來 — 又是「邊界」的問題。</p>
+          </div>
+        </details>
+      </div>
+      <h3 data-en="16.2 The WITH clause — name each small step first, combine at the end">16.2 WITH 子句 — 先幫每一小段取名字，最後再組起來</h3>
+      <p data-en="WITH puts one or more inline views at the very front of the query, each with a name (a &quot;query definition&quot;, also called a CTE). The final SELECT can then use those names like tables — and later definitions can use earlier ones.">WITH 把一個或多個 inline view 放到整句查詢的最前面、各自取名字（這叫「查詢定義」，也叫 CTE）。最後的 SELECT 就可以像用資料表一樣，直接用這些名字 — 而且後面的定義還能用前面定義好的名字。</p>
+      <p data-en="Task: list each department with its number of courses, including departments that offer none (count 0). Split it into two steps. Run the first step on its own:">題目：列出每個系的名稱和它開的課程數，沒有開課的系也要列出來（課程數 0）。先拆成兩步。第一步單獨跑跑看：</p>
+      <div class="console" data-default="SELECT name, cnum&#10;FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;ON DEPARTMENT.name = COURSE.offered_by;">
+        <div class="console-topbar" data-en="Step one: what DEPT_COURSE contains — the LEFT JOIN keeps departments with no course (cnum would be NULL)">第一段：DEPT_COURSE 的內容 — LEFT JOIN 讓沒開課的系也留著（cnum 會是 NULL）</div>
+        <textarea class="console-input" spellcheck="false">SELECT name, cnum
+FROM DEPARTMENT LEFT OUTER JOIN COURSE
+ON DEPARTMENT.name = COURSE.offered_by;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="One row per department-and-course pair">每個「系＋課」組合一列</span></div>
+      </div>
+      <p data-en="Step two: name the first step DEPT_COURSE, define DC_COUNT that groups and counts over it, and let the final SELECT read from DC_COUNT:">第二步：把第一步命名為 DEPT_COURSE，再另外定義 DC_COUNT 對它分組計數，最後的 SELECT 從 DC_COUNT 取結果：</p>
+      <div class="console" data-default="WITH DEPT_COURSE AS (&#10;  SELECT name, cnum&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;),&#10;DC_COUNT AS (&#10;  SELECT name, COUNT(cnum) AS total_courses&#10;  FROM DEPT_COURSE&#10;  GROUP BY name&#10;)&#10;SELECT name, total_courses&#10;FROM DC_COUNT;">
+        <div class="console-topbar" data-en="Two definitions: DC_COUNT uses the earlier DEPT_COURSE">兩段定義：DC_COUNT 用到前面的 DEPT_COURSE</div>
+        <textarea class="console-input" spellcheck="false">WITH DEPT_COURSE AS (
+  SELECT name, cnum
   FROM DEPARTMENT LEFT OUTER JOIN COURSE
   ON DEPARTMENT.name = COURSE.offered_by
-  GROUP BY DEPARTMENT.name );
+),
+DC_COUNT AS (
+  SELECT name, COUNT(cnum) AS total_courses
+  FROM DEPT_COURSE
+  GROUP BY name
+)
+SELECT name, total_courses
+FROM DC_COUNT;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="One row per department">每個系一列</span></div>
+      </div>
+      <div class="console" data-default="WITH DEPT_COURSE AS (&#10;  SELECT name, cnum&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;),&#10;DC_COUNT AS (&#10;  SELECT name, COUNT(cnum) AS total_courses&#10;  FROM DEPT_COURSE&#10;  GROUP BY name&#10;)&#10;SELECT name&#10;FROM DC_COUNT&#10;WHERE total_courses > 1;">
+        <div class="console-topbar" data-en="Same definitions; the final SELECT adds a WHERE to keep only departments with more than 1 course">同一組定義，最後的 SELECT 加上 WHERE：只留開超過 1 門課的系</div>
+        <textarea class="console-input" spellcheck="false">WITH DEPT_COURSE AS (
+  SELECT name, cnum
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by
+),
+DC_COUNT AS (
+  SELECT name, COUNT(cnum) AS total_courses
+  FROM DEPT_COURSE
+  GROUP BY name
+)
+SELECT name
+FROM DC_COUNT
+WHERE total_courses > 1;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Which department disappeared compared to the previous one?">跟上一個比，少了哪一個系？</span></div>
+      </div>
+      <div class="callout"><strong data-en="Three syntax rules for WITH:">WITH 的三條語法規則：</strong><span data-en="1) Each definition is &quot;name AS ( SELECT ... )&quot;. 2) Separate definitions with commas, but there must be NO comma after the last definition. 3) A later definition may use names defined earlier.">① 每個定義是「名稱 AS ( SELECT ... )」。② 定義與定義之間用逗號隔開，但「最後一個定義後面」不能有逗號。③ 後面的定義可以用前面已經定義好的名字。</span></div>
+      <div class="console" data-default="WITH DC AS (&#10;  SELECT name FROM DEPARTMENT&#10;),&#10;SELECT name&#10;FROM DC;">
+        <div class="console-topbar" data-en="Deliberately wrong: a comma after the last definition — see the error message">故意寫錯：最後一個定義後面多了逗號 — 看看錯誤訊息</div>
+        <textarea class="console-input" spellcheck="false">WITH DC AS (
+  SELECT name FROM DEPARTMENT
+),
+SELECT name
+FROM DC;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess the error, then run">猜猜看會出現什麼錯誤，再執行</span></div>
+      </div>
+      <p data-en="WITH really pays off when a problem needs several steps. This one asks for the chairs of departments that offer BOTH 6-credit and 12-credit courses — split into four definitions, each doing one thing:">WITH 真正派上用場的是「要拆成好幾步」的時候。這題要找「同時開 6 學分和 12 學分課程」的系的系主任，拆成四段，每段做一件事：</p>
+      <ol class="steps">
+        <li><code>COURSE6CR</code> — <span data-en="departments that offer a 6-credit course">開 6 學分課的系</span></li>
+        <li><code>COURSE12CR</code> — <span data-en="departments that offer a 12-credit course">開 12 學分課的系</span></li>
+        <li><code>COURSE6_12CR</code> — <span data-en="departments in both lists (join the two)">兩份名單都有的系（把兩個 JOIN 起來）</span></li>
+        <li><code>CHAIR</code> — <span data-en="the chairs of those departments">這些系的系主任</span></li>
+      </ol>
+      <div class="console" data-default="WITH COURSE6CR AS (&#10;  SELECT offered_by&#10;  FROM COURSE&#10;  WHERE credits = 6&#10;),&#10;COURSE12CR AS (&#10;  SELECT offered_by&#10;  FROM COURSE&#10;  WHERE credits = 12&#10;),&#10;COURSE6_12CR AS (&#10;  SELECT COURSE6CR.offered_by&#10;  FROM COURSE6CR JOIN COURSE12CR&#10;  ON COURSE6CR.offered_by = COURSE12CR.offered_by&#10;),&#10;CHAIR AS (&#10;  SELECT DEPARTMENT.chair&#10;  FROM COURSE6_12CR JOIN DEPARTMENT&#10;  ON COURSE6_12CR.offered_by = DEPARTMENT.name&#10;)&#10;SELECT *&#10;FROM CHAIR;">
+        <div class="console-topbar" data-en="Four WITH definitions: each does one thing, later ones build on earlier ones">四段 WITH：每一段只做一件事，後面的用前面的</div>
+        <textarea class="console-input" spellcheck="false">WITH COURSE6CR AS (
+  SELECT offered_by
+  FROM COURSE
+  WHERE credits = 6
+),
+COURSE12CR AS (
+  SELECT offered_by
+  FROM COURSE
+  WHERE credits = 12
+),
+COURSE6_12CR AS (
+  SELECT COURSE6CR.offered_by
+  FROM COURSE6CR JOIN COURSE12CR
+  ON COURSE6CR.offered_by = COURSE12CR.offered_by
+),
+CHAIR AS (
+  SELECT DEPARTMENT.chair
+  FROM COURSE6_12CR JOIN DEPARTMENT
+  ON COURSE6_12CR.offered_by = DEPARTMENT.name
+)
+SELECT *
+FROM CHAIR;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Guess the department first (the one with both kinds of course)">先猜是哪個系（兩種學分的課都有開）</span></div>
+      </div>
+      <p data-en="You can solve the same problem without WITH — for instance with two INs. It is shorter for a simple problem, but the more complex the problem gets, the more WITH pays off: every step has a name and can be tested on its own:">同一題不用 WITH 也寫得出來，例如用兩個 IN。題目簡單時更短，但題目越複雜，WITH「每一步都有名字、可以單獨拿出來測」的優勢就越明顯：</p>
+      <div class="console" data-default="SELECT chair&#10;FROM DEPARTMENT&#10;WHERE name IN (SELECT offered_by FROM COURSE WHERE credits = 6)&#10;  AND name IN (SELECT offered_by FROM COURSE WHERE credits = 12);">
+        <div class="console-topbar" data-en="Without WITH: two IN subqueries — the answer should be the same">不用 WITH：兩個 IN 子查詢，答案應該一樣</div>
+        <textarea class="console-input" spellcheck="false">SELECT chair
+FROM DEPARTMENT
+WHERE name IN (SELECT offered_by FROM COURSE WHERE credits = 6)
+  AND name IN (SELECT offered_by FROM COURSE WHERE credits = 12);</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="Compare with the four-step WITH above">跟上面四段 WITH 的答案比較</span></div>
+      </div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 2 (WITH) — students enrolled in more than one course">🧪 練習 2（WITH）— 修了不只一門課的學生</div>
+        <p data-en="Find the names of students enrolled in more than one course. The skeleton uses WITH to compute each student's enrolment count first (with a LEFT JOIN, so students with no enrolment stay in with count 0), but the final WHERE is currently n > 0 — change it to what the question asks for.">找出「修了不只一門課」的學生姓名。骨架用 WITH 先算出每位學生的修課數（用 LEFT JOIN，沒修課的學生也會留著、課數是 0），但最後 WHERE 的條件現在是 n > 0 — 請改成題目要的條件。</p>
+      <div class="console" data-default="WITH ENROLCNT AS (&#10;  SELECT STUDENT.name, COUNT(ENROLMENT.cnum) AS n&#10;  FROM STUDENT LEFT OUTER JOIN ENROLMENT&#10;  ON STUDENT.snum = ENROLMENT.snum&#10;  GROUP BY STUDENT.name&#10;)&#10;SELECT name&#10;FROM ENROLCNT&#10;WHERE n > 0;">
+        <div class="console-topbar" data-en="Practice 2: change the final WHERE n > 0 to the condition the question asks for">練習 2：把最後的 WHERE n > 0 改成題目要的條件</div>
+        <textarea class="console-input" spellcheck="false">WITH ENROLCNT AS (
+  SELECT STUDENT.name, COUNT(ENROLMENT.cnum) AS n
+  FROM STUDENT LEFT OUTER JOIN ENROLMENT
+  ON STUDENT.snum = ENROLMENT.snum
+  GROUP BY STUDENT.name
+)
+SELECT name
+FROM ENROLCNT
+WHERE n > 0;</textarea>
+        <div class="console-actions"><button class="run-btn" data-en="▶ Run">▶ 執行</button><span class="console-hint"></span></div>
+        <div class="console-result"><span class="placeholder" data-en="After editing, guess who remains">改完先猜：應該剩下誰？</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">WITH ENROLCNT AS (
+  SELECT STUDENT.name, COUNT(ENROLMENT.cnum) AS n
+  FROM STUDENT LEFT OUTER JOIN ENROLMENT
+  ON STUDENT.snum = ENROLMENT.snum
+  GROUP BY STUDENT.name
+)
+SELECT name
+FROM ENROLCNT
+WHERE n > 1;</div>
+          <p data-en="Alice is enrolled in 2 courses, Bob and Chloe in 1 each, so the answer is Alice. Count the cnum column with COUNT(ENROLMENT.cnum) rather than COUNT(*), so a student with no enrolment gets 0 instead of being counted as 1.">Alice 修了 2 門，Bob 和 Chloe 各 1 門，所以答案是 Alice。COUNT(ENROLMENT.cnum) 要數「課號」這一欄（而不是 COUNT(*)），沒修課的學生才會得到 0，而不是被算成 1。</p>
+          </div>
+        </details>
+      </div>
+      <h3 data-en="16.3 Relational views (CREATE VIEW) — store the definition in the database">16.3 關聯式 View（CREATE VIEW）— 把定義存進資料庫</h3>
+      <p data-en="A relational view is a &quot;virtual table&quot;: the database stores only a (name, SELECT statement) pair and occupies no data storage. Each time a query uses the name, the database substitutes the definition (turning it into an inline view) and recomputes from scratch.">關聯式 view 是一張「虛擬的資料表」：資料庫存的只是「（名稱，SELECT 敘述）」這一對，本身不占資料儲存空間。每次有查詢用到這個名稱，資料庫就把名稱換成它的定義（變成 inline view），從頭現算一次。</p>
+      <div class="skeleton skeleton-code">你寫的：
+SELECT name FROM VDEPT WHERE total_courses > 1;
 
-SELECT name FROM VDEPT WHERE total_courses > 1;</div>
-      <p style="font-size:.88rem;color:var(--ink-soft)" data-en="This mini-engine doesn't implement persistent CREATE VIEW — but the WITH-clause console above runs the exact same logic, so you can try it there.">這個迷你引擎沒有實作永久性的 CREATE VIEW — 但上面那台 WITH 子句主控台跑的是完全一樣的邏輯，可以在那裡試試看。</p>
+資料庫實際執行的（把 VDEPT 換成它的定義）：
+SELECT name
+FROM ( SELECT name, count(COURSE.cnum)
+       FROM DEPARTMENT LEFT OUTER JOIN COURSE
+       ON DEPARTMENT.name = COURSE.offered_by
+       GROUP BY DEPARTMENT.name ) VDEPT
+WHERE total_courses > 1;</div>
+      <div class="callout"><strong data-en="The sandbox can create real views:">這個沙盒可以真的建立 view：</strong><span data-en="The sandboxes below have their own private tables and can run CREATE VIEW / DROP VIEW. The &quot;📋 View current tables&quot; button lists the current content of views too (marked &quot;view&quot;).">下面的沙盒有自己獨立的一份資料表，可以執行 CREATE VIEW / DROP VIEW。按「📋 查看目前資料表」會連 view 現算出來的內容一起列出（標有 view）。</span></div>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE VIEW VDEPT( name, total_courses ) AS (&#10;  SELECT name, count(COURSE.cnum)&#10;  FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;  ON DEPARTMENT.name = COURSE.offered_by&#10;  GROUP BY DEPARTMENT.name&#10;);&#10;SELECT * FROM VDEPT;&#10;SELECT name FROM VDEPT WHERE total_courses > 1;&#10;SELECT name, count(cnum)&#10;FROM DEPARTMENT LEFT OUTER JOIN COURSE&#10;ON DEPARTMENT.name = COURSE.offered_by&#10;GROUP BY name&#10;HAVING count(cnum) > 1;">
+        <div class="console-topbar" data-en="Example: create VDEPT, query it, then compare with the same question written without a view">範例：建立 VDEPT，用它查詢，再跟「不用 view」的寫法比較答案</div>
+        <textarea class="console-input" spellcheck="false">CREATE VIEW VDEPT( name, total_courses ) AS (
+  SELECT name, count(COURSE.cnum)
+  FROM DEPARTMENT LEFT OUTER JOIN COURSE
+  ON DEPARTMENT.name = COURSE.offered_by
+  GROUP BY DEPARTMENT.name
+);
+SELECT * FROM VDEPT;
+SELECT name FROM VDEPT WHERE total_courses > 1;
+SELECT name, count(cnum)
+FROM DEPARTMENT LEFT OUTER JOIN COURSE
+ON DEPARTMENT.name = COURSE.offered_by
+GROUP BY name
+HAVING count(cnum) > 1;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="The last two queries should agree — the view spreads the complexity over two simpler queries">最後兩個查詢的答案應該一樣 — view 把複雜度拆到兩個簡單的查詢裡</span></div>
+      </div>
+      <p data-en="The most misunderstood thing about views: they hold no data. So the moment the underlying table changes, the view changes with it. Guess first — will the second SELECT show an extra row?">View 最容易被誤會的地方：它「不存資料」。所以底下的資料表一改，view 立刻跟著變。先猜：第二次 SELECT 會多一列嗎？</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE VIEW VCS(cnum, title) AS (&#10;  SELECT cnum, title&#10;  FROM COURSE&#10;  WHERE offered_by = 'Computer Science'&#10;);&#10;SELECT * FROM VCS;&#10;INSERT INTO COURSE VALUES ('CSCI300', 'Algorithms', 6, 'Computer Science');&#10;SELECT * FROM VCS;&#10;DROP VIEW VCS;&#10;SELECT * FROM VCS;">
+        <div class="console-topbar" data-en="A view is virtual: change the underlying table and the view follows immediately; after DROP VIEW it is gone">View 是虛擬的：改底下的資料表，view 立刻跟著變；DROP VIEW 之後就查不到了</div>
+        <textarea class="console-input" spellcheck="false">CREATE VIEW VCS(cnum, title) AS (
+  SELECT cnum, title
+  FROM COURSE
+  WHERE offered_by = 'Computer Science'
+);
+SELECT * FROM VCS;
+INSERT INTO COURSE VALUES ('CSCI300', 'Algorithms', 6, 'Computer Science');
+SELECT * FROM VCS;
+DROP VIEW VCS;
+SELECT * FROM VCS;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Note that we never recreated the view, yet the second SELECT shows Algorithms; the last SELECT errors because the view was dropped">注意：第二次 SELECT 我們沒有重新建立 view，它自己就多了 Algorithms；最後一個 SELECT 會報錯，因為 view 已經被刪掉了</span></div>
+      </div>
+      <p data-en="Views can also break down a complex problem, and a later view may use an earlier one. This is the view version of the four-step WITH from the previous subsection:">View 也可以拿來拆解複雜問題，而且後面的 view 能用前面的 view。這就是上一節「四段 WITH」的 view 版本：</p>
+      <div class="console sandbox" data-seed="DEPARTMENT,COURSE" data-default="CREATE VIEW V6( name ) AS (&#10;  SELECT offered_by FROM COURSE WHERE credits = 6&#10;);&#10;CREATE VIEW V12( name ) AS (&#10;  SELECT offered_by FROM COURSE WHERE credits = 12&#10;);&#10;CREATE VIEW VNAME( name ) AS (&#10;  SELECT V6.name&#10;  FROM V6 JOIN V12&#10;  ON V6.name = V12.name&#10;);&#10;CREATE VIEW VCHAIR( chair ) AS (&#10;  SELECT DEPARTMENT.chair&#10;  FROM VNAME JOIN DEPARTMENT&#10;  ON VNAME.name = DEPARTMENT.name&#10;);&#10;SELECT *&#10;FROM VCHAIR;">
+        <div class="console-topbar" data-en="Four views chained together: V6, V12 → VNAME (in both) → VCHAIR (the chair)">四個 view 串成一條：V6、V12 → VNAME（兩邊都有）→ VCHAIR（系主任）</div>
+        <textarea class="console-input" spellcheck="false">CREATE VIEW V6( name ) AS (
+  SELECT offered_by FROM COURSE WHERE credits = 6
+);
+CREATE VIEW V12( name ) AS (
+  SELECT offered_by FROM COURSE WHERE credits = 12
+);
+CREATE VIEW VNAME( name ) AS (
+  SELECT V6.name
+  FROM V6 JOIN V12
+  ON V6.name = V12.name
+);
+CREATE VIEW VCHAIR( chair ) AS (
+  SELECT DEPARTMENT.chair
+  FROM VNAME JOIN DEPARTMENT
+  ON VNAME.name = DEPARTMENT.name
+);
+SELECT *
+FROM VCHAIR;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Multiple statements separated by ; run in order">多句語句用分號隔開，會依序執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Should match the four-step WITH from the previous subsection">答案應該跟上一節的四段 WITH 一樣</span></div>
+      </div>
+      <div class="callout"><strong data-en="View rules:">View 的規則：</strong><span data-en="1) The column list after the view name must have as many names as the SELECT produces columns. 2) A view name cannot clash with an existing table or view. 3) DROP VIEW removes only the definition; the underlying tables are untouched.">① CREATE VIEW 名稱後面的欄位清單，數量要跟 SELECT 產生的欄位數一樣。② view 名稱不能跟已經存在的資料表或 view 重複。③ DROP VIEW 只刪掉定義，底下的資料表完全不受影響。</span></div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 3 (CREATE VIEW) — students and the courses they passed">🧪 練習 3（CREATE VIEW）— 通過考試的學生與課程</div>
+        <p data-en="Create a view VPASS(student, course) listing each student and course title where the result is Pass (join STUDENT, ENROLMENT and COURSE). The skeleton's WHERE is empty — fill in the condition and run; the final query should then show only the passing records.">建立一個 view VPASS(student, course)，列出「成績是 Pass」的每一位學生姓名和課程名稱（要接 STUDENT、ENROLMENT、COURSE 三張表）。骨架的 WHERE 是空的 — 補上條件後執行，最後的查詢應該只剩通過的紀錄。</p>
+      <div class="console sandbox" data-seed="STUDENT,COURSE,ENROLMENT" data-default="CREATE VIEW VPASS( student, course ) AS (&#10;  SELECT STUDENT.name, COURSE.title&#10;  FROM STUDENT JOIN ENROLMENT&#10;  ON STUDENT.snum = ENROLMENT.snum&#10;  JOIN COURSE&#10;  ON ENROLMENT.cnum = COURSE.cnum&#10;  WHERE&#10;);&#10;SELECT student, course&#10;FROM VPASS;">
+        <div class="console-topbar" data-en="Practice 3: fill in the empty WHERE inside VPASS">練習 3：補上 VPASS 裡空白的 WHERE 條件</div>
+        <textarea class="console-input" spellcheck="false">CREATE VIEW VPASS( student, course ) AS (
+  SELECT STUDENT.name, COURSE.title
+  FROM STUDENT JOIN ENROLMENT
+  ON STUDENT.snum = ENROLMENT.snum
+  JOIN COURSE
+  ON ENROLMENT.cnum = COURSE.cnum
+  WHERE
+);
+SELECT student, course
+FROM VPASS;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="Without the condition there are 4 rows; with it, one fewer">未補條件會有 4 列；補好之後應該少一列</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Run it as-is first and count the rows (empty WHERE = no filter), then complete it and compare">先照原樣執行看看有幾列（WHERE 空白＝沒有篩選），補完後按重置再跑一次比較</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <div class="skeleton skeleton-code" style="margin:0 0 10px;">CREATE VIEW VPASS( student, course ) AS (
+  SELECT STUDENT.name, COURSE.title
+  FROM STUDENT JOIN ENROLMENT
+  ON STUDENT.snum = ENROLMENT.snum
+  JOIN COURSE
+  ON ENROLMENT.cnum = COURSE.cnum
+  WHERE ENROLMENT.result = 'Pass'
+);
+SELECT student, course
+FROM VPASS;</div>
+          <p data-en="Without the condition there are 4 rows (every enrolment); with WHERE ENROLMENT.result = 'Pass' there are 3 — Bob's Relativity is a Fail and gets filtered out. The WHERE inside the view is part of its definition: every future query on VPASS automatically sees only passing records.">沒補條件時是 4 列（所有選課紀錄）；補上 WHERE ENROLMENT.result = 'Pass' 之後剩 3 列 — Bob 的 Relativity 是 Fail，被濾掉了。注意 view 裡的 WHERE 是「定義的一部分」：以後每次查 VPASS，都自動只看得到通過的紀錄。</p>
+          </div>
+        </details>
+      </div>
+      <div class="tip"><strong data-en="Which one should I use?">怎麼選？</strong><span data-en="Used once, one level deep → inline view. Several steps inside one query, or the same piece used repeatedly → WITH. Needed by many queries, or to be shared with others (even letting people see only the view and not the underlying tables) → CREATE VIEW.">只用一次、只有一層 → inline view。同一句查詢裡要拆成好幾步、或同一段要重複用 → WITH。很多查詢都會用到、或要讓別人直接拿去用（甚至只開放看 view、不開放底下的資料表）→ CREATE VIEW。</span></div>
     </section>
 
     <section id="advanceddml">
@@ -1572,6 +1915,7 @@ function evaluate(node, row, groupRows) {
     case 'LIT': return node.value;
     case 'TRUTHY': return truthy(evaluate(node.expr, row, groupRows));
     case 'EXISTS': { const found = existsCheck(node.text, row); return node.negate ? !found : found; }
+    case 'SCALAR': return scalarSubquery(node.text, row);
     default: throw new Error('未知節點: ' + node.type);
   }
 }
@@ -1590,6 +1934,49 @@ function existsCheck(subqueryText, outerRow) {
   if (!wherePart) return rows.length > 0;
   const ast = parseBooleanExpr(wherePart);
   return rows.some(r => { const merged = Object.assign({}, outerRow, r); return truthy(evaluate(ast, merged, [merged])); });
+}
+
+// 純量子查詢 (scalar subquery)：括號裡的 SELECT 只回傳「一個值」，可以放在 WHERE 比較或 SELECT 清單裡，
+// 而且可以引用外層那一列（相關子查詢）。做法跟 existsCheck 一樣：把外層那一列併進內層每一列。
+function scalarSubquery(subText, outerRow) {
+  const sql = subText.replace(/\s+/g, ' ').trim();
+  if (!/^SELECT\b/i.test(sql)) throw new Error('括號裡的子查詢必須以 SELECT 開頭');
+  const fromIdx = findTopLevelKeyword(sql, 'FROM', 0);
+  if (fromIdx === -1) throw new Error('子查詢缺少 FROM 子句');
+  const selectPart = sql.slice(6, fromIdx).trim();
+  const whereIdx = findTopLevelKeyword(sql, 'WHERE', fromIdx);
+  const fromPart = sql.slice(fromIdx + 4, whereIdx === -1 ? sql.length : whereIdx).trim();
+  const wherePart = whereIdx === -1 ? null : sql.slice(whereIdx + 5).trim();
+  const { rows } = parseFromClause(fromPart);
+  let filtered = rows.map(r => Object.assign({}, outerRow, r));
+  if (wherePart) { const ast = parseBooleanExpr(wherePart); filtered = filtered.filter(r => truthy(evaluate(ast, r, [r]))); }
+  const item = parseSelectItem(selectPart);
+  if (item.star) throw new Error('純量子查詢只能回傳一個值，不能用 *');
+  return evaluate(item.ast, filtered[0] || Object.assign({}, outerRow), filtered);
+}
+function preprocessScalar(str) {
+  const subqueries = [];
+  const re = /\(\s*SELECT\b/i;
+  let m, guard = 0, result = str;
+  while ((m = re.exec(result)) && guard++ < 20) {
+    const parenStart = result.indexOf('(', m.index);
+    const p = extractParen(result, parenStart);
+    const idx = subqueries.length;
+    subqueries.push(p.content);
+    result = result.slice(0, m.index) + 'SCALARSUB' + idx + 'X' + result.slice(p.end);
+  }
+  return { text: result, subqueries };
+}
+function resolveScalar(node, subqueries) {
+  if (!node || typeof node !== 'object' || !subqueries.length) return node;
+  if (node.type === 'COL') {
+    const mm = /^SCALARSUB(\d+)X$/.exec(node.name);
+    if (mm) return { type: 'SCALAR', text: subqueries[parseInt(mm[1], 10)] };
+  }
+  for (const key of ['left', 'right', 'expr', 'lo', 'hi', 'pattern']) { if (node[key]) node[key] = resolveScalar(node[key], subqueries); }
+  if (node.list) node.list = node.list.map(n => resolveScalar(n, subqueries));
+  if (node.args) node.args = node.args.map(n => resolveScalar(n, subqueries));
+  return node;
 }
 
 // 在字串層面把 EXISTS(...) / NOT EXISTS(...) 換成佔位識別字，
@@ -1845,6 +2232,10 @@ function parseSelectItem(itemRaw) {
   else {
     m = /^((?:COUNT|SUM|AVG|MIN|MAX)\s*\([^)]*\))\s+([A-Za-z_]\w*)$/i.exec(item);
     if (m) { exprText = m[1].trim(); alias = m[2]; }
+    else {
+      m = /^(SCALARSUB\d+X)\s+([A-Za-z_]\w*)$/.exec(item);
+      if (m) { exprText = m[1]; alias = m[2]; }
+    }
   }
   const ast = parseValueExpr(exprText);
   let header = alias;
@@ -1931,13 +2322,15 @@ function runSingleSelect(sqlIn) {
     return sql.slice(marker.idx + marker.len, end).trim();
   }
   let wherePart = partAfter('WHERE'), groupPart = partAfter('GROUP BY'), havingPart = partAfter('HAVING'), orderPart = partAfter('ORDER BY');
-  let whereExists = null, havingExists = null;
-  if (wherePart) { const ex = preprocessExists(wherePart); wherePart = preprocessSubqueries(ex.text); whereExists = ex.subqueries; }
-  if (havingPart) { const ex = preprocessExists(havingPart); havingPart = preprocessSubqueries(ex.text); havingExists = ex.subqueries; }
+  let whereExists = null, havingExists = null, whereScalars = [], havingScalars = [];
+  if (wherePart) { const ex = preprocessExists(wherePart); const sc = preprocessScalar(preprocessSubqueries(ex.text)); wherePart = sc.text; whereExists = ex.subqueries; whereScalars = sc.subqueries; }
+  if (havingPart) { const ex = preprocessExists(havingPart); const sc = preprocessScalar(preprocessSubqueries(ex.text)); havingPart = sc.text; havingExists = ex.subqueries; havingScalars = sc.subqueries; }
   const { rows: fromRows } = parseFromClause(fromPart);
   let filtered = fromRows;
-  if (wherePart) { let ast = parseBooleanExpr(wherePart); if (whereExists && whereExists.length) ast = resolveExists(ast, whereExists); filtered = fromRows.filter(r => truthy(evaluate(ast, r, [r]))); }
-  const selectItems = splitTopLevelCommas(selectPart).map(parseSelectItem);
+  if (wherePart) { let ast = parseBooleanExpr(wherePart); if (whereExists && whereExists.length) ast = resolveExists(ast, whereExists); ast = resolveScalar(ast, whereScalars); filtered = fromRows.filter(r => truthy(evaluate(ast, r, [r]))); }
+  const selectSc = preprocessScalar(selectPart);
+  const selectItems = splitTopLevelCommas(selectSc.text).map(parseSelectItem);
+  selectItems.forEach(it => { if (!it.star) it.ast = resolveScalar(it.ast, selectSc.subqueries); });
   const hasAgg = selectItems.some(it => it.isAgg);
   let groups;
   if (groupPart) {
@@ -1947,7 +2340,7 @@ function runSingleSelect(sqlIn) {
     groups = [...map.values()];
   } else if (hasAgg) { groups = filtered.length ? [filtered] : [[]]; }
   else { groups = filtered.map(r => [r]); }
-  if (havingPart) { let ast = parseBooleanExpr(havingPart); if (havingExists && havingExists.length) ast = resolveExists(ast, havingExists); groups = groups.filter(g => g.length && truthy(evaluate(ast, g[0], g))); }
+  if (havingPart) { let ast = parseBooleanExpr(havingPart); if (havingExists && havingExists.length) ast = resolveExists(ast, havingExists); ast = resolveScalar(ast, havingScalars); groups = groups.filter(g => g.length && truthy(evaluate(ast, g[0], g))); }
   let columns = [];
   let outputRows = groups.map(g => {
     const rep = g[0] || {}; const outRow = {};
@@ -2006,8 +2399,15 @@ function withScopedTables(store, fn) {
   const savedKeys = Object.keys(TABLES);
   const savedVals = savedKeys.map(k => TABLES[k]);
   savedKeys.forEach(k => delete TABLES[k]);
-  Object.keys(store).forEach(k => { if (k !== '__cols') TABLES[k] = store[k]; });
-  try { return fn(); }
+  Object.keys(store).forEach(k => { if (!k.startsWith('__')) TABLES[k] = store[k]; });
+  // View 不存資料：每次要用的時候，才依照定義（依建立順序，後面的 view 可以用前面的）現算一份
+  try {
+    (store.__views || []).forEach(v => {
+      const r = runQuery(v.sql);
+      TABLES[v.name] = r.rows.map(row => { const o = {}; v.cols.forEach((col, i) => { o[col] = row[r.columns[i]]; }); return o; });
+    });
+    return fn();
+  }
   finally {
     Object.keys(TABLES).forEach(k => delete TABLES[k]);
     savedKeys.forEach((k, i) => { TABLES[k] = savedVals[i]; });
@@ -2050,6 +2450,28 @@ function execOne(stmt, store) {
     store[tname] = [];
     store.__cols = store.__cols || {}; store.__cols[tname] = colNames;
     return { message: `已建立空資料表 ${m[1]}（欄位：${colNames.join(', ')}）。` };
+  }
+  if (m = /^CREATE\s+VIEW\s+([A-Za-z_]\w*)\s*/i.exec(s)) {
+    const name = m[1].toUpperCase();
+    let rest = s.slice(m[0].length).trim(), cols = null;
+    if (rest[0] === '(') { const p = extractParen(rest, 0); cols = p.content.split(',').map(x => x.trim()).filter(Boolean); rest = rest.slice(p.end).trim(); }
+    const asm = /^AS\s*/i.exec(rest);
+    if (!asm) throw new Error('CREATE VIEW 名稱後面需要 AS，例如 CREATE VIEW V(col1) AS (SELECT ...)');
+    rest = rest.slice(asm[0].length).trim();
+    const body = rest[0] === '(' ? extractParen(rest, 0).content.trim() : rest;
+    if (!/^(SELECT|WITH)\b/i.test(body)) throw new Error('View 的定義必須是一句 SELECT');
+    if (store[name] || (store.__views || []).some(v => v.name === name)) throw new Error('名稱已經被使用: ' + m[1]);
+    const result = withScopedTables(store, () => runQuery(body));
+    if (cols && cols.length !== result.columns.length) throw new Error('View 的欄位清單有 ' + cols.length + ' 個名稱，但 SELECT 產生了 ' + result.columns.length + ' 欄');
+    (store.__views = store.__views || []).push({ name, cols: cols || result.columns.slice(), sql: body });
+    return { message: '已建立 view ' + m[1] + '（只儲存這段 SELECT 的定義，沒有複製任何資料）。' };
+  }
+  if (m = /^DROP\s+VIEW\s+([A-Za-z_]\w*)$/i.exec(s)) {
+    const name = m[1].toUpperCase();
+    const views = store.__views || [];
+    if (!views.some(v => v.name === name)) throw new Error('View 不存在: ' + m[1]);
+    store.__views = views.filter(v => v.name !== name);
+    return { message: '已刪除 view ' + m[1] + '（底下的資料表完全沒有動）。' };
   }
   if (m = /^DROP\s+TABLE\s+([A-Za-z_]\w*)$/i.exec(s)) {
     const tname = m[1].toUpperCase();
@@ -2181,7 +2603,7 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp
 //   hl-func   函數名稱 (COUNT, UPPER, SUBSTR, CONCAT ...)
 //   hl-string 字串常值
 const HL_GROUPS = [
-  { cls: 'hl-ddl', words: ['CREATE TABLE', 'CREATE VIEW', 'DROP TABLE', 'ALTER TABLE', 'TRUNCATE TABLE', 'ADD COLUMN', 'DROP COLUMN', 'RENAME TO', 'PRIMARY KEY', 'FOREIGN KEY', 'NOT NULL', 'REFERENCES', 'CONSTRAINT', 'UNIQUE', 'CHECK', 'INSERT INTO', 'DELETE FROM', 'CREATE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'TABLE', 'VIEW', 'TRUNCATE', 'MODIFY', 'INSERT', 'DELETE', 'UPDATE', 'SET', 'VALUES', 'DEFAULT', 'CASCADE'] },
+  { cls: 'hl-ddl', words: ['CREATE TABLE', 'CREATE VIEW', 'DROP VIEW', 'DROP TABLE', 'ALTER TABLE', 'TRUNCATE TABLE', 'ADD COLUMN', 'DROP COLUMN', 'RENAME TO', 'PRIMARY KEY', 'FOREIGN KEY', 'NOT NULL', 'REFERENCES', 'CONSTRAINT', 'UNIQUE', 'CHECK', 'INSERT INTO', 'DELETE FROM', 'CREATE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'TABLE', 'VIEW', 'TRUNCATE', 'MODIFY', 'INSERT', 'DELETE', 'UPDATE', 'SET', 'VALUES', 'DEFAULT', 'CASCADE'] },
   { cls: 'hl-clause', words: ['LEFT OUTER JOIN', 'RIGHT OUTER JOIN', 'FULL OUTER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN', 'NATURAL JOIN', 'CROSS JOIN', 'GROUP BY', 'ORDER BY', 'UNION ALL', 'SELECT', 'FROM', 'WHERE', 'JOIN', 'ON', 'USING', 'HAVING', 'UNION', 'WITH', 'OUTER', 'INTO'] },
   { cls: 'hl-logic', words: ['IS NOT NULL', 'IS NULL', 'NOT IN', 'NOT EXISTS', 'NOT', 'AND', 'OR', 'IN', 'IS', 'NULL', 'LIKE', 'BETWEEN', 'EXISTS', 'DISTINCT', 'AS', 'ASC', 'DESC'] },
   { cls: 'hl-func', words: ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'UPPER', 'LOWER', 'SUBSTR', 'CONCAT', 'INSTR', 'IFNULL', 'LENGTH', 'DUAL'] },
@@ -2253,17 +2675,21 @@ function renderResult(el, result) { el.innerHTML = resultToHTML(result); }
 
 // ---- 「查看原始資料表」---- 讓人可以隨時比對「查詢結果」跟「原本的資料表長怎樣」，
 // 不用捲到頁面最下面的資料表結構章節。
-function tableNamesOf(tables) { return Object.keys(tables).filter(k => k !== '__cols' && k !== 'DUAL'); }
+function tableNamesOf(tables) { return Object.keys(tables).filter(k => !k.startsWith('__') && k !== 'DUAL'); }
+// 沙盒的「目前資料表」要連 view 現算出來的內容一起給
+function storeWithViews(store) {
+  return withScopedTables(store, () => { const out = {}; Object.keys(TABLES).forEach(k => { out[k] = TABLES[k]; }); return out; });
+}
 function detectReferencedTables(sql, names) {
   return names.filter(name => new RegExp('\\b' + name + '\\b', 'i').test(sql));
 }
-function renderSourceTablesHTML(names, tables) {
+function renderSourceTablesHTML(names, tables, viewNames) {
   if (!names.length) {
     return '<span class="placeholder">（這句話沒有用到頁面上的資料表，或找不到資料表名稱）</span>';
   }
   return names.map(name => {
     const rows = tables[name];
-    const header = '<div class="source-table-name">' + escapeHtml(name) + '</div>';
+    const header = '<div class="source-table-name">' + escapeHtml(name) + (viewNames && viewNames.indexOf(name) !== -1 ? ' (view)' : '') + '</div>';
     if (!rows || !rows.length) return '<div class="source-table">' + header + '<span class="placeholder">（目前沒有資料）</span></div>';
     const cols = Object.keys(rows[0]);
     let html = '<div class="source-table">' + header + '<table><thead><tr>';
@@ -2279,7 +2705,7 @@ function renderSourceTablesHTML(names, tables) {
   }).join('');
 }
 // label: {zh, en} 按鈕文字；getTables(): 回傳目前該用哪一份資料表物件 (全域 TABLES，或沙盒自己的 store)
-function addSourceToggle(el, ta, getTables, label) {
+function addSourceToggle(el, ta, getTables, label, getViewNames) {
   const actions = el.querySelector('.console-actions');
   if (!actions) return;
   const btn = document.createElement('button');
@@ -2299,7 +2725,7 @@ function addSourceToggle(el, ta, getTables, label) {
     if (!panel.hidden) {
       const tables = getTables();
       const names = detectReferencedTables(ta.value, tableNamesOf(tables));
-      panel.innerHTML = renderSourceTablesHTML(names, tables);
+      panel.innerHTML = renderSourceTablesHTML(names, tables, getViewNames ? getViewNames() : null);
     }
   });
 }
@@ -2334,7 +2760,7 @@ document.querySelectorAll('.console.sandbox').forEach(el => {
   const defaultScript = el.dataset.default || ta.value;
   const codeInput = enhanceCodeInput(ta);
   let store = cloneStore(seedNames);
-  addSourceToggle(el, ta, () => store, { zh: '📋 查看目前資料表', en: '📋 View current tables' });
+  addSourceToggle(el, ta, () => storeWithViews(store), { zh: '📋 查看目前資料表', en: '📋 View current tables' }, () => (store.__views || []).map(v => v.name));
   function renderTranscript(steps) {
     let html = '';
     steps.forEach(st => {
@@ -2416,6 +2842,18 @@ const QUIZ = [
   { correct: 2,
     zh: { q: '要規定 Fee「大於 0 且不超過 9999.99」，下列哪個寫法正確？', opts: ['ALTER TABLE PAYMENT MODIFY Fee > 0 AND Fee <= 9999.99;', 'ALTER TABLE PAYMENT ADD CONSTRAINT c CHECK(>0, <9999.99);', 'ALTER TABLE PAYMENT ADD CONSTRAINT c CHECK(Fee > 0 AND Fee <= 9999.99);'], explain: 'MODIFY 只能改型別，不能寫條件式；CHECK 裡每個比較都要有欄位名，並用 AND 連接；「不超過」代表 9999.99 本身合法，要用 <=。' },
     en: { q: 'Which statement correctly requires Fee to be "more than 0 and not larger than 9999.99"?', opts: ['ALTER TABLE PAYMENT MODIFY Fee > 0 AND Fee <= 9999.99;', 'ALTER TABLE PAYMENT ADD CONSTRAINT c CHECK(>0, <9999.99);', 'ALTER TABLE PAYMENT ADD CONSTRAINT c CHECK(Fee > 0 AND Fee <= 9999.99);'], explain: 'MODIFY only changes the type and cannot hold a condition; every comparison inside CHECK needs the column name and is joined with AND; "not larger than" means 9999.99 itself is valid, so use <=.' } },
+  { correct: 2,
+    zh: { q: 'Inline view、WITH 子句、CREATE VIEW 三者最大的差別是什麼？', opts: ['邏輯完全不同，只有 CREATE VIEW 可以用 JOIN', '只有 CREATE VIEW 會把結果資料複製一份存起來', '邏輯相同（都是有名字的 SELECT 當表用），差別在「活多久、誰能用」'], explain: '三者都不存資料，存的只是 SELECT 定義。inline view 和 WITH 只在這一句查詢執行期間存在；CREATE VIEW 存進資料庫，直到 DROP VIEW，任何有權限的人都能用。' },
+    en: { q: 'What is the biggest difference between an inline view, a WITH clause and CREATE VIEW?', opts: ['Their logic is entirely different; only CREATE VIEW can use JOIN', 'Only CREATE VIEW copies the result data and stores it', 'The logic is the same (a named SELECT used as a table) — they differ in how long they live and who can use them'], explain: 'None of them stores data — only the SELECT definition. Inline views and WITH exist only while this one query runs; CREATE VIEW is stored in the database until DROP VIEW and anyone with permission can use it.' } },
+  { correct: 1,
+    zh: { q: '下列哪一個 WITH 寫法會出錯？', opts: ['WITH A AS (SELECT ...), B AS (SELECT * FROM A) SELECT * FROM B;', 'WITH A AS (SELECT ...), SELECT * FROM A;', 'WITH A AS (SELECT ...) SELECT * FROM A;'], explain: '定義與定義之間要用逗號，但「最後一個定義後面」不能再有逗號 — 第二個選項在最後的 SELECT 前面多了一個逗號。' },
+    en: { q: 'Which of these WITH statements is an error?', opts: ['WITH A AS (SELECT ...), B AS (SELECT * FROM A) SELECT * FROM B;', 'WITH A AS (SELECT ...), SELECT * FROM A;', 'WITH A AS (SELECT ...) SELECT * FROM A;'], explain: 'Definitions are separated by commas, but there must be NO comma after the last definition — the second option has one before the final SELECT.' } },
+  { correct: 1,
+    zh: { q: '建立 view 之後，又往它底下的資料表新增了一列。再查詢這個 view 會怎樣？', opts: ['看不到新資料，因為 view 建立當下就複製了一份', '看得到新資料，因為 view 只存 SELECT 定義，每次查詢才現算', '會報錯，因為 view 建立後底下的資料表就被鎖住'], explain: 'View 不存資料。每次查詢它，資料庫把名稱換成定義重新執行，所以底下資料表的變動會立刻反映出來。' },
+    en: { q: 'After creating a view, a row is added to its underlying table. What happens when you query the view again?', opts: ['The new row is missing, because the view copied the data when it was created', 'The new row shows up, because a view stores only the SELECT definition and recomputes on every query', 'It errors, because the underlying table is locked once a view exists'], explain: 'A view holds no data. Each time you query it the database substitutes the definition and reruns it, so changes to the underlying table show up immediately.' } },
+  { correct: 1,
+    zh: { q: 'inline view 裡有 count(*)，外層查詢想引用它。該怎麼辦？', opts: ['外層直接寫 T.count(*)', '在內層幫它取別名（例如 count(*) total），外層用 T.total', '不可能，外層拿不到內層的計算結果'], explain: '沒有名字的計算欄位，外層無法引用。幫它取別名（total），外層就能像一般欄位一樣用 T.total。' },
+    en: { q: 'An inline view contains count(*) and the outer query wants to use it. What should you do?', opts: ['Write T.count(*) in the outer query', 'Give it an alias in the inner query (e.g. count(*) total) and use T.total outside', 'It is impossible; the outer query cannot see computed values'], explain: 'A computed column without a name cannot be referenced from outside. Give it an alias (total) and the outer query can use T.total like any other column.' } },
 ];
 const quizContainer = document.getElementById('quiz-container');
 let quizScore = 0, quizAnswered = 0;
@@ -2472,6 +2910,10 @@ const FLASH = [
   { zh: { term: 'MODIFY vs ADD CONSTRAINT', def: 'MODIFY 只改欄位型別（與 NULL / NOT NULL），不能寫條件式；條件式要用 ADD CONSTRAINT ... CHECK(...)。' }, en: { term: 'MODIFY vs ADD CONSTRAINT', def: 'MODIFY only changes a column\'s type (and NULL / NOT NULL) — it cannot hold a condition. Conditions go in ADD CONSTRAINT ... CHECK(...).' } },
   { zh: { term: 'CHECK 條件要寫完整', def: '每個比較都要有欄位名：CHECK(Fee > 0 AND Fee <= 9999.99)。CHECK(>0, <9999.99) 缺少比較對象，SQL 看不懂。' }, en: { term: 'Write CHECK conditions in full', def: 'Every comparison needs the column name: CHECK(Fee > 0 AND Fee <= 9999.99). CHECK(>0, <9999.99) has nothing to compare, so SQL cannot parse it.' } },
   { zh: { term: '「不超過 X」的邊界', def: 'not larger than X 代表 X 本身合法，要用 <=；用 < 會誤擋剛好等於 X 的合法值。大於用 >，至少用 >=。' }, en: { term: 'Boundary of "not larger than X"', def: '"Not larger than X" means X itself is valid, so use <=; a strict < wrongly rejects a value exactly equal to X. Larger than = >, at least = >=.' } },
+  { zh: { term: 'Inline view vs WITH vs View', def: '邏輯相同：有名字的 SELECT 當表用。inline view / WITH 只活在這一句查詢裡；CREATE VIEW 存進資料庫，直到 DROP VIEW。三者都不存資料。' }, en: { term: 'Inline view vs WITH vs View', def: 'Same logic: a named SELECT used as a table. Inline views / WITH live only inside this one query; CREATE VIEW is stored in the database until DROP VIEW. None of them stores data.' } },
+  { zh: { term: 'View 不存資料', def: 'View 存的只是（名稱，SELECT 定義）。每次查詢才把定義代進去現算，所以底下資料表一改，view 立刻跟著變。' }, en: { term: 'A view holds no data', def: 'A view stores only a (name, SELECT definition) pair. It is recomputed on each query, so any change to the underlying table shows up in the view immediately.' } },
+  { zh: { term: 'WITH 的三條語法規則', def: '① 名稱 AS ( SELECT ... ) ② 定義之間用逗號，最後一個後面不能有逗號 ③ 後面的定義可以用前面的名字。' }, en: { term: 'Three syntax rules for WITH', def: '1) name AS ( SELECT ... ) 2) commas between definitions, none after the last one 3) later definitions may use earlier names.' } },
+  { zh: { term: 'Inline view 要有別名', def: '每個 inline view 都要取別名，而且裡面的計算欄位（例如 count(*)）也要取別名，外層才引用得到。' }, en: { term: 'Inline views need aliases', def: 'Every inline view needs an alias, and computed columns inside it (like count(*)) need aliases too, or the outer query cannot reference them.' } },
 ];
 const flashContainer = document.getElementById('flash-container');
 function renderFlash() {
