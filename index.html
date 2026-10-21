@@ -280,6 +280,43 @@
   .lab-verdict.good{ background:var(--teal-soft); color:var(--teal); }
   .lab-verdict.bad{ background:#FBE4DC; color:#A2412A; }
 
+  /* ---- 第 23 章：正規化 ---- */
+  .nf-memo{ border:2px solid var(--teal); border-radius:8px; background:var(--paper-card); padding:14px 18px 6px; margin:18px 0 26px; }
+  .nf-memo-title{ font-family:var(--serif); font-weight:700; color:var(--teal); margin:4px 0 8px; }
+  .nf-oath{ font-family:var(--serif); font-style:italic; font-size:1.12rem; text-align:center; margin:4px 0 10px; }
+  .nf-memo-tbl td:first-child{ white-space:nowrap; }
+  .nf-flow{ display:flex; flex-direction:column; gap:4px; margin:6px 0 10px; }
+  .nf-flow-row{ display:flex; gap:10px; align-items:stretch; flex-wrap:wrap; }
+  .nf-q{ flex:0 0 15em; background:#fff; border:1px solid var(--ink-soft); border-radius:6px; padding:7px 12px; font-weight:600; font-size:.92rem; }
+  .nf-out{ flex:1 1 14em; border-radius:6px; padding:7px 12px; font-size:.9rem; }
+  .nf-out.good{ background:var(--teal-soft); color:var(--teal); }
+  .nf-out.warn{ background:var(--mustard-soft); color:#8A5E1E; }
+  .nf-out.bad{ background:#FBE4DC; color:#A2412A; }
+  .nf-flow-down{ color:var(--ink-soft); font-size:.82rem; padding-left:5.5em; }
+  .nf-memo-foot{ font-size:.88rem; color:var(--ink-soft); max-width:none; }
+  .nf-pair{ display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start; }
+  .nf-pair table.static-tbl{ width:auto; }
+  table.static-tbl.nf-data{ width:auto; font-family:var(--mono); font-size:.84rem; }
+  table.static-tbl.nf-bad td{ background:#FBEEE9; }
+  .nf-target-lab{ color:#9FB6AC; font-size:.82rem; display:flex; align-items:center; gap:6px; }
+  .nf-target{ font-family:var(--sans); font-size:.82rem; border-radius:4px; padding:3px 6px; }
+  .nf-schema{ font-family:var(--mono); font-size:1rem; font-weight:700; margin-bottom:6px; }
+  .nf-steps{ font-size:.86rem; margin:4px 0 8px; }
+  .nf-steps summary{ cursor:pointer; color:var(--teal); font-weight:600; }
+  .nf-arrow{ color:var(--teal); }
+  .nf-grid tr.nf-ok td:last-child{ color:var(--teal); }
+  .nf-grid tr.nf-bcnf td{ background:var(--mustard-soft); }
+  .nf-grid tr.nf-partial td, .nf-grid tr.nf-transitive td{ background:#FBE4DC; }
+  .nf-ladder{ display:flex; flex-direction:column; gap:3px; margin:10px 0 4px; font-size:.86rem; }
+  .nf-step{ padding:5px 10px; border-radius:4px; border-left:4px solid var(--rule); background:#fff; }
+  .nf-step.pass{ border-left-color:var(--teal); }
+  .nf-step.fail{ border-left-color:#C0553B; background:#FBEEE9; }
+  .nf-step.na{ color:#9AA69E; }
+  .nf-tree{ font-size:.88rem; padding-left:18px; margin:6px 0 10px; }
+  .nf-tree ul{ padding-left:20px; margin:4px 0; }
+  .nf-tree li{ margin:4px 0; }
+  .nf-badge{ display:inline-block; background:var(--teal); color:#fff; border-radius:3px; padding:0 6px; font-size:.74rem; font-weight:700; }
+
   /* ---- Schema quick ref ---- */
   .schema-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
   @media (max-width:640px){ .schema-grid{ grid-template-columns:1fr; } }
@@ -356,6 +393,7 @@
     <a href="#transactions" data-en="Transactions">交易處理</a>
     <a href="#concurrency" data-en="Concurrency Control">並行控制</a>
     <a href="#integrity" data-en="Data Integrity">資料完整性</a>
+    <a href="#normalization" data-en="Normalization">正規化 1NF–BCNF</a>
     <a href="#functions" data-en="Functions & Calculator">函數與計算機</a>
     <a href="#quiz" data-en="Quiz">互動測驗</a>
     <a href="#flashcards" data-en="Flashcards">詞彙卡</a>
@@ -3356,8 +3394,328 @@ select count(*) from STUDENT;</div>
       <div class="tip"><strong data-en="Chapter summary:">這章的重點整理：</strong><span data-en="Data integrity = complete, accurate, consistent data, protected from unintentional change; its opposite is data corruption. Consistency constraints are conditions every database state must satisfy: primary / candidate keys, foreign keys, NOT NULL, types and domains can be declared in CREATE TABLE; numerical, exclusion, multitable referential and subset constraints cannot, and need SQL checking scripts (SELECT the violating rows), stored procedures / functions, triggers (SIGNAL to reject a change), or checks in the application / web server. MySQL ignores CHECK before 8.0.16. ROLLBACK undoes everything since the last COMMIT; AUTOCOMMIT is ON by default and commits each DML statement at once — changes that are only complete together need it off and a single COMMIT; DDL commits implicitly and EXIT does not commit. Backups are physical (copied files: fast, compact) or logical (mysqldump writes a CREATE / INSERT script at server, database or table level); mysql … &amp;lt; file restores, and a table-only dump needs the database named.">資料完整性＝資料完整、正確、一致，防止資料被非預期地改變；反面是資料損毀。一致性限制是資料庫每個狀態都要滿足的條件：主鍵 / 候選鍵、外鍵、NOT NULL、型別、值域可以寫在 CREATE TABLE；數量、互斥、多表參照、子集合限制寫不出來，要靠 SQL 檢查腳本（SELECT 出違反的列）、stored procedure / function、trigger（SIGNAL 拒絕修改）、或應用程式 / Web 伺服器檢查。MySQL 8.0.16 之前不檢查 CHECK。ROLLBACK 撤銷上次 COMMIT 之後的修改；AUTOCOMMIT 預設 ON，每句 DML 立刻提交 — 多句一起才完整的修改要關掉它再一起 COMMIT；DDL 會隱式提交，EXIT 不會提交。備份分實體（複製檔案，快、精簡）和邏輯（mysqldump 產生 CREATE / INSERT 腳本，可選伺服器 / 資料庫 / 資料表層級）；mysql … &lt; 檔案 還原，只有表的備份要指定資料庫。</span></div>
     </section>
 
+    <section id="normalization">
+      <h2 data-en="23. Normalization — functional dependencies, keys, 1NF / 2NF / 3NF / BCNF">23. 正規化 — 函數相依、鍵、1NF / 2NF / 3NF / BCNF</h2>
+      <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="When one table holds too much, you get &amp;quot;changing one address means updating a hundred rows&amp;quot;, &amp;quot;a warehouse cannot be recorded until it stores a part&amp;quot;, &amp;quot;deleting the last part also loses the warehouse address&amp;quot;. Normalization is a set of rules for checking a design and splitting tables when it is bad. Typical exam tasks: find the keys, decide the highest normal form, decompose into 3NF / BCNF.">設計資料表時，一張表塞太多東西，就會出現「改一個地址要改一百列」、「沒有零件就記不了倉庫」、「刪掉最後一個零件，倉庫地址也跟著不見」這些問題。正規化就是一套檢查與拆表的規則，判斷一張表設計得好不好、不好的話要怎麼拆。考試最常考：找鍵、判斷最高達到哪個正規化形式、拆成 3NF / BCNF。</span></div>
+      <p data-en="This chapter is based on the CSIT882 slides from weeks 5–7 (Functional Dependencies, Derivations of Functional Dependencies, Database Normalization). If you keep forgetting them, remember just the two things below — every later section only explains them.">這一章整理自 CSIT882 第 5–7 週的講義（Functional Dependencies、Derivations of Functional Dependencies、Database Normalization）。如果你總是記不住，先記住下面這兩樣東西就夠了 — 後面每一節都只是在解釋它們。</p>
+      <div class="nf-memo">
+        <div class="nf-memo-title" data-en="① The oath (Codd's normal forms in one sentence)">① 一句誓詞（把正規化濃縮成一句話）</div>
+        <div class="nf-oath">“The key, the whole key, and nothing but the key — so help me Codd.”</div>
+        <table class="static-tbl nf-memo-tbl">
+          <tr><th data-en="Normal form">正規化形式</th><th data-en="Part of the oath">誓詞的哪一段</th><th data-en="Chinese mnemonic">中文口訣</th><th data-en="Meaning">意思</th></tr>
+          <tr><td><b>1NF</b></td><td>the key</td><td data-en="One value per field">一格一值</td><td data-en="Every row has a key; each field holds one atomic value — no lists, no repeating groups">每一列有鍵；每一格只放一個不可再分的值，不能放清單、不能有重複的欄位群</td></tr>
+          <tr><td><b>2NF</b></td><td>the <i>whole</i> key</td><td data-en="Don't lean on half a key">不靠半個鍵</td><td data-en="A nonkey attribute must depend on the whole key, not on part of it">非鍵屬性要靠「整個」鍵決定，不能只靠鍵的一部分</td></tr>
+          <tr><td><b>3NF</b></td><td>nothing <i>but</i> the key</td><td data-en="Don't lean on a nonkey">不靠非鍵</td><td data-en="A nonkey attribute must not depend on another nonkey attribute">非鍵屬性不能靠「另一個非鍵屬性」決定（不能有 鍵 → 非鍵 → 非鍵）</td></tr>
+          <tr><td><b>BCNF</b></td><td data-en="no exceptions">沒有例外</td><td data-en="Every determinant is a key">決定別人的，一定是鍵</td><td data-en="The left side of every FD is a superkey — even when the right side is a prime attribute">每一條 FD 的左邊都必須是超鍵 — 就算右邊是 prime 屬性也一樣</td></tr>
+        </table>
+        <div class="nf-memo-title" data-en="② Three questions for every FD X → A (A not in X)">② 每一條 FD X → A（A 不在 X 裡），依序問三個問題</div>
+        <div class="nf-flow">
+          <div class="nf-flow-row"><div class="nf-q" data-en="① Is X a superkey?">① X 是超鍵嗎？</div><div class="nf-out good" data-en="yes → ✓ this FD breaks nothing (BCNF OK)">是 → ✓ 這條 FD 什麼都不違反（BCNF OK）</div></div>
+          <div class="nf-flow-down" data-en="no ↓">否 ↓</div>
+          <div class="nf-flow-row"><div class="nf-q" data-en="② Is A a prime attribute?">② A 是 prime 屬性（某個鍵的一部分）嗎？</div><div class="nf-out warn" data-en="yes → violates BCNF only (3NF allows it)">是 → 只違反 BCNF（3NF 允許）</div></div>
+          <div class="nf-flow-down" data-en="no ↓">否 ↓</div>
+          <div class="nf-flow-row"><div class="nf-q" data-en="③ Is X part of a key?">③ X 是某個鍵的「一部分」嗎？</div><div class="nf-out bad" data-en="yes → partial dependency: violates 2NF">是 → 部分相依：違反 2NF</div></div>
+          <div class="nf-flow-down" data-en="no ↓">否 ↓</div>
+          <div class="nf-flow-row"><div class="nf-out bad" data-en="transitive dependency (key → X → A): violates 3NF">遞移相依（鍵 → X → A）：違反 3NF</div></div>
+        </div>
+        <p class="nf-memo-foot" data-en="The highest normal form is decided by the worst FD: any ③-yes → only 1NF; else any ③-no → 2NF; else any ②-yes → 3NF; all ①-yes → BCNF.">整張表最高到哪一級，由「最糟的那條 FD」決定：只要有 ③ 是 → 只有 1NF；否則有走到最後一格的 → 2NF；否則有 ② 是 → 3NF；全部都是 ① 是 → BCNF。</p>
+      </div>
+      <h3 data-en="23.1 Why normalize? — three anomalies">23.1 為什麼要正規化？— 三種異常</h3>
+      <p data-en="The slides&#x27; Inventory table records the quantity of each part in each warehouse, plus the warehouse address:">講義的 Inventory 表記錄「每個倉庫裡每種零件的數量」以及倉庫地址：</p>
+      <table class="static-tbl nf-data">
+        <tr><th>part</th><th>quantity</th><th>warehouse</th><th>warehouse-address</th></tr>
+        <tr><td>bolt</td><td>25</td><td>W1</td><td>Station St.</td></tr>
+        <tr><td>nut</td><td>50</td><td>W1</td><td>Station St.</td></tr>
+        <tr><td>screw</td><td>20</td><td>W1</td><td>Station St.</td></tr>
+        <tr><td>bolt</td><td>10</td><td>W2</td><td>Beach Rd.</td></tr>
+      </table>
+      <table class="static-tbl">
+        <tr><th data-en="Anomaly">異常</th><th data-en="What happens">發生什麼事</th></tr>
+        <tr><td data-en="Update anomaly">更新異常 Update anomaly</td><td data-en="W1 moves: 3 rows must change; update only 2 and the data contradicts itself (W1 has two addresses)">W1 搬家，要改 3 列；只改到 2 列，資料就互相矛盾（W1 同時有兩個地址）</td></tr>
+        <tr><td data-en="Insert anomaly">新增異常 Insert anomaly</td><td data-en="A new warehouse W3 stores no parts yet, so its address cannot be recorded — the key is (part, warehouse) and part cannot be NULL">新蓋好的倉庫 W3 還沒放零件，就記不了它的地址 — 鍵是 (part, warehouse)，part 不能是 NULL</td></tr>
+        <tr><td data-en="Delete anomaly">刪除異常 Delete anomaly</td><td data-en="Deleting bolt, W2&#x27;s only part, also deletes W2&#x27;s address">W2 唯一的零件 bolt 被刪掉，W2 的地址也跟著消失</td></tr>
+      </table>
+      <p data-en="All three have the same root: &lt;b&gt;warehouse-address depends only on warehouse, yet sits in a table keyed by (part, warehouse)&lt;/b&gt;, so one fact is stored many times. Normalization finds such misplaced dependencies and moves each into its own table.">三個問題的根源都一樣：<b>warehouse-address 只跟 warehouse 有關，卻被放在以 (part, warehouse) 為鍵的表裡</b>，同一個事實被重複存了很多次。正規化就是找出這種「放錯地方」的相依，然後把它拆到自己的表裡。</p>
+      <h3 data-en="23.2 Functional dependencies (FD)">23.2 函數相依（Functional Dependency, FD）</h3>
+      <p data-en="&lt;b&gt;X → Y&lt;/b&gt; (read &amp;quot;X determines Y&amp;quot; or &amp;quot;Y is functionally dependent on X&amp;quot;): in this table &lt;b&gt;no two rows can agree on X yet disagree on Y&lt;/b&gt;. In other words, knowing X gives at most one value of Y."><b>X → Y</b>（讀作「X 決定 Y」或「Y 函數相依於 X」）：在這張表裡，<b>不可能有兩列 X 的值一樣、Y 的值卻不一樣</b>。換句話說，知道 X 的值，就最多只對得到一個 Y 的值。</p>
+      <table class="static-tbl">
+        <tr><th data-en="Example from the slides">講義的例子</th><th data-en="FD">FD</th><th data-en="Why">為什麼</th></tr>
+        <tr><td data-en="Each warehouse has exactly one address">每個倉庫只有一個地址</td><td><code>warehouse → warehouse-address</code></td><td data-en="Knowing the warehouse gives the address">知道倉庫就知道地址</td></tr>
+        <tr><td data-en="In one warehouse, a kind of part has one total quantity">同一個倉庫裡，同一種零件只有一個總數量</td><td><code>warehouse, part → quantity</code></td><td data-en="It takes both together">要兩個一起才決定得了</td></tr>
+        <tr><td data-en="Each supplier lives in one city">每個供應商住在一個城市</td><td><code>supplier → city</code></td><td></td></tr>
+        <tr><td data-en="A company is not necessarily in one city">一家公司不一定只在一個城市</td><td data-en="&lt;code&gt;company → city&lt;/code&gt; does &lt;b&gt;not&lt;/b&gt; hold"><code>company → city</code> <b>不成立</b></td><td data-en="One company can map to several cities">同一家公司可以對到好幾個城市</td></tr>
+      </table>
+      <ul class="facts">
+        <li><span data-en="FDs come from &lt;b&gt;what the data means&lt;/b&gt; (requirements, common sense), not from the data at some moment.">FD 來自<b>資料的意義</b>（需求規格、常識），不是來自某一刻的資料內容。</span></li>
+        <li><span data-en="Sample data can only &lt;b&gt;disprove&lt;/b&gt; an FD (two rows with the same X but different Y); it can never &lt;b&gt;prove&lt;/b&gt; one — no counterexample today does not mean none tomorrow.">範例資料只能<b>推翻</b> FD（找到兩列 X 一樣、Y 不一樣），不能<b>證明</b> FD — 現在剛好沒有反例，不代表以後不會有。</span></li>
+      </ul>
+      <p data-en="Finding counterexamples with SQL: group by X and count the distinct Y values in each group. If any group has more than 1, X → Y does not hold:">用 SQL 找反例：按 X 分組，看每組裡有幾個不同的 Y。只要有一組超過 1，X → Y 就不成立：</p>
+      <div class="console" data-default="SELECT offered_by, COUNT(DISTINCT credits)&#10;FROM COURSE&#10;GROUP BY offered_by&#10;HAVING COUNT(DISTINCT credits) &gt; 1;">
+        <div class="console-topbar" data-en="Check whether offered_by → credits holds in COURSE">在 COURSE 裡檢查 offered_by → credits 成不成立</div>
+        <textarea class="console-input" spellcheck="false">SELECT offered_by, COUNT(DISTINCT credits)
+FROM COURSE
+GROUP BY offered_by
+HAVING COUNT(DISTINCT credits) &gt; 1;</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Run">▶ 執行</button>
+          <span class="console-hint" data-en="Cmd / Ctrl + Enter also runs it">Cmd / Ctrl + Enter 也可以執行</span>
+        </div>
+        <div class="console-result"><span class="placeholder" data-en="Any rows = counterexamples; then try checking cnum → title">有結果 = 找到反例；改成檢查 cnum → title 試試看</span></div>
+      </div>
+      <p data-en="&lt;b&gt;Deriving FDs&lt;/b&gt;: new FDs follow from known ones. The three basic rules are Armstrong&#x27;s axioms; every other rule can be derived from them:"><b>推導 FD</b>：從已知的 FD 可以推出新的 FD。最基本的三條是 Armstrong 公理，其他規則都能從它們推出來：</p>
+      <table class="static-tbl">
+        <tr><th data-en="Rule">規則</th><th data-en="Statement">寫法</th><th data-en="In plain words">白話</th></tr>
+        <tr><td data-en="Reflexivity">反身律 reflexivity</td><td data-en="If Y ⊆ X then X → Y">若 Y ⊆ X，則 X → Y</td><td data-en="A set determines its own parts: a, b → a">自己決定自己的一部分：a, b → a</td></tr>
+        <tr><td data-en="Augmentation">增廣律 augmentation</td><td data-en="If X → Y then XZ → YZ">若 X → Y，則 XZ → YZ</td><td data-en="Adding the same attributes to both sides keeps it valid">兩邊同時加上同樣的東西還是成立</td></tr>
+        <tr><td data-en="Transitivity">遞移律 transitivity</td><td data-en="If X → Y and Y → Z then X → Z">若 X → Y 且 Y → Z，則 X → Z</td><td data-en="a → b and b → c, so a → c">a → b、b → c，所以 a → c</td></tr>
+        <tr><td data-en="Union">聯集 union</td><td data-en="If X → Y and X → Z then X → YZ">若 X → Y 且 X → Z，則 X → YZ</td><td data-en="Same left side → combine the right sides">左邊一樣的可以合併</td></tr>
+        <tr><td data-en="Decomposition">分解 decomposition</td><td data-en="If X → YZ then X → Y and X → Z">若 X → YZ，則 X → Y 且 X → Z</td><td data-en="The right side can be split">右邊可以拆開</td></tr>
+        <tr><td data-en="Pseudotransitivity">偽遞移 pseudotransitivity</td><td data-en="If X → Y and WY → Z then WX → Z">若 X → Y 且 WY → Z，則 WX → Z</td><td data-en=""></td></tr>
+      </table>
+      <h3 data-en="23.3 Keys and prime attributes — finding keys with attribute closure">23.3 鍵與 prime 屬性 — 用「屬性閉包」找鍵</h3>
+      <table class="static-tbl">
+        <tr><th data-en="Term">名詞</th><th data-en="Definition">定義</th></tr>
+        <tr><td data-en="Superkey">超鍵 superkey</td><td data-en="A set of attributes on which no two rows agree — i.e. it determines every attribute">一組屬性，任兩列在這組屬性上的值都不同 — 也就是它決定了所有屬性</td></tr>
+        <tr><td data-en="Minimal key">最小鍵 minimal key</td><td data-en="A superkey that stops being one if any attribute is removed">超鍵，而且拿掉任何一個屬性就不再是超鍵</td></tr>
+        <tr><td data-en="Primary key">主鍵 primary key</td><td data-en="One minimal key, chosen arbitrarily">從最小鍵裡任意挑一個</td></tr>
+        <tr><td data-en="Candidate key">候選鍵 candidate key</td><td data-en="Any other minimal key not chosen as primary">其他沒被選為主鍵的最小鍵</td></tr>
+        <tr><td data-en="Prime attribute">Prime 屬性</td><td data-en="An attribute that belongs to at least one candidate key">至少出現在一個鍵（候選鍵）裡的屬性</td></tr>
+        <tr><td data-en="Nonprime attribute">Nonprime 屬性</td><td data-en="An attribute that is not prime">不是 prime 的屬性</td></tr>
+      </table>
+      <p data-en="&lt;b&gt;Attribute closure X⁺&lt;/b&gt;: everything X determines by repeatedly applying FDs. &lt;b&gt;X⁺ contains every attribute ⇔ X is a superkey&lt;/b&gt;. To find minimal keys, try small attribute sets first: one whose closure is everything, and stops being so if any attribute is removed, is a minimal key. With the slides&#x27; Employee:"><b>屬性閉包 X⁺</b>：從 X 出發，一直套用 FD，能決定的所有屬性。<b>X⁺ 包含全部屬性 ⇔ X 是超鍵</b>。找最小鍵的方法：從小的屬性組合開始試，閉包是全部屬性、而且拿掉任何一個就不是，就是最小鍵。以講義的 Employee 為例：</p>
+      <div class="skeleton skeleton-code">Employee(e#, ename, department, department-address, chairperson)
+e# → ename,  e# → department,  department → department-address,
+department → chairperson,  chairperson → department
+
+{e#}⁺ = e#
+      → + ename, department            (e# → ename, e# → department)
+      → + department-address, chairperson  (department → …)
+      = 全部屬性 ⇒ e# 是超鍵，只有一個屬性，所以也是最小鍵
+{department}⁺ = department, department-address, chairperson   ⇒ 少了 e#、ename，不是超鍵</div>
+      <div class="tip"><strong data-en="Shortcut:">捷徑：</strong><span data-en="A shortcut: &lt;b&gt;an attribute that never appears on the right of any FD is in every key&lt;/b&gt; (nothing else can determine it). In Employee that is e#. Start the closure from those attributes and you usually find the key at once.">找鍵的捷徑：<b>從來沒出現在任何 FD 右邊的屬性，一定在每一個鍵裡</b>（沒有別人能決定它）。Employee 的 e# 就是。先把這些屬性放進去算閉包，通常一下就找到了。</span></div>
+      <p data-en="Every analyzer below lists all the minimal keys it finds; open &amp;quot;How they were found&amp;quot; to watch the closure grow step by step.">下面每一個分析器都會列出它找到的所有最小鍵，點開「怎麼找到的」就能看到閉包一步一步長出來的過程。</p>
+      <div class="txlab nflab" data-default="Employee(e#, ename, department, department-address, chairperson)&#10;e# -&gt; ename, department&#10;department -&gt; department-address, chairperson&#10;chairperson -&gt; department">
+        <div class="txlab-top"><span class="txlab-mode" data-en="Normalization analyzer">正規化分析器</span><span data-en="Employee from the week 5 slides">講義 Week 5 的 Employee</span></div>
+        <textarea class="txlab-input" spellcheck="false" rows="5">Employee(e#, ename, department, department-address, chairperson)
+e# -&gt; ename, department
+department -&gt; department-address, chairperson
+chairperson -&gt; department</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Analyze">▶ 分析</button>
+          <label class="nf-target-lab"><span data-en="Decompose to">拆解到</span> <select class="nf-target"><option value="2">2NF</option><option value="3" selected>3NF</option><option value="4">BCNF</option></select></label>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="First line: Name(attr, attr, …), then one FD per line: A, B -> C">第一行寫 名稱(屬性, 屬性, …)，之後一行一條 FD：A, B -> C</span>
+        </div>
+        <div class="txlab-out"><span class="placeholder" data-en="Find the keys and the problem FDs yourself first, then press Analyze">先自己找鍵、判斷哪幾條 FD 有問題，再按分析</span></div>
+      </div>
+      <h3 data-en="23.4 First normal form (1NF) — one value per field">23.4 第一正規化 1NF — 一格一值</h3>
+      <p data-en="&lt;b&gt;1NF&lt;/b&gt;: every row has the same number of fields and every field holds a &lt;b&gt;single atomic value&lt;/b&gt; — no repeating fields or groups. The table below is not in 1NF: the car-used field holds several cars (each a make + plate pair)."><b>1NF</b>：表裡每一列的欄位數都一樣，而且每一格都只放<b>不可再分（atomic）的單一值</b> — 沒有重複的欄位、也沒有重複的欄位群。下面這張表不是 1NF：car used 那一格放了好幾台車（每台車還是「廠牌＋車牌」一組）。</p>
+      <table class="static-tbl nf-data nf-bad">
+        <tr><th>e#</th><th>name</th><th>car used</th></tr>
+        <tr><td>950001</td><td>Peter</td><td>Toyota, PKR234, Ford, WER545</td></tr>
+        <tr><td>932345</td><td>Paul</td><td>Honda, RTQ456</td></tr>
+        <tr><td>960020</td><td>Joan</td><td>Holden, KLR197, Holden, KLR567</td></tr>
+      </table>
+      <p data-en="The fix: one value per row, usually in a separate table (keyed by (e#, rego)) so the employee&#x27;s name is not repeated:">修正方法：把重複的部分拆成一列一個值，通常再拆成另一張表（鍵是 (e#, rego)），員工的姓名就不用重複：</p>
+      <div class="nf-pair">
+      <table class="static-tbl nf-data">
+        <tr><th><u>e#</u></th><th>name</th></tr>
+        <tr><td>950001</td><td>Peter</td></tr>
+        <tr><td>932345</td><td>Paul</td></tr>
+        <tr><td>960020</td><td>Joan</td></tr>
+      </table>
+      <table class="static-tbl nf-data">
+        <tr><th><u>e#</u></th><th>make</th><th><u>rego</u></th></tr>
+        <tr><td>950001</td><td>Toyota</td><td>PKR234</td></tr>
+        <tr><td>950001</td><td>Ford</td><td>WER545</td></tr>
+        <tr><td>932345</td><td>Honda</td><td>RTQ456</td></tr>
+        <tr><td>960020</td><td>Holden</td><td>KLR197</td></tr>
+        <tr><td>960020</td><td>Holden</td><td>KLR567</td></tr>
+      </table>
+      </div>
+      <div class="tip"><span data-en="1NF is about what the data looks like, which FDs cannot show, so the analyzer always assumes its input is already in 1NF. The slides&#x27; other example, Hobbies (Cooking, Reading, Traveling in one field), has the same problem and the same fix. A relational table is meant to hold one value per field anyway — which is also why WHERE hobbies = &#x27;Reading&#x27; in SQL would not find Peter.">1NF 是看「資料長什麼樣子」，FD 看不出來，所以分析器一律假設輸入的表已經是 1NF。講義另一個例子 Hobbies（一格裡放 Cooking, Reading, Traveling）也是同樣的問題、同樣的修法。另外，關聯式資料庫的表本來就要求一格一值 — 這也是 SQL 的 WHERE hobbies = 'Reading' 找不到 Peter 的原因。</span></div>
+      <h3 data-en="23.5 Second normal form (2NF) — the whole key">23.5 第二正規化 2NF — 不靠半個鍵</h3>
+      <ul class="facts">
+        <li><span data-en="&lt;b&gt;Full functional dependency&lt;/b&gt;: X → Y such that removing any attribute A from X makes (X − A) → Y no longer hold — it takes the whole of X to determine Y."><b>完全函數相依（full FD）</b>：X → Y，而且從 X 拿掉任何一個屬性 A 之後，(X − A) → Y 就不再成立 — 要「整個 X」才決定得了 Y。</span></li>
+        <li><span data-en="&lt;b&gt;Partial functional dependency&lt;/b&gt;: one that is not full — a proper subset of X already determines Y."><b>部分函數相依（partial FD）</b>：不是完全的 — X 的某個真子集就已經決定 Y 了。</span></li>
+        <li><span data-en="&lt;b&gt;2NF&lt;/b&gt;: every nonprime attribute is &lt;b&gt;fully&lt;/b&gt; functionally dependent on the key. That is: no nonprime attribute may be determined by just part of a key."><b>2NF</b>：每一個 nonprime 屬性都<b>完全</b>相依於鍵。也就是：不能有 nonprime 屬性只靠「鍵的一部分」就決定。</span></li>
+      </ul>
+      <div class="txlab nflab" data-default="Inventory(part, quantity, warehouse, warehouse-address)&#10;warehouse -&gt; warehouse-address&#10;part, warehouse -&gt; quantity">
+        <div class="txlab-top"><span class="txlab-mode" data-en="Normalization analyzer">正規化分析器</span><span data-en="The slides&#x27; Inventory: the key is (part, warehouse)">講義的 Inventory：鍵是 (part, warehouse)</span></div>
+        <textarea class="txlab-input" spellcheck="false" rows="4">Inventory(part, quantity, warehouse, warehouse-address)
+warehouse -&gt; warehouse-address
+part, warehouse -&gt; quantity</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Analyze">▶ 分析</button>
+          <label class="nf-target-lab"><span data-en="Decompose to">拆解到</span> <select class="nf-target"><option value="2" selected>2NF</option><option value="3">3NF</option><option value="4">BCNF</option></select></label>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="First line: Name(attr, attr, …), then one FD per line: A, B -> C">第一行寫 名稱(屬性, 屬性, …)，之後一行一條 FD：A, B -> C</span>
+        </div>
+        <div class="txlab-out"><span class="placeholder" data-en="Which FD violates 2NF? Into which two tables is it split?">哪一條 FD 違反 2NF？會拆成哪兩張表？</span></div>
+      </div>
+      <p data-en="warehouse-address is nonprime yet determined by just part of the key, warehouse → violates 2NF. The split: move &amp;quot;warehouse and what it determines&amp;quot; out into Location(warehouse, warehouse-address), leaving Store(part, quantity, warehouse). Both are in 2NF — exactly as in the slides.">warehouse-address 是 nonprime，卻只靠鍵的一部分 warehouse 就決定了 → 違反 2NF。拆法：把「warehouse 和它決定的東西」拿出去成為 Location(warehouse, warehouse-address)，剩下 Store(part, quantity, warehouse)。兩張表都是 2NF — 跟講義一樣。</p>
+      <div class="callout"><strong data-en="Two shortcuts from the slides:">兩個馬上就能用的結論（講義）：</strong><span data-en="(1) If every key consists of a single attribute, the table is always in 2NF — a single attribute has no &amp;quot;part&amp;quot;. (2) A table with at most two attributes is always in 2NF (in fact also in 3NF and BCNF). So 2NF only needs checking for tables with a &lt;b&gt;composite key&lt;/b&gt;.">① 如果每個鍵都只有一個屬性，這張表一定是 2NF — 單一屬性沒有「一部分」可言。② 最多只有兩個屬性的表，一定是 2NF（其實也一定是 3NF、BCNF）。所以 2NF 只需要檢查有<b>組合鍵</b>的表。</span></div>
+      <h3 data-en="23.6 Third normal form (3NF) — nothing but the key">23.6 第三正規化 3NF — 不靠非鍵</h3>
+      <ul class="facts">
+        <li><span data-en="&lt;b&gt;Transitive dependency&lt;/b&gt;: X → Z and Z → Y, hence X → Y — Y is determined by X only by way of Z."><b>遞移相依（transitive FD）</b>：X → Z 且 Z → Y，所以 X → Y — Y 是「經過 Z」才被 X 決定的。</span></li>
+        <li><span data-en="&lt;b&gt;3NF&lt;/b&gt;: in 2NF, and no nonprime attribute is &lt;b&gt;transitively dependent&lt;/b&gt; on the key."><b>3NF</b>：是 2NF，而且沒有 nonprime 屬性<b>遞移相依</b>於鍵。</span></li>
+        <li><span data-en="&lt;b&gt;Alternative definition (handy in exams)&lt;/b&gt;: for every X → A that holds, either (1) X is a superkey, &lt;b&gt;or&lt;/b&gt; (2) A is a prime attribute."><b>另一個定義（考試好用）</b>：每一條成立的 X → A，都要滿足 (1) X 是超鍵，<b>或</b> (2) A 是 prime 屬性。</span></li>
+      </ul>
+      <div class="txlab nflab" data-default="Supplier(s#, sname, company-name, city)&#10;s# -&gt; sname, company-name, city&#10;company-name -&gt; city">
+        <div class="txlab-top"><span class="txlab-mode" data-en="Normalization analyzer">正規化分析器</span><span data-en="The slides&#x27; Supplier: the key is s#">講義的 Supplier：鍵是 s#</span></div>
+        <textarea class="txlab-input" spellcheck="false" rows="4">Supplier(s#, sname, company-name, city)
+s# -&gt; sname, company-name, city
+company-name -&gt; city</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Analyze">▶ 分析</button>
+          <label class="nf-target-lab"><span data-en="Decompose to">拆解到</span> <select class="nf-target"><option value="2">2NF</option><option value="3" selected>3NF</option><option value="4">BCNF</option></select></label>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="First line: Name(attr, attr, …), then one FD per line: A, B -> C">第一行寫 名稱(屬性, 屬性, …)，之後一行一條 FD：A, B -> C</span>
+        </div>
+        <div class="txlab-out"><span class="placeholder" data-en="Is it in 2NF? And 3NF?">它是 2NF 嗎？3NF 呢？</span></div>
+      </div>
+      <p data-en="The key is the single attribute s#, so it is in 2NF for sure. But s# → company-name and company-name → city: city is determined via company-name → a transitive dependency, violating 3NF (by the alternative definition: company-name is not a superkey and city is not prime). Split into Supplier-new(s#, sname, company-name) and Company(company-name, city).">鍵只有 s# 一個屬性，所以一定是 2NF。但 s# → company-name、company-name → city，city 是經過 company-name 才被決定的 → 遞移相依，違反 3NF（用另一個定義：company-name 不是超鍵，city 也不是 prime）。拆成 Supplier-new(s#, sname, company-name) 和 Company(company-name, city)。</p>
+      <p data-en="When does the &amp;quot;or A is prime&amp;quot; exception matter? The slides&#x27; Location: a street in a city has one zip code, and a zip code belongs to one city.">「或 A 是 prime」這條例外什麼時候派上用場？講義的 Location：一條街在一個城市裡只有一個郵遞區號，一個郵遞區號只屬於一個城市。</p>
+      <div class="txlab nflab" data-default="Location(city, street, zip-code)&#10;city, street -&gt; zip-code&#10;zip-code -&gt; city">
+        <div class="txlab-top"><span class="txlab-mode" data-en="Normalization analyzer">正規化分析器</span><span data-en="The slides&#x27; Location: two keys">講義的 Location：有兩個鍵</span></div>
+        <textarea class="txlab-input" spellcheck="false" rows="4">Location(city, street, zip-code)
+city, street -&gt; zip-code
+zip-code -&gt; city</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Analyze">▶ 分析</button>
+          <label class="nf-target-lab"><span data-en="Decompose to">拆解到</span> <select class="nf-target"><option value="2">2NF</option><option value="3" selected>3NF</option><option value="4">BCNF</option></select></label>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="First line: Name(attr, attr, …), then one FD per line: A, B -> C">第一行寫 名稱(屬性, 屬性, …)，之後一行一條 FD：A, B -> C</span>
+        </div>
+        <div class="txlab-out"><span class="placeholder" data-en="zip-code is not a superkey — why is it still 3NF?">zip-code 不是超鍵，為什麼還算 3NF？</span></div>
+      </div>
+      <p data-en="The keys are (city, street) and (zip-code, street), so &lt;b&gt;all three attributes are prime&lt;/b&gt;. zip-code → city has a left side that is not a superkey, but its right side city is prime, so 3NF lets it pass. Yet redundancy remains — &amp;quot;NY goes with 484&amp;quot; is stored twice, forced by this FD:">兩個鍵是 (city, street) 和 (zip-code, street)，所以三個屬性<b>全都是 prime</b>。zip-code → city 的左邊不是超鍵，但右邊 city 是 prime，3NF 放過它。可是重複還是存在 — 「NY 對到 484」被存了兩次，就是這條 FD 造成的：</p>
+      <table class="static-tbl nf-data">
+        <tr><th>city</th><th>street</th><th>zip-code</th></tr>
+        <tr><td>NY</td><td>55</td><td>484</td></tr>
+        <tr><td>NY</td><td>56</td><td>484</td></tr>
+        <tr><td>LA</td><td>55</td><td>473</td></tr>
+        <tr><td>LA</td><td>56</td><td>473</td></tr>
+        <tr><td>LA</td><td>57</td><td>474</td></tr>
+      </table>
+      <h3 data-en="23.7 Boyce-Codd normal form (BCNF) — no exceptions">23.7 Boyce-Codd 正規化 BCNF — 沒有例外</h3>
+      <p data-en="&lt;b&gt;BCNF&lt;/b&gt;: for every X → A that holds, X must be a superkey. It is 3NF with the &amp;quot;or A is prime&amp;quot; exception removed. So every BCNF schema is in 3NF, but not every 3NF schema is in BCNF."><b>BCNF</b>：每一條成立的 X → A，X 都必須是超鍵。就是把 3NF 的「或 A 是 prime」那條例外拿掉。所以 BCNF 一定是 3NF，3NF 不一定是 BCNF。</p>
+      <div class="txlab nflab" data-default="Location(city, street, zip-code)&#10;city, street -&gt; zip-code&#10;zip-code -&gt; city">
+        <div class="txlab-top"><span class="txlab-mode" data-en="Normalization analyzer">正規化分析器</span><span data-en="Decompose Location into BCNF">把 Location 拆到 BCNF</span></div>
+        <textarea class="txlab-input" spellcheck="false" rows="4">Location(city, street, zip-code)
+city, street -&gt; zip-code
+zip-code -&gt; city</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Analyze">▶ 分析</button>
+          <label class="nf-target-lab"><span data-en="Decompose to">拆解到</span> <select class="nf-target"><option value="2">2NF</option><option value="3">3NF</option><option value="4" selected>BCNF</option></select></label>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="First line: Name(attr, attr, …), then one FD per line: A, B -> C">第一行寫 名稱(屬性, 屬性, …)，之後一行一條 FD：A, B -> C</span>
+        </div>
+        <div class="txlab-out"><span class="placeholder" data-en="After the split, has any FD gone missing?">拆完之後，有沒有哪條 FD 不見了？</span></div>
+      </div>
+      <p data-en="zip-code → city has a left side that is not a superkey → violates BCNF. Split into CZ(city, zip-code) and CS(street, zip-code); both are in BCNF (any two-attribute table is). But the price: &lt;b&gt;city, street → zip-code is lost&lt;/b&gt; — its three attributes now live in two tables, and neither can check it. The two tables below are each valid on their own, yet joined they say street 55 in NY has two zip codes:">zip-code → city 的左邊不是超鍵 → 違反 BCNF。拆成 CZ(city, zip-code) 和 CS(street, zip-code)，兩張都是 BCNF（只有兩個屬性的表一定是 BCNF）。但代價是：<b>city, street → zip-code 不見了</b> — 它的三個屬性被拆到兩張表，沒有任何一張表能檢查它。下面兩張表各自都合法，JOIN 起來卻出現「NY 的 55 號街有兩個郵遞區號」：</p>
+      <div class="nf-pair">
+      <table class="static-tbl nf-data">
+        <tr><th>street</th><th>zip-code</th></tr>
+        <tr><td>55</td><td>484</td></tr>
+        <tr><td>55</td><td>485</td></tr>
+        <tr><td>56</td><td>484</td></tr>
+        <tr><td>55</td><td>486</td></tr>
+      </table>
+      <table class="static-tbl nf-data">
+        <tr><th>city</th><th>zip-code</th></tr>
+        <tr><td>NY</td><td>484</td></tr>
+        <tr><td>NY</td><td>485</td></tr>
+        <tr><td>SF</td><td>486</td></tr>
+      </table>
+      <table class="static-tbl nf-data nf-bad">
+        <tr><th>city</th><th>street</th><th>zip-code</th></tr>
+        <tr><td>NY</td><td>55</td><td>484</td></tr>
+        <tr><td>NY</td><td>55</td><td>485</td></tr>
+        <tr><td>NY</td><td>56</td><td>484</td></tr>
+        <tr><td>SF</td><td>55</td><td>486</td></tr>
+      </table>
+      </div>
+      <div class="callout"><strong data-en="3NF or BCNF?">3NF 還是 BCNF？</strong><span data-en="Decomposing into 3NF can always be both lossless and dependency-preserving; decomposing into BCNF is always lossless but sometimes loses FDs (like Location). That is why designs often stop at 3NF, accepting a little redundancy so every constraint can still be checked within a single table.">拆到 3NF 一定可以做到「無損」而且「保留所有 FD」；拆到 BCNF 一定無損，但有時候會失去 FD（像 Location）。所以實務上常常停在 3NF，接受少量的重複，換來所有限制都還能在單一表裡檢查。</span></div>
+      <h3 data-en="23.8 Putting it all together">23.8 總整理</h3>
+      <table class="static-tbl">
+        <tr><th data-en=""></th><th data-en="Condition">條件</th><th data-en="What a violation looks like">違反時的樣子</th><th data-en="Slide example">講義的例子</th><th data-en="How to split">怎麼拆</th></tr>
+        <tr><td><b>1NF</b></td><td data-en="Atomic values, no repeating groups">一格一值，沒有重複群</td><td data-en="A list inside one field">一格裡放清單</td><td data-en="car used, Hobbies">car used、Hobbies</td><td data-en="Repeating part → multiple rows / another table">重複的部分變成多列 / 另一張表</td></tr>
+        <tr><td><b>2NF</b></td><td data-en="1NF + no partial dependency">1NF＋沒有部分相依</td><td data-en="part of key → nonkey">鍵的一部分 → 非鍵</td><td>Inventory: warehouse → warehouse-address</td><td data-en="One table X⁺, one R − (X⁺ − X)">X⁺ 一張、R −（X⁺ − X）一張</td></tr>
+        <tr><td><b>3NF</b></td><td data-en="2NF + no transitive dependency (X superkey or A prime)">2NF＋沒有遞移相依（X 超鍵 或 A prime）</td><td data-en="nonkey → nonkey">非鍵 → 非鍵</td><td>Supplier: company-name → city</td><td data-en="Same">同上</td></tr>
+        <tr><td><b>BCNF</b></td><td data-en="X is a superkey for every X → A">每個 X → A 的 X 都是超鍵</td><td data-en="non-superkey → prime attribute">非超鍵 → prime 屬性</td><td>Location: zip-code → city</td><td data-en="Same; may lose FDs">同上；可能會失去 FD</td></tr>
+      </table>
+      <p data-en="Follow this order in an exam and mistakes become rare: &lt;b&gt;(1) find every minimal key with closures → (2) mark prime / nonprime → (3) ask the three questions of every FD → (4) the worst FD decides the highest NF → (5) split on a violating X → A into X⁺ and R − (X⁺ − X), and repeat (1)–(4) on each new table.&lt;/b&gt;">考試時照這個順序做，就不容易出錯：<b>① 用閉包找出所有最小鍵 → ② 標出 prime / nonprime → ③ 每條 FD 問那三個問題 → ④ 最糟的那條決定最高 NF → ⑤ 拿違規的 X → A 拆成 X⁺ 和 R −（X⁺ − X），對拆出來的表重複 ①–④。</b></p>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 1 (predict, then check) — abstract A, B, C, D">🧪 練習 1（先猜再驗證）— 抽象的 A、B、C、D</div>
+      <div class="txlab nflab" data-default="R(A, B, C, D)&#10;A, B -&gt; C&#10;B -&gt; D">
+        <div class="txlab-top"><span class="txlab-mode" data-en="Normalization analyzer">正規化分析器</span><span data-en="Practice 1: R(A, B, C, D)">練習 1：R(A, B, C, D)</span></div>
+        <textarea class="txlab-input" spellcheck="false" rows="4">R(A, B, C, D)
+A, B -&gt; C
+B -&gt; D</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Analyze">▶ 分析</button>
+          <label class="nf-target-lab"><span data-en="Decompose to">拆解到</span> <select class="nf-target"><option value="2">2NF</option><option value="3" selected>3NF</option><option value="4">BCNF</option></select></label>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="First line: Name(attr, attr, …), then one FD per line: A, B -> C">第一行寫 名稱(屬性, 屬性, …)，之後一行一條 FD：A, B -> C</span>
+        </div>
+        <div class="txlab-out"><span class="placeholder" data-en="Write down first: keys, highest NF, violating FD, resulting tables">先寫下：鍵、最高 NF、違規的 FD、拆完的表</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <p data-en="Neither A nor B ever appears on a right side, so every key contains both; {A, B}⁺ = A, B, C, D → the key is (A, B). D is nonprime and depends on just B, part of the key → &lt;b&gt;a partial dependency: only 1NF&lt;/b&gt;. Split on B → D: B⁺ = {B, D}, giving (B, D) and (A, B, C), both in BCNF.">B 從沒出現在右邊、A 也沒有，所以鍵一定包含 A、B；{A, B}⁺ = A, B, C, D → 鍵是 (A, B)。D 是 nonprime，只靠鍵的一部分 B → <b>部分相依，只有 1NF</b>。用 B → D 拆：B⁺ = {B, D}，得到 (B, D) 和 (A, B, C)，都是 BCNF。</p>
+          </div>
+        </details>
+      </div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 2 (predict, then check) — the classic 3NF-but-not-BCNF case">🧪 練習 2（先猜再驗證）— 3NF 但不是 BCNF 的經典例子</div>
+      <div class="txlab nflab" data-default="Teaching(student, course, lecturer)&#10;student, course -&gt; lecturer&#10;lecturer -&gt; course">
+        <div class="txlab-top"><span class="txlab-mode" data-en="Normalization analyzer">正規化分析器</span><span data-en="Practice 2: each lecturer teaches one course; a student has one lecturer per course">練習 2：每位講師只教一門課；學生修一門課只有一位講師</span></div>
+        <textarea class="txlab-input" spellcheck="false" rows="4">Teaching(student, course, lecturer)
+student, course -&gt; lecturer
+lecturer -&gt; course</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Analyze">▶ 分析</button>
+          <label class="nf-target-lab"><span data-en="Decompose to">拆解到</span> <select class="nf-target"><option value="2">2NF</option><option value="3">3NF</option><option value="4" selected>BCNF</option></select></label>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="First line: Name(attr, attr, …), then one FD per line: A, B -> C">第一行寫 名稱(屬性, 屬性, …)，之後一行一條 FD：A, B -> C</span>
+        </div>
+        <div class="txlab-out"><span class="placeholder" data-en="Is it 3NF? BCNF? What is lost by going to BCNF?">它是 3NF 嗎？BCNF 呢？拆到 BCNF 會失去什麼？</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <p data-en="The keys are (student, course) and (student, lecturer), so all three attributes are prime. lecturer → course: lecturer is not a superkey (question 1: no) and course is prime (question 2: yes) → it violates only BCNF, so the schema is in &lt;b&gt;3NF&lt;/b&gt;. Splitting into (course, lecturer) and (student, lecturer) reaches BCNF but loses student, course → lecturer — exactly the same shape as Location.">鍵是 (student, course) 和 (student, lecturer)，三個屬性都是 prime。lecturer → course：lecturer 不是超鍵（問題 ① 否），course 是 prime（問題 ② 是）→ 只違反 BCNF，所以是 <b>3NF</b>。拆成 (course, lecturer) 和 (student, lecturer) 之後是 BCNF，但 student, course → lecturer 不見了 — 跟 Location 一模一樣的結構。</p>
+          </div>
+        </details>
+      </div>
+      <div class="exercise">
+        <div class="exercise-title" data-en="🧪 Practice 3 (everything at once) — partial and transitive dependencies together">🧪 練習 3（綜合）— 一次出現部分相依和遞移相依</div>
+      <div class="txlab nflab" data-default="Order(order#, product#, customer, customer-city, quantity, price)&#10;order# -&gt; customer&#10;customer -&gt; customer-city&#10;order#, product# -&gt; quantity&#10;product# -&gt; price">
+        <div class="txlab-top"><span class="txlab-mode" data-en="Normalization analyzer">正規化分析器</span><span data-en="Practice 3: an order table — work it out on paper before analyzing">練習 3：自己寫出 FD 之後再分析 — 這裡已經幫你寫好，試著先在紙上判斷</span></div>
+        <textarea class="txlab-input" spellcheck="false" rows="6">Order(order#, product#, customer, customer-city, quantity, price)
+order# -&gt; customer
+customer -&gt; customer-city
+order#, product# -&gt; quantity
+product# -&gt; price</textarea>
+        <div class="console-actions">
+          <button class="run-btn" data-en="▶ Analyze">▶ 分析</button>
+          <label class="nf-target-lab"><span data-en="Decompose to">拆解到</span> <select class="nf-target"><option value="2">2NF</option><option value="3" selected>3NF</option><option value="4">BCNF</option></select></label>
+          <button class="reset-btn" data-en="↺ Reset">↺ 重置</button>
+          <span class="console-hint" data-en="First line: Name(attr, attr, …), then one FD per line: A, B -> C">第一行寫 名稱(屬性, 屬性, …)，之後一行一條 FD：A, B -> C</span>
+        </div>
+        <div class="txlab-out"><span class="placeholder" data-en="How many FDs are problems? Which normal form does each violate?">有幾條 FD 有問題？各違反哪一級？</span></div>
+      </div>
+        <details class="answer"><summary data-en="👀 Show the answer">👀 看解答</summary>
+          <div class="answer-body">
+      <p data-en="Neither order# nor product# appears on a right side, and {order#, product#}⁺ is everything → the key is (order#, product#). order# → customer and product# → price are &lt;b&gt;partial dependencies (violate 2NF)&lt;/b&gt;; customer → customer-city is a &lt;b&gt;transitive dependency (violates 3NF)&lt;/b&gt;; order# → customer-city is also a derived partial dependency. So it is only in &lt;b&gt;1NF&lt;/b&gt;. Decomposing into 3NF yields (order#, customer), (customer, customer-city), (product#, price), (order#, product#, quantity) — each table describes exactly one thing.">order# 和 product# 都沒出現在右邊，{order#, product#}⁺ = 全部 → 鍵是 (order#, product#)。order# → customer、product# → price 是<b>部分相依（違反 2NF）</b>；customer → customer-city 是<b>遞移相依（違反 3NF）</b>；另外 order# → customer-city 也是推導出來的部分相依。所以只有 <b>1NF</b>。拆到 3NF 會得到 (order#, customer)、(customer, customer-city)、(product#, price)、(order#, product#, quantity) — 每一張表剛好描述一件事。</p>
+          </div>
+        </details>
+      </div>
+      <div class="tip"><strong data-en="Chapter summary:">這章的重點整理：</strong><span data-en="X → Y: two rows agreeing on X must agree on Y; FDs come from meaning — data can disprove but never prove them. X⁺ is everything X determines; X⁺ is all attributes ⇔ X is a superkey; a minimal key is a superkey that stops being one if any attribute is removed; attributes in some key are prime. 1NF: one atomic value per field; 2NF: no part of a key → nonkey; 3NF: no nonkey → nonkey, equivalently every X → A has X a superkey or A prime; BCNF: every X → A has X a superkey. The oath: the key, the whole key, and nothing but the key. Ask of every FD: (1) X a superkey? (2) A prime? (3) X part of a key? Split into X⁺ and R − (X⁺ − X), which is always lossless; going to BCNF may lose FDs, while 3NF can always keep them. Two-attribute tables are always in BCNF; tables whose keys are all single attributes are always in 2NF.">X → Y：X 一樣的兩列，Y 一定一樣；FD 來自資料的意義，資料只能推翻、不能證明。X⁺ 是 X 能決定的所有屬性，X⁺ 是全部 ⇔ X 是超鍵；最小鍵是拿掉任何屬性就不是超鍵的超鍵；在某個鍵裡的屬性是 prime。1NF 一格一值；2NF 沒有「鍵的一部分 → 非鍵」；3NF 沒有「非鍵 → 非鍵」，等價於每個 X → A 都是 X 超鍵或 A prime；BCNF 每個 X → A 的 X 都是超鍵。誓詞：the key, the whole key, and nothing but the key。每條 FD 依序問：① X 超鍵？② A prime？③ X 是鍵的一部分？拆法：X⁺ 和 R −（X⁺ − X），一定無損；拆到 BCNF 可能失去 FD，3NF 一定可以保留。只有兩個屬性的表一定是 BCNF；只有單一屬性鍵的表一定是 2NF。</span></div>
+    </section>
+
     <section id="functions">
-      <h2 data-en="23. Common Functions + SQL as a Calculator">23. 常用函數 + SQL 當計算機</h2>
+      <h2 data-en="24. Common Functions + SQL as a Calculator">24. 常用函數 + SQL 當計算機</h2>
       <div class="scenario"><strong data-en="Where this shows up:">🌍 什麼時候會用到：</strong><span data-en="Formatting an amount as &quot;$1,234&quot;, concatenating a name into &quot;Mr. Wang&quot;, or comparing an email case-insensitively &mdash; this everyday text and number wrangling is what SQL functions are for.">訂單金額要顯示成「NT$1,234」這種格式、姓名要拼接成「王小明 先生」、比較顧客輸入的 Email 時不管大小寫 — 這些日常的文字跟數字加工，都是靠 SQL 函數完成。</span></div>
       <h3 data-en="Row functions — computed once per row">Row 函數 — 每一列各算一次</h3>
       <div class="console" data-default="SELECT UPPER(name) FROM DEPARTMENT;">
@@ -3470,19 +3828,19 @@ WHERE </textarea>
     </section>
 
     <section id="quiz">
-      <h2 data-en="24. Interactive Quiz — testing the syntax skeleton, not rote facts">24. 互動測驗 — 測語法骨架，不是背知識</h2>
+      <h2 data-en="25. Interactive Quiz — testing the syntax skeleton, not rote facts">25. 互動測驗 — 測語法骨架，不是背知識</h2>
       <p data-en="Pick an answer to see right away whether it's correct, with an explanation; check your total score once you've answered them all.">選完會馬上顯示對錯跟解釋，全部答完看總分。</p>
       <div id="quiz-container"></div>
       <div class="quiz-score" id="quiz-score"></div>
     </section>
 
     <section id="flashcards">
-      <h2 data-en="25. Flashcards — click to flip">25. 詞彙卡 — 點一下翻面</h2>
+      <h2 data-en="26. Flashcards — click to flip">26. 詞彙卡 — 點一下翻面</h2>
       <div class="flash-grid" id="flash-container"></div>
     </section>
 
     <section id="schema">
-      <h2 data-en="26. Schema Quick Reference">26. 資料表結構速查</h2>
+      <h2 data-en="27. Schema Quick Reference">27. 資料表結構速查</h2>
       <p data-en="Every example on this page runs against the tables below — come back here any time to look up column names and sample data.">本頁所有範例都跑在下面這幾張表上，隨時可以回來查欄位名稱跟資料內容。</p>
       <div class="schema-grid">
         <div class="schema-card"><h4>DEPARTMENT</h4><ul>
@@ -3678,11 +4036,12 @@ class ExprParser {
       const upper = t.value.toUpperCase();
       if (AGG_FUNCS.includes(upper)) {
         this.next(); this.expectType('LPAREN');
-        let arg;
-        if (upper === 'COUNT' && this.peekOp('*')) { this.next(); arg = { type: 'STAR' }; }
+        let arg, distinct = false;
+        if (this.peekType('IDENT') && this.peek().value.toUpperCase() === 'DISTINCT') { this.next(); distinct = true; }   // COUNT(DISTINCT x)
+        if (upper === 'COUNT' && !distinct && this.peekOp('*')) { this.next(); arg = { type: 'STAR' }; }
         else { arg = this.parseAdditive(); }
         this.expectType('RPAREN');
-        return { type: 'FUNC', name: upper, args: [arg] };
+        return { type: 'FUNC', name: upper, args: [arg], distinct };
       }
       if (upper === 'UPPER' || upper === 'LOWER' || upper === 'LENGTH' || upper === 'HEX') {
         this.next(); this.expectType('LPAREN'); const arg = this.parseAdditive(); this.expectType('RPAREN');
@@ -3785,12 +4144,11 @@ function applySimpleFunc(name, args) {
     }
   }
 }
-function computeAggregate(name, argAst, rows) {
-  if (name === 'COUNT') {
-    if (argAst && argAst.type === 'STAR') return rows.length;
-    return rows.filter(r => { const v = evaluate(argAst, r, [r]); return v !== null && v !== undefined; }).length;
-  }
-  const vals = rows.map(r => evaluate(argAst, r, [r])).filter(v => v !== null && v !== undefined);
+function computeAggregate(name, argAst, rows, distinct) {
+  if (name === 'COUNT' && argAst && argAst.type === 'STAR') return rows.length;
+  let vals = rows.map(r => evaluate(argAst, r, [r])).filter(v => v !== null && v !== undefined);
+  if (distinct) vals = [...new Set(vals)];
+  if (name === 'COUNT') return vals.length;
   if (name === 'SUM') return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
   if (name === 'AVG') return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
   if (name === 'MAX') return vals.length ? Math.max(...vals) : null;
@@ -3822,7 +4180,7 @@ function evaluate(node, row, groupRows) {
     case 'NEG': return -evaluate(node.expr, row, groupRows);
     case 'FUNC': {
       const upperName = node.name.toUpperCase();
-      if (AGG_FUNCS.includes(upperName)) return computeAggregate(upperName, node.args[0], groupRows);
+      if (AGG_FUNCS.includes(upperName)) return computeAggregate(upperName, node.args[0], groupRows, node.distinct);
       const args = node.args.map(a => evaluate(a, row, groupRows));
       return applySimpleFunc(upperName, args);
     }
@@ -5744,6 +6102,18 @@ const QUIZ = [
   { correct: 0,
     zh: { q: "用 mysqldump csit115 COURSE > c.sql 備份之後，要怎麼還原？", opts: ["mysql csit115 -u root -p < c.sql", "mysql -u root -p < c.sql", "mysqldump -u root -p < c.sql"], explain: "只備份資料表時，檔案裡沒有 CREATE DATABASE / USE，還原時要在 mysql 後面指定資料庫，不然會出現 ERROR 1046 No database selected。還原用的是 mysql，不是 mysqldump。" },
     en: { q: "After backing up with mysqldump csit115 COURSE > c.sql, how do you restore it?", opts: ["mysql csit115 -u root -p < c.sql", "mysql -u root -p < c.sql", "mysqldump -u root -p < c.sql"], explain: "A table-only dump has no CREATE DATABASE / USE, so the database must be named after mysql, or you get ERROR 1046 No database selected. Restoring uses mysql, not mysqldump." } },
+  { correct: 1,
+    zh: { q: "R(part, warehouse, quantity, warehouse-address)，鍵是 (part, warehouse)，warehouse → warehouse-address。它最高是哪一級？", opts: ["3NF", "1NF", "BCNF"], explain: "warehouse-address 是 nonprime，卻只靠鍵的一部分 warehouse 決定 → 部分相依，違反 2NF，所以只有 1NF。" },
+    en: { q: "R(part, warehouse, quantity, warehouse-address), key (part, warehouse), warehouse → warehouse-address. What is its highest normal form?", opts: ["3NF", "1NF", "BCNF"], explain: "warehouse-address is nonprime yet determined by warehouse, part of the key → a partial dependency violating 2NF, so only 1NF." } },
+  { correct: 0,
+    zh: { q: "鍵是 s#，另外有 company-name → city（city 不是 prime）。這條 FD 違反哪一級？", opts: ["3NF（遞移相依）", "2NF（部分相依）", "什麼都不違反"], explain: "company-name 不是超鍵、city 不是 prime、company-name 也不是鍵的一部分 → 「非鍵 → 非鍵」的遞移相依，違反 3NF。鍵只有一個屬性的表一定是 2NF。" },
+    en: { q: "The key is s#, and company-name → city also holds (city is not prime). Which normal form does this FD violate?", opts: ["3NF (transitive dependency)", "2NF (partial dependency)", "Nothing"], explain: "company-name is not a superkey, city is not prime, and company-name is not part of a key → a nonkey → nonkey transitive dependency, violating 3NF. A table whose key is a single attribute is always in 2NF." } },
+  { correct: 2,
+    zh: { q: "3NF 和 BCNF 的差別是什麼？", opts: ["BCNF 允許部分相依", "3NF 要求每個 FD 的左邊都是超鍵", "3NF 多了一條例外：X 不是超鍵也可以，只要右邊 A 是 prime 屬性"], explain: "3NF：X 是超鍵「或」A 是 prime。BCNF 拿掉這條例外：X 一定要是超鍵。所以 BCNF ⊂ 3NF。" },
+    en: { q: "What is the difference between 3NF and BCNF?", opts: ["BCNF allows partial dependencies", "3NF requires the LHS of every FD to be a superkey", "3NF has one extra exception: X need not be a superkey if the RHS A is prime"], explain: "3NF: X is a superkey OR A is prime. BCNF drops the exception: X must be a superkey. So every BCNF schema is in 3NF." } },
+  { correct: 1,
+    zh: { q: "把 Location(city, street, zip-code) 拆到 BCNF 之後，會發生什麼事？", opts: ["資料會遺失，JOIN 回去會少列", "city, street → zip-code 這條 FD 不見了，沒有任何一張表能檢查它", "什麼都不會發生，BCNF 一定保留所有 FD"], explain: "用 X⁺ / R −（X⁺ − X）拆一定是無損的，但拆到 BCNF 不一定能保留所有 FD — Location 就失去了 city, street → zip-code。" },
+    en: { q: "What happens when Location(city, street, zip-code) is decomposed into BCNF?", opts: ["Data is lost; joining back gives fewer rows", "The FD city, street → zip-code is lost; no table can check it", "Nothing — BCNF always keeps every FD"], explain: "Splitting into X⁺ and R − (X⁺ − X) is always lossless, but BCNF cannot always preserve every FD — Location loses city, street → zip-code." } },
 ];
 const quizContainer = document.getElementById('quiz-container');
 let quizScore = 0, quizAnswered = 0;
@@ -5834,6 +6204,12 @@ const FLASH = [
   { zh: { term: "Trigger", def: "跟一張表綁在一起，在 INSERT / UPDATE / DELETE 的 BEFORE 或 AFTER 自動執行；NEW / OLD 取得修改後 / 前的值；要拒絕修改用 SIGNAL，不能在裡面 ROLLBACK。" }, en: { term: "Trigger", def: "Tied to a table and fired BEFORE or AFTER INSERT / UPDATE / DELETE; NEW / OLD give the values after / before; reject a change with SIGNAL — ROLLBACK is not allowed inside." } },
   { zh: { term: "AUTOCOMMIT", def: "預設 ON：每句 DML 立刻提交。OFF：要等 COMMIT 或 DDL 才提交；EXIT 不會提交。" }, en: { term: "AUTOCOMMIT", def: "ON by default: each DML statement commits at once. OFF: changes commit only on COMMIT or DDL; EXIT does not commit." } },
   { zh: { term: "實體備份 vs 邏輯備份", def: "實體：複製資料檔，快、精簡、適合大型資料庫。邏輯：mysqldump 產生 CREATE / INSERT 腳本，較慢較大，可選伺服器 / 資料庫 / 資料表層級，不用停機。" }, en: { term: "Physical vs logical backup", def: "Physical: copy the data files — fast, compact, for large databases. Logical: mysqldump writes CREATE / INSERT scripts — slower, larger, at server / database / table level, no downtime." } },
+  { zh: { term: "函數相依 X → Y", def: "X 一樣的兩列，Y 一定一樣。FD 來自資料的意義；範例資料只能推翻、不能證明。" }, en: { term: "Functional dependency X → Y", def: "Two rows that agree on X must agree on Y. FDs come from meaning; sample data can disprove but never prove them." } },
+  { zh: { term: "屬性閉包 X⁺", def: "從 X 出發一直套用 FD 能決定的所有屬性。X⁺ = 全部屬性 ⇔ X 是超鍵。沒出現在任何 FD 右邊的屬性一定在每個鍵裡。" }, en: { term: "Attribute closure X⁺", def: "Everything X determines by repeatedly applying FDs. X⁺ = all attributes ⇔ X is a superkey. An attribute never on any right side is in every key." } },
+  { zh: { term: "Prime 屬性", def: "至少出現在一個最小鍵（候選鍵）裡的屬性；其他是 nonprime。" }, en: { term: "Prime attribute", def: "An attribute belonging to at least one minimal (candidate) key; the rest are nonprime." } },
+  { zh: { term: "正規化誓詞", def: "The key（1NF）, the whole key（2NF）, and nothing but the key（3NF）— so help me Codd。BCNF：沒有例外，決定別人的一定是鍵。" }, en: { term: "The normalization oath", def: "The key (1NF), the whole key (2NF), and nothing but the key (3NF) — so help me Codd. BCNF: no exceptions — every determinant is a key." } },
+  { zh: { term: "FD 判斷三問", def: "X → A：① X 是超鍵？是 → OK。② A 是 prime？是 → 只違反 BCNF。③ X 是鍵的一部分？是 → 違反 2NF；否 → 違反 3NF。" }, en: { term: "Three questions per FD", def: "X → A: (1) X a superkey? yes → fine. (2) A prime? yes → violates BCNF only. (3) X part of a key? yes → violates 2NF; no → violates 3NF." } },
+  { zh: { term: "怎麼拆表", def: "用違規的 X → A 拆成 X⁺ 和 R −（X⁺ − X），一定無損。拆到 3NF 一定能保留所有 FD；拆到 BCNF 可能會失去 FD。" }, en: { term: "How to decompose", def: "Split on a violating X → A into X⁺ and R − (X⁺ − X) — always lossless. 3NF can always keep every FD; BCNF may lose some." } },
 ];
 const flashContainer = document.getElementById('flash-container');
 function renderFlash() {
@@ -6291,7 +6667,7 @@ function labTO(p, L, en) {
   h += aborted.length ? '<div class="lab-verdict bad">' + (en ? 'Aborted: ' : '被中止：') + aborted.join(', ') + '</div>' : '<div class="lab-verdict good">✓ ' + (en ? 'All accesses happened in increasing timestamp order — nothing was aborted.' : '所有存取都照時間戳記由小到大的順序 — 沒有交易被中止。') + '</div>';
   return h;
 }
-document.querySelectorAll('.txlab').forEach(el => {
+document.querySelectorAll('.txlab:not(.nflab)').forEach(el => {
   const ta = el.querySelector('textarea'), out = el.querySelector('.txlab-out'), mode = el.dataset.mode || 'graph';
   const def = el.dataset.default || ta.value;
   const run = () => {
@@ -6302,6 +6678,190 @@ document.querySelectorAll('.txlab').forEach(el => {
   };
   el.querySelector('.run-btn').addEventListener('click', run);
   el.querySelector('.reset-btn').addEventListener('click', () => { ta.value = def; out.innerHTML = '<span class="placeholder">' + (currentLang === 'en' ? 'Restored the original schedule.' : '已還原成原本的排程。') + '</span>'; });
+  ta.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); } });
+});
+
+// ============================================================
+// 第 23 章：正規化分析器 — 函數相依、鍵、1NF / 2NF / 3NF / BCNF、拆解
+// 屬性集合用 bitmask 表示（最多 14 個屬性）
+// ============================================================
+function nfParse(text) {
+  let name = 'R', attrs = [];
+  const fds = [], errors = [];
+  const addAttr = a => { if (attrs.indexOf(a) === -1) attrs.push(a); };
+  const list = s => s.split(',').map(x => x.trim()).filter(Boolean);
+  text.split('\n').forEach((raw, ln) => {
+    const l = raw.replace(/(--|\/\/).*$/, '').trim();
+    if (!l) return;
+    let m;
+    if (m = /^([^\s(→>-][^(→]*?)\s*\(([^)]*)\)\s*$/.exec(l)) { name = m[1].trim(); list(m[2]).forEach(addAttr); return; }
+    m = /^(.+?)\s*(?:->|→|=>)\s*(.+)$/.exec(l);
+    if (!m) { errors.push('第 ' + (ln + 1) + ' 行：看不懂「' + l + '」— FD 要寫成 A, B -> C'); return; }
+    const lhs = list(m[1]), rhs = list(m[2]);
+    if (!lhs.length || !rhs.length) { errors.push('第 ' + (ln + 1) + ' 行：箭頭兩邊都要有屬性'); return; }
+    lhs.concat(rhs).forEach(addAttr);
+    fds.push({ lhs, rhs });
+  });
+  if (attrs.length > 14) errors.push('屬性最多 14 個');
+  return { name, attrs, fds, errors };
+}
+const nfBit = (attrs, a) => 1 << attrs.indexOf(a);
+const nfMask = (attrs, list) => list.reduce((m, a) => m | nfBit(attrs, a), 0);
+const nfPop = m => { let c = 0; while (m) { m &= m - 1; c++; } return c; };
+const nfNames = (attrs, m) => attrs.filter((a, i) => m & (1 << i));
+const nfSet = (attrs, m) => nfNames(attrs, m).join(', ');
+// F 的每一條都拆成單一右邊屬性：{l: mask, r: bit}
+function nfSplit(attrs, fds) { const out = []; fds.forEach(f => { const l = nfMask(attrs, f.lhs); f.rhs.forEach(a => out.push({ l, r: nfBit(attrs, a) })); }); return out; }
+function nfClosure(m, F, steps) {
+  let c = m, changed = true;
+  while (changed) {
+    changed = false;
+    for (const f of F) if ((f.l & c) === f.l && !(f.r & c)) { c |= f.r; changed = true; if (steps) steps.push(f); }
+  }
+  return c;
+}
+function nfKeys(all, F) {
+  const keys = [];
+  for (let size = 1; size <= nfPop(all); size++) {
+    for (let m = 1; m <= all; m++) {
+      if ((m & all) !== m || nfPop(m) !== size) continue;
+      if (keys.some(k => (k & m) === k)) continue;
+      if ((nfClosure(m, F) & all) === all) keys.push(m);
+    }
+  }
+  return keys;
+}
+// 把 F 投影到屬性子集 R：列出 R 裡所有「最小左邊」的非平凡 FD
+function nfProject(R, F) {
+  const out = [];
+  for (let S = 1; S <= R; S++) {
+    if ((S & R) !== S || S === R) continue;
+    const add = nfClosure(S, F) & R & ~S;
+    for (let b = 1; b <= add; b <<= 1) {
+      if (!(add & b)) continue;
+      let minimal = true;
+      for (let x = 1; x <= S; x <<= 1) if ((S & x) && (nfClosure(S & ~x, F) & b)) { minimal = false; break; }
+      if (minimal) out.push({ l: S, r: b });
+    }
+  }
+  return out;
+}
+// 分析一個關係（R 是屬性 mask，F 是在 R 上成立的單一右邊 FD）
+function nfAnalyze(R, F) {
+  const keys = nfKeys(R, F);
+  const prime = keys.reduce((m, k) => m | k, 0);
+  const isSuper = X => (nfClosure(X, F) & R) === R;
+  const fds = F.filter(f => !(f.r & f.l)).map(f => {
+    let kind;
+    if (isSuper(f.l)) kind = 'ok';
+    else if (f.r & prime) kind = 'bcnf';
+    else if (keys.some(k => (f.l & k) === f.l && f.l !== k)) kind = 'partial';
+    else kind = 'transitive';
+    return Object.assign({ kind }, f);
+  });
+  // 2NF 依定義精確檢查：非鍵屬性是否相依於某個鍵的「一部分」（包含推導出來的），只留最小的左邊
+  const cand = [];
+  keys.forEach(k => {
+    for (let S = 1; S < k; S++) {
+      if ((S & k) !== S) continue;
+      const got = nfClosure(S, F) & R & ~prime & ~S;
+      for (let b = 1; b <= got; b <<= 1) if ((got & b) && !cand.some(c => c.l === S && c.r === b)) cand.push({ l: S, r: b, kind: 'partial' });
+    }
+  });
+  const partial = cand.filter(c => !cand.some(d => d !== c && d.r === c.r && (d.l & c.l) === d.l && d.l !== c.l));
+  const nf = partial.length ? 1 : fds.some(f => f.kind === 'transitive') ? 2 : fds.some(f => f.kind === 'bcnf') ? 3 : 4;
+  return { R, F, keys, prime, fds, partial, nf, isSuper };
+}
+// 拆解到目標正規化形式（2 / 3 / 4=BCNF）：用違規的 X → A，拆成 X⁺ 和 R −（X⁺ − X）
+function nfDecompose(R, F, target, depth) {
+  const an = nfAnalyze(R, F);
+  const viol = (target <= 2 ? an.partial : []).concat(an.fds.filter(f => f.kind === 'partial' || (target >= 3 && f.kind === 'transitive') || (target >= 4 && f.kind === 'bcnf')));
+  const node = { an, children: null, by: null };
+  if (an.nf >= target || !viol.length || (depth || 0) > 8) return node;
+  const v = viol[0];
+  const R1 = nfClosure(v.l, F) & R, R2 = R & ~(R1 & ~v.l);
+  node.by = v;
+  node.children = [R1, R2].map(Ri => nfDecompose(Ri, nfProject(Ri, F), target, (depth || 0) + 1));
+  return node;
+}
+function nfLeaves(node) { return node.children ? node.children.flatMap(nfLeaves) : [node]; }
+// 依賴保持：每一條原本的 FD 能不能只靠拆完之後各表自己的 FD 推出來
+function nfLost(F, fragments) {
+  return F.filter(f => !(f.r & f.l)).filter(f => {
+    let Z = f.l, changed = true;
+    while (changed) { changed = false; for (const Ri of fragments) { const add = nfClosure(Z & Ri, F) & Ri; if ((add | Z) !== Z) { Z |= add; changed = true; } } }
+    return !(Z & f.r);
+  });
+}
+
+const NF_NAMES = ['', '1NF', '2NF', '3NF', 'BCNF'];
+const NF_T = {
+  zh: { keys: '所有最小鍵（候選鍵）', closure: '怎麼找到的（屬性閉包）', prime: 'Prime 屬性（出現在某個鍵裡）', nonprime: 'Nonprime 屬性', none: '（沒有）', fdHead: ['FD', '① 左邊是超鍵？', '② 右邊是 prime？', '③ 左邊是鍵的一部分？', '結論'], yes: '是', no: '否', skip: '—',
+    kind: { ok: '✓ 沒問題', bcnf: '違反 BCNF（3NF 允許）', partial: '部分相依 → 違反 2NF', transitive: '遞移相依 → 違反 3NF' },
+    derived: '另外，由 FD 推導出來的部分相依（同樣違反 2NF）：', ladder: '最高達到', atomic: '1NF：假設每一格都是單一值（這要看資料，FD 看不出來）',
+    nf2ok: '2NF ✓：沒有非鍵屬性只靠「鍵的一部分」', nf2bad: '2NF ✗：有非鍵屬性只靠鍵的一部分', nf3ok: '3NF ✓：沒有「非鍵 → 非鍵」的遞移相依', nf3bad: '3NF ✗：有非鍵屬性靠另一個非鍵屬性（遞移相依）', bcok: 'BCNF ✓：每個 FD 的左邊都是超鍵', bcbad: 'BCNF ✗：有 FD 的左邊不是超鍵',
+    decomp: '拆解到', already: '已經達到目標，不用拆。', by: '用', split: '拆成', r1: 'X⁺', r2: 'R −（X⁺ − X）', leaves: '拆完的結果', fdsIn: '這張表裡成立的 FD', lossless: '這種拆法一定是「無損」的：把拆開的表用共同屬性 JOIN 回去，會得到原本的資料，不會多出假資料。', lost: '⚠ 失去的 FD（拆完之後沒有任何一張表能檢查它）：', keep: '✓ 所有 FD 都保留下來了（每一條都能在拆完的表裡檢查）。', target: '目標' },
+  en: { keys: 'All minimal keys (candidate keys)', closure: 'How they were found (attribute closure)', prime: 'Prime attributes (in some key)', nonprime: 'Nonprime attributes', none: '(none)', fdHead: ['FD', '① LHS a superkey?', '② RHS prime?', '③ LHS part of a key?', 'Verdict'], yes: 'yes', no: 'no', skip: '—',
+    kind: { ok: '✓ fine', bcnf: 'violates BCNF (3NF allows it)', partial: 'partial dependency → violates 2NF', transitive: 'transitive dependency → violates 3NF' },
+    derived: 'Partial dependencies derived from the FDs (also violate 2NF):', ladder: 'Highest normal form', atomic: '1NF: assuming every field holds a single value (that depends on the data — FDs cannot tell)',
+    nf2ok: '2NF ✓: no nonprime attribute depends on just part of a key', nf2bad: '2NF ✗: a nonprime attribute depends on part of a key', nf3ok: '3NF ✓: no transitive nonkey → nonkey dependency', nf3bad: '3NF ✗: a nonprime attribute depends on another nonkey attribute (transitive)', bcok: 'BCNF ✓: the LHS of every FD is a superkey', bcbad: 'BCNF ✗: some FD has a LHS that is not a superkey',
+    decomp: 'Decomposition to', already: 'Already at the target — no decomposition needed.', by: 'Using', split: 'split into', r1: 'X⁺', r2: 'R − (X⁺ − X)', leaves: 'Result', fdsIn: 'FDs holding in this table', lossless: 'This kind of split is always lossless: joining the tables back on their common attributes gives exactly the original data, with no spurious rows.', lost: '⚠ Lost FDs (no table can check them after the split):', keep: '✓ Every FD is preserved (each can be checked inside some table).', target: 'Target' },
+};
+function nfFdText(A, f) { return nfSet(A, f.l) + ' → ' + nfSet(A, f.r); }
+function nfGroup(A, F) {   // 左邊一樣的 FD 合併成一行
+  const g = []; F.forEach(f => { const e = g.find(x => x.l === f.l); if (e) e.r |= f.r; else g.push({ l: f.l, r: f.r }); });
+  return g.map(f => nfFdText(A, f));
+}
+function nfRenderLab(text, target, L) {
+  const p = nfParse(text);
+  if (p.errors.length) return '<div class="lab-verdict bad">' + p.errors.map(escapeHtml).join('<br>') + '</div>';
+  if (!p.fds.length) return '<span class="placeholder">' + escapeHtml(currentLang === 'en' ? 'Write at least one FD, e.g. A -> B' : '至少寫一條 FD，例如 A -> B') + '</span>';
+  const C = currentLang === 'en' ? ': ' : '：', SEP = currentLang === 'en' ? ', ' : '、', A = p.attrs, all = (1 << A.length) - 1, F = nfSplit(A, p.fds), an = nfAnalyze(all, F), E = escapeHtml;
+  let h = '<div class="nf-schema">' + E(p.name) + '(' + A.map((a, i) => (an.prime & (1 << i)) ? '<u>' + E(a) + '</u>' : E(a)).join(', ') + ')</div>';
+  h += '<div class="lab-sub">' + L.keys + '</div><ul class="lab-list">' + an.keys.map(k => '<li><b>(' + E(nfSet(A, k)) + ')</b></li>').join('') + '</ul>';
+  h += '<details class="nf-steps"><summary>' + L.closure + '</summary><ul class="lab-list">' + an.keys.map(k => {
+    const steps = []; nfClosure(k, F, steps); let cur = k;
+    return '<li>{' + E(nfSet(A, k)) + '}⁺ = ' + E(nfSet(A, k)) + steps.map(s => { cur |= s.r; return ' <span class="nf-arrow">⟶ +' + E(nfSet(A, s.r)) + '</span> <span class="lab-tag">(' + E(nfFdText(A, s)) + ')</span>'; }).join('') + ' = ' + (currentLang === 'en' ? 'all attributes ✓' : '全部屬性 ✓') + '</li>';
+  }).join('') + '</ul></details>';
+  h += '<p class="lab-line">' + L.prime + C + '<b>' + E(nfSet(A, an.prime) || L.none) + '</b>' + (currentLang === 'en' ? '　·　' : '　') + L.nonprime + C + '<b>' + E(nfSet(A, all & ~an.prime) || L.none) + '</b></p>';
+  h += '<table class="lab-grid nf-grid"><thead><tr>' + L.fdHead.map(x => '<th>' + x + '</th>').join('') + '</tr></thead><tbody>';
+  an.fds.forEach(f => {
+    const sup = f.kind === 'ok', pr = !sup && f.kind === 'bcnf';
+    h += '<tr class="nf-' + f.kind + '"><td><code>' + E(nfFdText(A, f)) + '</code></td><td>' + (sup ? L.yes : L.no) + '</td><td>' + (sup ? L.skip : pr ? L.yes : L.no) + '</td><td>' + (sup || pr ? L.skip : f.kind === 'partial' ? L.yes : L.no) + '</td><td><b>' + L.kind[f.kind] + '</b></td></tr>';
+  });
+  h += '</tbody></table>';
+  const extra = an.partial.filter(pp => !an.fds.some(f => f.kind === 'partial' && f.l === pp.l && f.r === pp.r));
+  if (extra.length) h += '<p class="lab-line">' + L.derived + ' ' + extra.map(f => '<code>' + E(nfFdText(A, f)) + '</code>').join(SEP) + '</p>';
+  h += '<div class="nf-ladder">' + [L.atomic, an.nf >= 2 ? L.nf2ok : L.nf2bad, an.nf >= 3 ? L.nf3ok : an.nf >= 2 ? L.nf3bad : '3NF —', an.nf >= 4 ? L.bcok : an.nf >= 3 ? L.bcbad : 'BCNF —'].map((x, i) => '<div class="nf-step ' + (i + 1 <= an.nf ? 'pass' : i === an.nf ? 'fail' : 'na') + '">' + x + '</div>').join('') + '</div>';
+  h += '<div class="lab-verdict ' + (an.nf === 4 ? 'good' : 'bad') + '">' + L.ladder + C + NF_NAMES[an.nf] + '</div>';
+  // 拆解
+  const tree = nfDecompose(all, F, target);
+  h += '<div class="lab-sub">' + L.decomp + ' ' + NF_NAMES[target] + '</div>';
+  if (!tree.children) return h + '<p class="lab-line">' + L.already + '</p>';
+  const draw = (node, name) => {
+    const R = node.an.R;
+    let s = '<li><b>' + E(name) + '(' + E(nfSet(A, R)) + ')</b>';
+    if (node.children) {
+      const R1 = node.children[0].an.R, R2 = node.children[1].an.R;
+      s += ' — ' + L.by + ' <code>' + E(nfFdText(A, node.by)) + '</code>' + (currentLang === 'en' ? ' (' + L.kind[node.by.kind] + ') ' + L.split + ': ' : '（' + L.kind[node.by.kind] + '）' + L.split + '：') + L.r1 + ' = (' + E(nfSet(A, R1)) + ')' + (currentLang === 'en' ? ', ' : '，') + L.r2 + ' = (' + E(nfSet(A, R2)) + ')<ul>' + draw(node.children[0], name + '1') + draw(node.children[1], name + '2') + '</ul>';
+    } else s += ' <span class="nf-badge">' + NF_NAMES[node.an.nf] + '</span>　<span class="lab-tag">' + (currentLang === 'en' ? 'key: ' : '鍵：') + node.an.keys.map(k => '(' + E(nfSet(A, k)) + ')').join(' ') + '</span>';
+    return s + '</li>';
+  };
+  h += '<ul class="nf-tree">' + draw(tree, p.name) + '</ul>';
+  const leaves = nfLeaves(tree);
+  h += '<table class="lab-grid"><thead><tr><th>' + L.leaves + '</th><th>' + L.fdsIn + '</th></tr></thead><tbody>' + leaves.map(l => '<tr><td><b>(' + E(nfSet(A, l.an.R)) + ')</b> <span class="nf-badge">' + NF_NAMES[l.an.nf] + '</span></td><td>' + (nfGroup(A, l.an.F).map(x => '<code>' + E(x) + '</code>').join('<br>') || L.none) + '</td></tr>').join('') + '</tbody></table>';
+  h += '<p class="lab-line">' + L.lossless + '</p>';
+  const lost = nfLost(F, leaves.map(l => l.an.R));
+  h += lost.length ? '<div class="lab-verdict bad">' + L.lost + ' ' + lost.map(f => '<code>' + E(nfFdText(A, f)) + '</code>').join(SEP) + '</div>' : '<div class="lab-verdict good">' + L.keep + '</div>';
+  return h;
+}
+document.querySelectorAll('.nflab').forEach(el => {
+  const ta = el.querySelector('textarea'), out = el.querySelector('.txlab-out'), sel = el.querySelector('.nf-target');
+  const def = el.dataset.default || ta.value;
+  const run = () => { try { out.innerHTML = nfRenderLab(ta.value, Number(sel.value), NF_T[currentLang]); } catch (e) { out.innerHTML = '<div class="lab-verdict bad">⚠ ' + escapeHtml(e.message) + '</div>'; } };
+  el.querySelector('.run-btn').addEventListener('click', run);
+  sel.addEventListener('change', () => { if (out.querySelector('.nf-schema')) run(); });
+  el.querySelector('.reset-btn').addEventListener('click', () => { ta.value = def; out.innerHTML = '<span class="placeholder">' + (currentLang === 'en' ? 'Restored the original schema.' : '已還原成原本的關聯綱要。') + '</span>'; });
   ta.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); } });
 });
 
