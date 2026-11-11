@@ -592,6 +592,22 @@ CHECK
 {
   id: 'nf', title: 'Normalization', sub: 'Highest normal form · 1NF / 2NF / 3NF / BCNF', q: 'E1 Q3', color: C.norm,
   sections: [
+    { k: 'tpl', h: 'Rule table: check every FD', src: 'Week 6B (2NF); Week 7B (3NF alternative definition, BCNF)', code: `
+For every FD ⟨X → A⟩ ask:
+
+NF     Ask                                      Violates when
+⟦2NF⟧    X is ⟦part of a key⟧ and A is ⟦nonprime⟧?    ⟦yes⟧
+⟦3NF⟧    X is a ⟦superkey⟧? if not, A is ⟦prime⟧?     ⟦neither⟧
+⟦BCNF⟧   X is a ⟦superkey⟧?                          ⟦no⟧
+
+-- check every FD, not just one example 每條 FD 都要查
+-- highest NF = last level with no violation 由低往高查，卡住就停
+
+CHECK
+□ minimal keys derived first
+□ prime / nonprime listed
+□ 2NF → 3NF → BCNF tested in this order
+□ the violating FD named in the answer`, notes: [] },
     { k: 'tpl', h: 'The four definitions', src: 'Week 6B (1NF, 2NF); Week 7B (3NF, BCNF)', code: `
 ⟦1NF⟧   every row has the same number of fields and
         only ⟦atomic values⟧
