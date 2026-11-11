@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>CSIT882 Quick Notes</title>
+<style>
+  :root {
+    --bg: #eceae4; --card: #ffffff; --ink: #1c1e22; --ink2: #6b7078; --line: #b9bcc2;
+    --mark: #ffe066; --blue: #1f55b5; --red: #c0392b; --green: #2e7d4f;
+    --okbg: #dff0df; --nobg: #f6d5d3; --code: #f1f1ee; --peach: #f7e3d2;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --zoom: 1;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body { margin: 0; min-height: 100%; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans);
+         font-size: clamp(17px, 1.75vw, 22px); line-height: 1.45; }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  [hidden] { display: none !important; }
+
+  /* ---------- Home ---------- */
+  #home { min-height: 100dvh; display: flex; flex-direction: column; gap: 12px;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+             max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .mast { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mast h1 { margin: 0; font-size: clamp(22px, 2.6vw, 34px); }
+  .mast h1 small { font-weight: 400; font-size: .5em; color: var(--ink2); margin-left: 10px; }
+  .pill { border: 2px solid var(--line); border-radius: 999px; background: var(--card);
+          padding: 6px 16px; min-height: 46px; font-size: .8em; white-space: nowrap; }
+  .pill:active { background: var(--mark); }
+  #tiles { flex: 1; display: grid; gap: 12px; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 1fr; }
+  .tile { background: var(--card); border: 2px solid var(--line); border-radius: 12px; overflow: hidden;
+          text-align: left; display: flex; flex-direction: column; min-height: 120px; padding: 0; }
+  .tile:active { transform: scale(.97); }
+  .tile .bar { background: var(--c); color: #fff; font-size: .68em; font-weight: 700; padding: 5px 12px;
+               display: flex; justify-content: space-between; letter-spacing: .04em; }
+  .tile .in { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 8px 12px 12px; }
+  .tile b { font-size: clamp(19px, 2vw, 27px); line-height: 1.15; }
+  .tile span { font-size: .72em; color: var(--ink2); margin-top: 6px; line-height: 1.3; }
+  @media (orientation: portrait) { #tiles { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ---------- Unit ---------- */
+  #view { padding: 0 max(14px, env(safe-area-inset-right)) 120px max(14px, env(safe-area-inset-left)); }
+  #head { position: sticky; top: 0; z-index: 5; background: var(--bg); display: flex; flex-wrap: wrap;
+          align-items: center; gap: 4px 16px; padding: max(8px, env(safe-area-inset-top)) 0 8px; }
+  #head h2 { margin: 0; font-size: clamp(22px, 2.5vw, 32px); border-left: 10px solid var(--c); padding-left: 12px; line-height: 1.15; }
+  #head h2 small { font-weight: 400; font-size: .5em; color: var(--ink2); margin-left: 10px; }
+  .legend { margin: 0; font-size: .68em; color: var(--ink2); }
+  .legend span { margin-right: 10px; white-space: nowrap; }
+  #zoom { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  #zoom button { border: 2px solid var(--line); background: var(--card); border-radius: 8px; min-width: 50px; height: 42px; font-size: 16px; font-weight: 700; }
+  #zoom button:active { background: var(--mark); }
+  .banner { border: 2px dashed var(--red); color: var(--red); background: #fff5f3; border-radius: 8px;
+            padding: 6px 12px; margin: 0 0 12px; font-size: .85em; }
+  .unit { font-size: calc(1em * var(--zoom)); columns: 2; column-gap: 14px; scroll-margin-top: 50vh; }
+  @media (min-width: 1500px) { .unit { columns: 3; } }
+  @media (max-width: 760px) { .unit { columns: 1; } }
+  .card { break-inside: avoid; background: var(--card); border: 2px solid var(--line); border-radius: 12px;
+          overflow: hidden; margin: 0 0 14px; }
+  .card.wide { column-span: all; }
+  .card > h3 { margin: 0; background: var(--c); color: #fff; padding: 6px 14px; font-size: 1.12em;
+               display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .card > h3 small { font-weight: 400; font-size: .62em; opacity: .9; white-space: nowrap; }
+  .card > .b { padding: 10px 14px 12px; }
+  .card.trap > h3 { background: var(--red); }
+  .b > :first-child { margin-top: 0; } .b > :last-child { margin-bottom: 0; }
+  p { margin: 8px 0; }
+
+  /* highlights */
+  .k { background: var(--mark); border-radius: 4px; padding: 0 4px; font-weight: 700; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .v { color: var(--blue); font-weight: 700; }
+  .w { color: var(--red); font-weight: 700; }
+  .g { color: var(--green); font-weight: 700; }
+  .zh { color: var(--ink2); font-size: .8em; }
+  .cap { color: var(--ink2); font-size: .8em; margin: 4px 0 8px; }
+
+  ul.pts { margin: 6px 0; padding-left: 1.1em; }
+  ul.pts li { margin: 4px 0; }
+  ul.pts li::marker { color: var(--c); }
+  ol.steps { margin: 6px 0; padding: 0; list-style: none; counter-reset: s; }
+  ol.steps li { counter-increment: s; position: relative; padding: 3px 0 3px 2.1em; }
+  ol.steps li::before { content: counter(s); position: absolute; left: 0; top: .22em; width: 1.6em; height: 1.6em;
+        border-radius: 50%; background: var(--c); color: #fff; font-weight: 700; font-size: .82em;
+        display: grid; place-items: center; }
+
+  pre { margin: 8px 0; background: var(--code); border: 1.5px solid #dcdcd6; border-radius: 8px;
+        padding: 8px 10px; font-family: var(--mono); font-size: .8em; line-height: 1.45;
+        overflow-x: auto; white-space: pre; }
+  pre .c, .c { color: #8a8f98; font-weight: 400; }
+  code { font-family: var(--mono); font-size: .88em; }
+
+  table.tb { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: .88em; }
+  .tb th, .tb td { border: 1.5px solid #9a9da3; padding: 4px 8px; text-align: left; vertical-align: top; }
+  .tb th { background: #e7e7e3; }
+  .tb .ok { background: var(--okbg); } .tb .no { background: var(--nobg); }
+  .tb.ctr td, .tb.ctr th { text-align: center; } .tb.ctr td:first-child { text-align: left; }
+  .tb td.m, .tb.m td { font-family: var(--mono); font-size: .92em; }
+
+  svg.d { display: block; width: 100%; height: auto; margin: 6px auto; max-width: 620px; font-family: var(--sans); }
+  .d .bx { fill: #fff; stroke: #1c1e22; stroke-width: 2; }
+  .d .hl { fill: var(--peach); stroke: #1c1e22; stroke-width: 2; }
+  .d .ky { fill: var(--mark); stroke: #1c1e22; stroke-width: 2; }
+  .d .gh { fill: none; stroke: #8a8f98; stroke-width: 2; stroke-dasharray: 6 5; }
+  .d text { fill: #1c1e22; font-size: 17px; text-anchor: middle; }
+  .d .t { font-weight: 700; } .d .s { font-size: 14.5px; } .d .l { text-anchor: start; } .d .e { text-anchor: end; }
+  .d .cb { fill: var(--blue); font-weight: 700; } .d .cr { fill: var(--red); font-weight: 700; } .d .cg { fill: var(--green); font-weight: 700; }
+  .d .cm { fill: #6b7078; }
+  .d .ln { stroke: #1c1e22; stroke-width: 2; fill: none; }
+  .d .ab { stroke: var(--blue); stroke-width: 3; fill: none; marker-end: url(#ab); }
+  .d .ar { stroke: var(--red); stroke-width: 3; fill: none; marker-end: url(#ar); }
+  .d .ak { stroke: #1c1e22; stroke-width: 2.5; fill: none; marker-end: url(#ak); }
+  .d .da { stroke-dasharray: 6 5; }
+
+  /* UML class box (HTML) */
+  .cls { display: inline-block; border: 2px solid var(--ink); background: #fff; min-width: 9em; vertical-align: top; font-size: .9em; }
+  .cls h5 { margin: 0; text-align: center; padding: 2px 8px; border-bottom: 2px solid var(--ink); font-size: 1em; }
+  .cls ul { list-style: none; margin: 0; padding: 4px 8px; }
+  .cls li { display: flex; justify-content: space-between; gap: 14px; }
+  .cls em { font-style: normal; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-start; }
+  .row > .grow { flex: 1; min-width: 12em; }
+
+  /* chips flow */
+  .flow { display: flex; flex-wrap: wrap; gap: 6px 4px; align-items: center; margin: 8px 0; }
+  .flow > span { border: 2px solid var(--ink); border-radius: 8px; padding: 2px 10px; background: #fff; font-weight: 700; font-size: .9em; }
+  .flow > span.on { background: var(--mark); } .flow > span.pe { background: var(--peach); }
+  .flow > i { font-style: normal; color: var(--c); font-weight: 700; }
+
+  /* nested privilege levels */
+  .nest { border: 2px solid var(--ink); border-radius: 10px; padding: 4px 10px 10px; margin: 6px 0; background: #fff; }
+  .nest .nest { margin-bottom: 0; }
+  .nest > p { margin: 2px 0 4px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .n1 { background: #eef2fb; } .n2 { background: #e2f1e6; } .n3 { background: #fdf3d0; } .n4 { background: var(--peach); }
+
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .three > div { text-align: center; font-size: .82em; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 760px) { .three, .two { grid-template-columns: 1fr; } }
+
+  /* floating one-hand nav */
+  #fab { position: fixed; z-index: 10; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom));
+         display: flex; gap: 10px; align-items: center; }
+  body.left #fab { right: auto; left: max(14px, env(safe-area-inset-left)); flex-direction: row-reverse; }
+  #fab button { height: 62px; min-width: 62px; border-radius: 31px; background: #fff; border: 2px solid var(--ink);
+                font-size: 26px; font-weight: 700; box-shadow: 0 3px 10px rgba(0,0,0,.25); }
+  #fab #goHome { background: var(--mark); padding: 0 22px; font-size: 20px; }
+  #fab button:active { transform: scale(.94); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1f55b5"/></marker>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c0392b"/></marker>
+  <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1c1e22"/></marker>
+</defs></svg>
+
+<!-- ======================= HOME ======================= -->
+<div id="home">
+  <div class="mast">
+    <h1>CSIT882 Quick Notes <small>Final exam · tap a unit 點單元進入</small></h1>
+    <button class="pill" id="hand">Right hand ☞</button>
+  </div>
+  <div id="tiles"></div>
+</div>
+
+<!-- ======================= UNIT VIEW ======================= -->
+<main id="view" hidden>
+  <div id="head">
+    <h2 id="uTitle"></h2>
+    <p class="legend"><span><b class="k">yellow</b> must write 必寫</span><span><b class="v">blue</b> you fill in 可替換</span><span><b class="w">red</b> trap 陷阱</span></p>
+    <span id="zoom"><button id="zOut" aria-label="smaller text">A−</button><button id="zIn" aria-label="larger text">A+</button></span>
+  </div>
+
+<!-- ---------------------------------------------------------------- 1 CONCEPTUAL -->
+<section class="unit" id="conceptual" data-title="Conceptual Model" data-sub="Text → UML class diagram" data-q="Q1" data-c="#1d4f91">
+  <div class="card"><h3>6 steps, in this order <small>Q1</small></h3><div class="b">
+    <ol class="steps">
+      <li><b class="k">Classes</b>: nouns → boxes <span class="zh">名詞</span></li>
+      <li><b class="k">Associations</b>: verbs → lines + numbers <span class="zh">動詞</span></li>
+      <li><b class="k">Attributes</b>: "is described by …"</li>
+      <li><b class="k">Identifiers</b>: "unique / identified by" → ID</li>
+      <li><b class="k">Qualifications</b>: "unique within …"</li>
+      <li><b class="k">Generalizations</b>: "two groups / three types of"</li>
+    </ol>
+  </div></div>
+
+  <div class="card"><h3>Class box <small>attribute tags</small></h3><div class="b">
+    <div class="row">
+      <div class="cls"><h5>STUDENT</h5><ul>
+        <li>student# <em class="v">ID1</em></li>
+        <li>name <em class="v">ID2</em></li>
+        <li>dob <em class="v">ID2</em></li>
+        <li>phone <em class="v">[*]</em></li>
+        <li>email <em class="v">[0..1]</em></li>
+        <li><span><b class="v">/</b>age</span></li>
+      </ul></div>
+      <ul class="pts grow">
+        <li><b>ID1</b> identifier <span class="zh">識別</span></li>
+        <li><b>ID2 + ID2</b> = one composite identifier <span class="zh">同標籤＝合起來</span></li>
+        <li><b>[*] / [1..*]</b> multivalued <span class="zh">多值</span></li>
+        <li><b>[0..1]</b> optional <span class="zh">可無</span></li>
+        <li><b>/</b> derived <span class="zh">可算出</span></li>
+        <li>no tag = exactly one</li>
+      </ul>
+    </div>
+  </div></div>
+
+  <div class="card"><h3>Association + multiplicity</h3><div class="b">
+    <svg class="d" viewBox="0 0 520 86">
+      <rect class="bx" x="4" y="24" width="150" height="44"/><text class="t" x="79" y="52">DEPARTMENT</text>
+      <rect class="bx" x="366" y="24" width="150" height="44"/><text class="t" x="441" y="52">COURSE</text>
+      <path class="ln" d="M154 46H366"/>
+      <text x="260" y="36">Offers ▸</text>
+      <text class="cb" x="170" y="68">1</text><text class="cb" x="344" y="68">1..*</text>
+    </svg>
+    <ul class="pts">
+      <li>Number sits at the <b class="k">far end</b>: "one department offers <b class="v">1..*</b> courses" → write it beside COURSE. <span class="zh">數字寫在對面</span></li>
+    </ul>
+    <table class="tb">
+      <tr><th>Words</th><th>Write</th></tr>
+      <tr><td>zero or more / many</td><td class="m v">*</td></tr>
+      <tr><td>one or more</td><td class="m v">1..*</td></tr>
+      <tr><td>at most two</td><td class="m v">0..2</td></tr>
+      <tr><td>only one / each … by one</td><td class="m v">1</td></tr>
+      <tr><td>may have one <span class="zh">可有可無</span></td><td class="m v">0..1</td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>Association class <small>link attribute</small></h3><div class="b">
+    <svg class="d" viewBox="0 0 520 170">
+      <rect class="bx" x="4" y="10" width="140" height="44"/><text class="t" x="74" y="38">STUDENT</text>
+      <rect class="bx" x="376" y="10" width="140" height="44"/><text class="t" x="446" y="38">COURSE</text>
+      <path class="ln" d="M144 32H376"/><text x="260" y="24">Enrols</text>
+      <text class="cb" x="166" y="54">1..*</text><text class="cb" x="360" y="54">*</text>
+      <path class="ln da" d="M260 32V92"/>
+      <rect class="hl" x="160" y="92" width="200" height="72"/><path class="ln" d="M160 118H360"/>
+      <text class="t" x="260" y="112">ENROLMENT</text>
+      <text class="s" x="260" y="138">date</text><text class="s" x="260" y="157">finalGrade [0..1]</text>
+    </svg>
+    <ul class="pts">
+      <li>Attribute describes the <b class="k">pair</b>, not either class → hang it on the line. <span class="zh">屬於「關係」的屬性</span></li>
+      <li>Empty header = link attribute. Named header = association class.</li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>Qualification <small>"unique within"</small></h3><div class="b">
+    <svg class="d" viewBox="0 0 520 96">
+      <rect class="bx" x="4" y="20" width="130" height="50"/><text class="t" x="69" y="42">WARD</text><text class="s" x="69" y="61">name ID</text>
+      <rect class="ky" x="134" y="30" width="80" height="30"/><text class="s t" x="174" y="50">deck#</text>
+      <path class="ln" d="M214 45H386"/><text x="300" y="36">Has</text><text class="cb" x="366" y="66">0..1</text>
+      <rect class="bx" x="386" y="20" width="130" height="50"/><text class="t" x="451" y="51">DECK</text>
+    </svg>
+    <ul class="pts">
+      <li><b class="k">Local identifier</b> in a small box glued to the owner. <span class="zh">區域編號</span></li>
+      <li>Real identifier of DECK = <b class="v">(ward name, deck#)</b>.</li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>Generalization <small>IS-A</small></h3><div class="b">
+    <svg class="d" viewBox="0 0 520 190">
+      <rect class="bx" x="170" y="6" width="180" height="60"/><path class="ln" d="M170 32H350"/>
+      <text class="t" x="260" y="26">STUDENT</text><text class="s" x="260" y="54">student#, name</text>
+      <path class="bx" d="M260 66L248 86H272Z"/>
+      <path class="ln" d="M260 86V104M110 104H410M110 104V124M410 104V124"/>
+      <rect class="bx" x="10" y="124" width="200" height="60"/><path class="ln" d="M10 150H210"/>
+      <text class="t" x="110" y="144">UNDERGRADUATE</text><text class="s" x="110" y="172">projectTitle</text>
+      <rect class="bx" x="310" y="124" width="200" height="60"/><path class="ln" d="M310 150H510"/>
+      <text class="t" x="410" y="144">POSTGRADUATE</text><text class="s" x="410" y="172">thesisTitle</text>
+    </svg>
+    <ul class="pts">
+      <li>Shared attributes <b class="k">up</b>, special attributes <b class="k">down</b>. Triangle points to the parent. <span class="zh">共用放上層</span></li>
+    </ul>
+  </div></div>
+
+  <div class="card trap"><h3>Traps <small>Q1</small></h3><div class="b">
+    <ul class="pts">
+      <li><b class="w">No artificial id</b> (no <code>xxx_id</code>).</li>
+      <li><b class="w">No attribute</b> the text does not mention.</li>
+      <li><b class="w">Both ends</b> of every line need a number.</li>
+      <li><b class="w">Skip derivable lines</b>: A–B and B–C exist → no A–C.</li>
+      <li>Only the final diagram is marked. No essay.</li>
+    </ul>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 2 LOGICAL -->
+<section class="unit" id="logical" data-title="Logical Design" data-sub="UML → relational schemas" data-q="Q2" data-c="#a8521f">
+  <div class="card wide"><h3>十步 10 steps <small>Q2</small></h3><div class="b">
+    <table class="tb">
+      <tr><th>#</th><th>對象</th><th>一句話做法</th></tr>
+      <tr><td>1</td><td><b class="k">Multivalued attribute</b></td><td>升級成新 class，該屬性當它的 identifier。共享用 <b class="v">M:N</b>，專屬用 <b class="v">1:N</b></td></tr>
+      <tr><td>2</td><td><b class="k">Association class / link attribute</b></td><td>link attribute 先升級成 association class，再拆成兩條 <b class="v">1:N</b>，各加 qualification</td></tr>
+      <tr><td>3</td><td><b class="k">M:N</b></td><td>建新 class，兩邊各接 <b class="v">1:N</b>，新 class 的 identifier = 兩邊 identifier 組合</td></tr>
+      <tr><td>4</td><td><b class="k">Qualification</b></td><td>屬性複製到 N 側，N 側變 composite identifier（<b class="v">IDn</b>），1 側來的屬性標 <b class="v">FKn</b>，multiplicity 0..1 改成 * 或 1..*，移除 qualification</td></tr>
+      <tr><td>5</td><td><b class="k">建 FK</b></td><td>1 側 identifier 複製到 N 側，標 <b class="v">FKn</b></td></tr>
+      <tr><td>6</td><td><b class="k">1:1</b></td><td>合併成一個 class。可選側屬性標 <b class="v">[0..1]</b>，必選側 identifier 標 <b class="v">IDn</b>，可選側 identifier 標 <b class="v">CKn</b>（可為 NULL）</td></tr>
+      <tr><td>7</td><td><b class="k">Generalization</b></td><td>見下表</td></tr>
+      <tr><td>8</td><td><b class="k">選 key</b></td><td>一個 identifier 標 <b class="v">PK</b>，其他標 <b class="v">CKn</b></td></tr>
+      <tr><td>9</td><td><b class="k">移除 association</b></td><td>每個 FKn 補 <b class="v">REFERENCES</b> 指向對方的 PK</td></tr>
+      <tr><td>10</td><td><b class="k">寫 schema</b></td><td>PK、CK、FK 寫成 relational schema</td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>Generalization 三選一 <small>step 7</small></h3><div class="b">
+    <table class="tb">
+      <tr><th>方法</th><th>結果</th><th>做法</th></tr>
+      <tr><td class="ok"><b>Superset</b></td><td class="ok">剩一個 class</td><td class="ok">子類屬性往上複製標 <b class="k">[0..1]</b>，加 <b class="k">type</b> 屬性，刪子類</td></tr>
+      <tr><td><b>Subset</b></td><td>剩最底層 class</td><td>父類屬性往下複製，刪上層</td></tr>
+      <tr><td><b>Association</b></td><td>全部保留</td><td>父類 identifier 複製給子類並標 <b class="k">FKn</b></td></tr>
+    </table>
+<pre>TSERVICE(departure-city, …, rego,
+         <b class="k">tserviceType</b>,
+         total-days <b class="k">[0..1]</b>, total-hours <b class="k">[0..1]</b>)</pre>
+  </div></div>
+
+  <div class="card"><h3>Answer format <small>write exactly this</small></h3><div class="b">
+<pre><b class="v">ROOM</b>(bldg#, room#, area)
+  <b class="k">PRIMARY KEY</b> = (bldg#, room#)
+
+<b class="v">EQUIPMENT</b>(serialnum, name, bldg#, room#)
+  <b class="k">PRIMARY KEY</b> = (serialnum)
+  <b class="k">CANDIDATE KEY</b> = (name)      <span class="c">-- only if ID2 exists</span>
+  <b class="k">FOREIGN KEY</b> = (bldg#, room#)
+     <b class="k">REFERENCES</b> ROOM(bldg#, room#)</pre>
+    <p class="cap">Four things per table: attributes, PK, CK (if any), FK (if any). <span class="zh">四項缺一不可</span></p>
+  </div></div>
+
+  <div class="card"><h3>M:N or association class <small>steps 2, 3</small></h3><div class="b">
+    <svg class="d" viewBox="0 0 520 210">
+      <rect class="bx" x="14" y="8" width="150" height="50"/><text class="t" x="89" y="30">STUDENT</text><text class="s" x="89" y="49">s#</text>
+      <rect class="bx" x="356" y="8" width="150" height="50"/><text class="t" x="431" y="30">SUBJECT</text><text class="s" x="431" y="49">code</text>
+      <rect class="hl" x="110" y="124" width="300" height="80"/>
+      <text class="t" x="260" y="148">ENROLMENT</text>
+      <text class="cr" x="260" y="172">PK = (s#, code)</text>
+      <text class="s" x="260" y="194">FK1: s#   FK2: code   + edate</text>
+      <path class="ab" d="M180 124L112 62"/><path class="ab" d="M340 124L408 62"/>
+    </svg>
+    <ul class="pts">
+      <li>Middle table: <b class="k">PK = both identifiers</b>, each one is also an FK. <span class="zh">中間表</span></li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>Worked example <small>Exam 3 Q2</small></h3><div class="b">
+    <svg class="d" viewBox="0 0 520 250">
+      <rect class="bx" x="4" y="90" width="96" height="50"/><text class="t" x="52" y="112">BUS</text><text class="s" x="52" y="131">rego</text>
+      <rect class="hl" x="170" y="80" width="180" height="70"/><text class="t" x="260" y="102">TSERVICE</text><text class="s" x="260" y="121">PK dep, dest, time</text><text class="s cr" x="260" y="140">FK rego · type</text>
+      <rect class="bx" x="420" y="90" width="96" height="50"/><text class="t" x="468" y="112">DRIVER</text><text class="s" x="468" y="131">dlnumber</text>
+      <rect class="hl" x="330" y="4" width="186" height="52"/><text class="t" x="423" y="26">ASSIGNMENT</text><text class="s" x="423" y="46">PK = TSERVICE PK + dl#</text>
+      <rect class="hl" x="170" y="190" width="180" height="54"/><text class="t" x="260" y="212">STOP</text><text class="s" x="260" y="232">PK = TSERVICE PK + snumber</text>
+      <path class="ab" d="M170 115H104"/>
+      <path class="ab" d="M360 56L330 80"/><path class="ab" d="M455 56L465 88"/>
+      <path class="ab" d="M260 190V154"/>
+      <text class="s cm l" x="6" y="176">1:N → FK</text><text class="s cm e" x="516" y="176">M:N → middle</text><text class="s cm l" x="270" y="176">qualification</text>
+    </svg>
+    <ul class="pts">
+      <li>Arrows = FK direction <span class="zh">箭頭＝外鍵指向</span>. DRIVER: enumber (ID2) → <b class="k">CANDIDATE KEY</b>.</li>
+    </ul>
+  </div></div>
+
+  <div class="card trap"><h3>Traps <small>Q2</small></h3><div class="b">
+    <ul class="pts">
+      <li><b class="w">FK references the whole PK</b>: <code>(bldg#, room#) REFERENCES ROOM(bldg#, room#)</code>, never only <code>room#</code>.</li>
+      <li><b class="w">FK columns must be in the attribute list.</b></li>
+      <li><b class="w">Superset</b>: forgetting the type attribute or [0..1].</li>
+      <li>The practice solutions slip on the first two. Follow the rule, not the slip. <span class="zh">解答有瑕疵，照規則寫</span></li>
+    </ul>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 3 KEYS -->
+<section class="unit" id="keys" data-title="Minimal Keys" data-sub="FDs → keys → prime / nonprime" data-q="Q3" data-c="#7a3b69">
+  <div class="card"><h3>Find the key <small>Exam 1 Q3 (2)</small></h3><div class="b">
+    <p>R = (A, B, C, D, E) &nbsp; F = {AC → B, B → D, D → E}</p>
+    <svg class="d" viewBox="0 0 520 96">
+      <rect class="gh" x="6" y="6" width="74" height="84" rx="10"/>
+      <circle class="ky" cx="43" cy="28" r="17"/><text class="t" x="43" y="34">A</text>
+      <circle class="ky" cx="43" cy="68" r="17"/><text class="t" x="43" y="74">C</text>
+      <circle class="bx" cx="190" cy="48" r="19"/><text class="t" x="190" y="54">B</text>
+      <circle class="bx" cx="330" cy="48" r="19"/><text class="t" x="330" y="54">D</text>
+      <circle class="bx" cx="470" cy="48" r="19"/><text class="t" x="470" y="54">E</text>
+      <path class="ab" d="M82 48H168"/><path class="ab" d="M210 48H308"/><path class="ab" d="M350 48H448"/>
+      <text class="s cm" x="125" y="38">AC → B</text>
+    </svg>
+    <ol class="steps">
+      <li><b class="k">Never on a right side</b> → in every key: <b class="v">A, C</b> <span class="zh">沒人能推出它</span></li>
+      <li><b class="k">Derive everything</b>: AC → B → D → E ✔ all of R</li>
+      <li><b class="k">Minimal?</b> A alone ✘, C alone ✘ → yes</li>
+      <li><b class="k">Second key?</b> Only if some FD points back into the key</li>
+      <li>Write: <b class="v">K = (A, C)</b> · prime A, C · nonprime B, D, E</li>
+    </ol>
+  </div></div>
+
+  <div class="card"><h3>How to write the derivation</h3><div class="b">
+<pre>AC → B and B → D, so AC → D   <b class="k">(transitivity)</b>
+B → D and D → E, so B → E     <b class="k">(transitivity)</b>
+AC → BDE                      <b class="k">(union)</b>
+AC → ABCDE, minimal key <b class="v">K1 = (A, C)</b></pre>
+    <p class="cap">One line per step, rule name on each line. <span class="zh">每行寫規則名</span></p>
+  </div></div>
+
+  <div class="card"><h3>Armstrong rules</h3><div class="b">
+    <table class="tb">
+      <tr><th>Rule</th><th>If</th><th>Then</th></tr>
+      <tr><td><b>Reflexivity</b></td><td class="m">Y ⊆ X</td><td class="m">X → Y</td></tr>
+      <tr><td><b>Augmentation</b> <span class="zh">兩邊加</span></td><td class="m">X → Y</td><td class="m">XZ → YZ</td></tr>
+      <tr><td><b>Transitivity</b> <span class="zh">接龍</span></td><td class="m">X → Y, Y → Z</td><td class="m">X → Z</td></tr>
+      <tr><td><b>Union</b> <span class="zh">合併</span></td><td class="m">X → Y, X → Z</td><td class="m">X → YZ</td></tr>
+      <tr><td><b>Decomposition</b> <span class="zh">拆開</span></td><td class="m">X → YZ</td><td class="m">X → Y, X → Z</td></tr>
+      <tr><td><b>Pseudotransitivity</b></td><td class="m">X → Y, WY → Z</td><td class="m">WX → Z</td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>Vocabulary</h3><div class="b">
+    <div class="nest n1"><p><b>Superkey</b><span>determines all of R <span class="zh">能決定全部</span></span></p>
+      <div class="nest n3"><p><b>Minimal key</b><span>nothing can be removed <span class="zh">不能再少</span></span></p>
+        <div class="nest n4"><p><b>Primary key</b><span>the one you pick</span></p></div>
+      </div>
+    </div>
+    <ul class="pts">
+      <li>Other minimal keys = <b class="k">candidate keys</b>.</li>
+      <li><b class="k">Prime</b> = in at least one key. <b class="k">Nonprime</b> = in none.</li>
+    </ul>
+  </div></div>
+
+  <div class="card trap"><h3>Traps <small>keys</small></h3><div class="b">
+    <ul class="pts">
+      <li><b class="w">Not minimal</b>: if (A, B) already works, (A, B, D) is not a key.</li>
+      <li><b class="w">Missed second key</b>: F = {A → BCDE, B → A} → keys are A <b>and</b> B.</li>
+      <li>Wrong keys → wrong prime list → every NF test wrong.</li>
+    </ul>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 4 NF -->
+<section class="unit" id="nf" data-title="Normal Forms" data-sub="Highest of 1NF / 2NF / 3NF / BCNF" data-q="Q3" data-c="#7a3b69">
+  <div class="card"><h3>Ladder: test every FD X → A <small>Q3</small></h3><div class="b">
+    <table class="tb">
+      <tr><th>Test</th><th>Broken when</th><th>Then highest</th></tr>
+      <tr><td><b>2NF</b></td><td>X is <b class="k">part of a key</b> and A is <b class="k">nonprime</b></td><td class="no"><b>1NF</b> stop</td></tr>
+      <tr><td><b>3NF</b></td><td>X is <b class="k">not a superkey</b> and A is <b class="k">nonprime</b></td><td class="no"><b>2NF</b> stop</td></tr>
+      <tr><td><b>BCNF</b></td><td>X is <b class="k">not a superkey</b></td><td class="no"><b>3NF</b></td></tr>
+      <tr><td colspan="2">Nothing broken</td><td class="ok"><b>BCNF</b></td></tr>
+    </table>
+    <p class="cap">Go bottom-up, stop at the first break. <span class="zh">由低往高查，卡住就停</span></p>
+  </div></div>
+
+  <div class="card"><h3>The three breaks as pictures</h3><div class="b">
+    <div class="three">
+      <div><svg class="d" viewBox="0 0 200 110">
+        <rect class="gh" x="6" y="8" width="62" height="94" rx="10"/><text class="s cm" x="37" y="60">key</text>
+        <circle class="ky" cx="37" cy="28" r="16"/><text class="t" x="37" y="34">A</text>
+        <circle class="ky" cx="37" cy="84" r="16"/><text class="t" x="37" y="90">B</text>
+        <circle class="bx" cx="160" cy="28" r="16"/><text class="t" x="160" y="34">C</text>
+        <path class="ar" d="M55 28H140"/>
+      </svg><b class="w">Partial</b> ✘ 2NF<br><span class="zh">key 的一部分 → 非主屬性</span></div>
+      <div><svg class="d" viewBox="0 0 200 110">
+        <circle class="ky" cx="30" cy="55" r="16"/><text class="t" x="30" y="61">A</text>
+        <circle class="bx" cx="100" cy="55" r="16"/><text class="t" x="100" y="61">B</text>
+        <circle class="bx" cx="170" cy="55" r="16"/><text class="t" x="170" y="61">C</text>
+        <path class="ab" d="M48 55H80"/><path class="ar" d="M118 55H150"/>
+        <text class="s cm" x="30" y="92">key</text>
+      </svg><b class="w">Transitive</b> ✘ 3NF<br><span class="zh">非 key → 非主屬性</span></div>
+      <div><svg class="d" viewBox="0 0 200 110">
+        <rect class="gh" x="6" y="8" width="62" height="94" rx="10"/><text class="s cm" x="37" y="60">key</text>
+        <circle class="ky" cx="37" cy="28" r="16"/><text class="t" x="37" y="34">A</text>
+        <circle class="ky" cx="37" cy="84" r="16"/><text class="t" x="37" y="90">B</text>
+        <circle class="bx" cx="160" cy="55" r="16"/><text class="t" x="160" y="61">C</text>
+        <path class="ab" d="M70 50H140"/><path class="ar" d="M146 66L57 86"/>
+      </svg><b class="g">3NF ok</b>, ✘ BCNF<br><span class="zh">非 superkey → 主屬性</span></div>
+    </div>
+  </div></div>
+
+  <div class="card"><h3>Instant answers <small>shortcuts</small></h3><div class="b">
+    <table class="tb">
+      <tr><th>You see</th><th>So</th></tr>
+      <tr><td>All keys are <b class="k">single attributes</b></td><td class="ok">2NF for sure</td></tr>
+      <tr><td><b class="k">No nonprime</b> attributes</td><td class="ok">at least 3NF</td></tr>
+      <tr><td>Only <b class="k">2 attributes</b></td><td class="ok">BCNF</td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>Answer sentences <small>fill the blanks</small></h3><div class="b">
+<pre>Minimal key = (<b class="v">A, B</b>).  Nonprime: <b class="v">C, D</b>.
+
+<b class="k">Not in 2NF</b>: nonprime <b class="v">C</b> depends on a part
+(<b class="v">A</b>) of the key (<b class="v">A, B</b>).  FD: <b class="v">A → C</b>.
+
+<b class="k">In 2NF</b>: no nonprime attribute depends on
+a part of a key.
+<b class="k">Not in 3NF</b>: <b class="v">D</b> is transitively dependent
+on the key:  <b class="v">A → B</b> and <b class="v">B → D</b>.
+
+<b class="k">In 3NF</b>: right side <b class="v">B</b> of <b class="v">C → B</b> is prime.
+<b class="k">Not in BCNF</b>: <b class="v">C</b> is not a superkey.
+
+<b class="k">The highest normal form is</b> <b class="v">2NF</b>.</pre>
+  </div></div>
+
+  <div class="card"><h3>Exam 1 Q3 at a glance</h3><div class="b">
+    <table class="tb">
+      <tr><th>F</th><th>Keys</th><th>Break</th><th>Highest</th></tr>
+      <tr><td class="m">A→C, B→D</td><td class="m">(A,B)</td><td>A→C partial</td><td class="no"><b>1NF</b> <b class="w">*</b></td></tr>
+      <tr><td class="m">AC→B, B→D, D→E</td><td class="m">(A,C)</td><td>B→D transitive</td><td class="no"><b>2NF</b></td></tr>
+      <tr><td class="m">A→BCDE, B→A, C→D</td><td class="m">(A), (B)</td><td>C→D, D nonprime</td><td class="no"><b>2NF</b> <b class="w">*</b></td></tr>
+      <tr><td class="m">A→CE, AB→D</td><td class="m">(A,B)</td><td>A→CE partial</td><td class="no"><b>1NF</b></td></tr>
+    </table>
+    <p class="cap"><b class="w">*</b> The practice solution says 3NF and 1NF here, using keys that are not minimal: (A,B,D) and (A,C). The rows above follow the definitions. Ask the lecturer which is expected. <span class="zh">與解答不同，建議向老師確認</span></p>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 5 SELECT -->
+<section class="unit" id="select" data-title="SELECT" data-sub="Clause order · WHERE · NULL" data-q="SQL" data-c="#1f6f54">
+  <div class="card"><h3>Write order vs run order</h3><div class="b">
+    <table class="tb">
+      <tr><th>Write <span class="zh">書寫順序</span></th><th>Job</th><th>Runs</th></tr>
+      <tr><td><b class="k">SELECT</b></td><td>pick columns</td><td>5</td></tr>
+      <tr><td><b class="k">FROM</b> … JOIN</td><td>get tables</td><td>1</td></tr>
+      <tr><td><b class="k">WHERE</b></td><td>filter <b>rows</b></td><td>2</td></tr>
+      <tr><td><b class="k">GROUP BY</b></td><td>make groups</td><td>3</td></tr>
+      <tr><td><b class="k">HAVING</b></td><td>filter <b>groups</b></td><td>4</td></tr>
+      <tr><td><b class="k">ORDER BY</b></td><td>sort</td><td>6</td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>WHERE toolbox</h3><div class="b">
+    <table class="tb">
+      <tr><th>Need</th><th>Write</th></tr>
+      <tr><td>compare</td><td class="m">= &nbsp;&lt;&gt; &nbsp;&lt; &nbsp;&lt;= &nbsp;&gt; &nbsp;&gt;=</td></tr>
+      <tr><td>range, inclusive <span class="zh">含兩端</span></td><td class="m"><b class="k">BETWEEN</b> 100 <b class="k">AND</b> 500</td></tr>
+      <tr><td>one of a list</td><td class="m"><b class="k">IN</b> (2, 3)</td></tr>
+      <tr><td>contains text</td><td class="m"><b class="k">LIKE</b> '%Stainless%'</td></tr>
+      <tr><td>unknown / missing</td><td class="m"><b class="k">IS NULL</b> &nbsp;<span class="w">never = NULL</span></td></tr>
+      <tr><td>combine</td><td class="m">AND &nbsp;OR &nbsp;NOT</td></tr>
+    </table>
+    <p class="cap"><code>%</code> any text, <code>_</code> one character. Text and dates go in <b>'single quotes'</b>.</p>
+  </div></div>
+
+  <div class="card"><h3>Handy pieces</h3><div class="b">
+    <table class="tb">
+      <tr><td class="m"><b class="k">DISTINCT</b> col</td><td>remove duplicates <span class="zh">去重複</span></td></tr>
+      <tr><td class="m"><b class="k">ORDER BY</b> col <b class="k">DESC</b></td><td>sort, largest first</td></tr>
+      <tr><td class="m">col <b class="k">AS</b> name</td><td>rename a column</td></tr>
+      <tr><td class="m"><b class="k">YEAR(</b>date<b class="k">)</b></td><td>year of a date</td></tr>
+      <tr><td class="m">COUNT &nbsp;SUM &nbsp;AVG &nbsp;MIN &nbsp;MAX</td><td>aggregates <span class="zh">彙總</span></td></tr>
+      <tr><td class="m"><b class="k">CONCAT(</b>'Truck ', REGNUM<b class="k">)</b></td><td>glue text</td></tr>
+      <tr><td class="m">q1 <b class="k">UNION</b> q2</td><td>stack two results</td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>Examples <small>single table</small></h3><div class="b">
+<pre><span class="c">-- ABC products under 10        (E1 Q4-1)</span>
+SELECT pNumber, price, manufacturer
+FROM Product
+WHERE manufacturer = <b class="v">'ABC Pty Ltd'</b>
+  <b class="k">AND</b> price &lt; <b class="v">10</b>;
+
+<span class="c">-- capacity 100 to 500 inclusive (E3 Q3-1)</span>
+SELECT REGNUM
+FROM TRUCK
+WHERE CAPACITY <b class="k">BETWEEN</b> 100 <b class="k">AND</b> 500;
+
+<span class="c">-- departure + destination pairs (E3 Q3-5)</span>
+SELECT <b class="k">DISTINCT</b> DEPARTURE, DESTINATION
+FROM TRIPLEG;</pre>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 6 JOIN -->
+<section class="unit" id="join" data-title="JOIN & GROUP BY" data-sub="LEFT OUTER JOIN · COUNT · HAVING" data-q="SQL" data-c="#1f6f54">
+  <div class="card"><h3>JOIN vs LEFT OUTER JOIN</h3><div class="b">
+    <div class="two">
+      <div><svg class="d" viewBox="0 0 240 130">
+        <defs><clipPath id="cj"><circle cx="85" cy="65" r="55"/></clipPath></defs>
+        <circle cx="155" cy="65" r="55" fill="#ffe066" clip-path="url(#cj)"/>
+        <circle class="ln" cx="85" cy="65" r="55"/><circle class="ln" cx="155" cy="65" r="55"/>
+        <text class="t" x="50" y="70">A</text><text class="t" x="190" y="70">B</text>
+      </svg><p style="text-align:center;margin:0"><b class="k">JOIN</b><br>only matches <span class="zh">有配對的</span></p></div>
+      <div><svg class="d" viewBox="0 0 240 130">
+        <circle cx="85" cy="65" r="55" fill="#ffe066"/>
+        <circle class="ln" cx="85" cy="65" r="55"/><circle class="ln" cx="155" cy="65" r="55"/>
+        <text class="t" x="50" y="70">A</text><text class="t" x="190" y="70">B</text>
+      </svg><p style="text-align:center;margin:0"><b class="k">LEFT OUTER JOIN</b><br>all of A, gaps = NULL <span class="zh">左邊全留</span></p></div>
+    </div>
+    <table class="tb" style="margin-top:10px">
+      <tr><th>BANK</th><th>BRANCH</th><th>JOIN</th><th>LEFT JOIN</th></tr>
+      <tr><td>NAB</td><td>City, Uni</td><td class="ok">2 rows</td><td class="ok">2 rows</td></tr>
+      <tr><td>ANZ</td><td><span class="w">none</span></td><td class="no">gone</td><td class="ok">ANZ, <b>NULL</b></td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>JOIN skeleton</h3><div class="b">
+<pre>SELECT <b class="v">a.col, b.col</b>
+FROM <b class="v">A</b> <b class="k">AS</b> a
+<b class="k">JOIN</b> <b class="v">B</b> <b class="k">AS</b> b
+  <b class="k">ON</b> a.<b class="v">key</b> = b.<b class="v">key</b>;
+<span class="c">-- composite key: ON a.k1 = b.k1 AND a.k2 = b.k2</span></pre>
+    <ul class="pts">
+      <li>Join on <b class="k">FK = PK</b>. Read the FOREIGN KEY lines of the CREATE TABLEs. <span class="zh">看外鍵決定 ON</span></li>
+      <li>Same column name in both tables → prefix it: <code>t.REGNUM</code>.</li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>GROUP BY: many rows → one per group</h3><div class="b">
+    <svg class="d" viewBox="0 0 520 150">
+      <g class="s">
+      <rect x="6" y="8" width="150" height="26" fill="#dce7fb" stroke="#1c1e22"/><text x="81" y="27">NAB · City</text>
+      <rect x="6" y="34" width="150" height="26" fill="#dce7fb" stroke="#1c1e22"/><text x="81" y="53">NAB · Uni</text>
+      <rect x="6" y="60" width="150" height="26" fill="#dff0df" stroke="#1c1e22"/><text x="81" y="79">CBA · Mall</text>
+      <rect x="6" y="86" width="150" height="26" fill="#f6d5d3" stroke="#1c1e22"/><text x="81" y="105">ANZ · NULL</text>
+      <rect x="364" y="22" width="150" height="26" fill="#dce7fb" stroke="#1c1e22"/><text x="439" y="41">NAB · 2</text>
+      <rect x="364" y="48" width="150" height="26" fill="#dff0df" stroke="#1c1e22"/><text x="439" y="67">CBA · 1</text>
+      <rect x="364" y="74" width="150" height="26" fill="#f6d5d3" stroke="#1c1e22"/><text x="439" y="93">ANZ · 0</text>
+      </g>
+      <path class="ab" d="M166 60H352"/>
+      <text class="t" x="260" y="46">GROUP BY bank</text><text class="s" x="260" y="84">COUNT(br_name)</text>
+      <text class="s cm" x="81" y="136">rows after JOIN</text><text class="s cm" x="439" y="124">one row per bank</text>
+    </svg>
+    <ul class="pts">
+      <li><b class="k">WHERE</b> filters rows before grouping. <b class="k">HAVING</b> filters groups after. <span class="zh">前篩列，後篩組</span></li>
+      <li>Every SELECT column is either in GROUP BY or inside COUNT/SUM/….</li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>Include the zeros <small>Exam 2 Q3-1</small></h3><div class="b">
+<pre>SELECT ba.bank_name, <b class="k">COUNT(br.br_name)</b>
+FROM BANK AS ba
+<b class="k">LEFT OUTER JOIN</b> BRANCH AS br
+  ON ba.bank_name = br.bank_name
+<b class="k">GROUP BY</b> ba.bank_name;</pre>
+    <table class="tb">
+      <tr><td class="ok m">COUNT(br.br_name)</td><td class="ok">skips NULL → <b>0</b> ✔</td></tr>
+      <tr><td class="no m">COUNT(*)</td><td class="no">counts the NULL row → <b class="w">1</b> ✘</td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>No zeros needed <small>Exam 3 Q3-4</small></h3><div class="b">
+<pre>SELECT <b class="k">t.</b>REGNUM, COUNT(tr.TNUM)
+FROM TRUCK AS t
+<b class="k">JOIN</b> TRIP AS tr ON t.REGNUM = tr.REGNUM
+GROUP BY t.REGNUM;
+
+<span class="c">-- only groups above a limit</span>
+… GROUP BY t.REGNUM
+<b class="k">HAVING</b> COUNT(tr.TNUM) &gt; <b class="v">100</b>;</pre>
+    <p class="cap">A condition on a COUNT goes in <b>HAVING</b>, not WHERE.</p>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 7 SUBQUERY -->
+<section class="unit" id="nested" data-title="Subquery · WITH · VIEW" data-sub="IN · NOT IN · EXISTS" data-q="SQL" data-c="#1f6f54">
+  <div class="card"><h3>IN (subquery): inner list feeds outer</h3><div class="b">
+    <svg class="d" viewBox="0 0 520 120">
+      <rect class="hl" x="6" y="30" width="200" height="60"/><text class="t" x="106" y="55">inner query</text><text class="s" x="106" y="77">ENUMs on leave</text>
+      <rect class="bx" x="314" y="30" width="200" height="60"/><text class="t" x="414" y="55">outer query</text><text class="s" x="414" y="77">names WHERE ENUM IN</text>
+      <path class="ab" d="M210 60H308"/><text class="s cb" x="260" y="48">list</text>
+      <text class="s cm" x="106" y="112">runs first</text>
+    </svg>
+<pre>SELECT FNAME, LNAME
+FROM EMPLOYEE
+WHERE ENUM <b class="k">IN (</b>SELECT ENUM
+               FROM DRIVER
+               WHERE STATUS = 'ON LEAVE'<b class="k">)</b>;</pre>
+    <p class="cap">The subquery returns the <b>same column</b> you compare with. <span class="zh">欄位要對得上</span></p>
+  </div></div>
+
+  <div class="card"><h3>NOT IN: "have no / never"</h3><div class="b">
+    <ol class="steps">
+      <li>Write the list of those that <b class="k">do</b>.</li>
+      <li>Wrap it in <b class="k">NOT IN</b>.</li>
+    </ol>
+<pre><span class="c">-- trucks never used (E3 Q3-3)</span>
+SELECT REGNUM FROM TRUCK
+WHERE REGNUM <b class="k">NOT IN (</b>SELECT REGNUM
+                     FROM TRIP<b class="k">)</b>;</pre>
+    <table class="tb">
+      <tr><th colspan="2">Accounts with no transactions in 2021 <small>(E2 Q3-2)</small></th></tr>
+      <tr><td class="ok">inside: <code>YEAR(tr_date_time) <b>=</b> 2021</code></td><td class="ok">✔</td></tr>
+      <tr><td class="no">inside: <code>YEAR(tr_date_time) <b>!=</b> 2021</code></td><td class="no"><b class="w">✘</b> double negative</td></tr>
+    </table>
+    <p class="cap">The practice solution uses <code>!=</code>. Keep the inside positive. <span class="zh">內層寫「有」，外層 NOT IN</span></p>
+  </div></div>
+
+  <div class="card"><h3>Same subquery, three lifetimes</h3><div class="b">
+    <table class="tb">
+      <tr><th>Form</th><th>Lives</th><th>Use for</th></tr>
+      <tr><td><b class="k">( SELECT … )</b></td><td>one spot</td><td>IN / NOT IN</td></tr>
+      <tr><td><b class="k">WITH</b> x <b class="k">AS</b> (…)</td><td>one statement</td><td>"use a WITH clause"</td></tr>
+      <tr><td><b class="k">CREATE VIEW</b> x <b class="k">AS</b> (…)</td><td>stored <span class="zh">永久</span></td><td>GRANT on part of data</td></tr>
+    </table>
+<pre><b class="k">WITH</b> <b class="v">pdatetime</b> <b class="k">AS</b> (SELECT pNumber
+                   FROM PP
+                   WHERE whenfinalised =
+                     '2022-01-02 15:20:20')
+SELECT pNumber, price, manufacturer
+FROM Product
+WHERE pNumber IN (SELECT pNumber
+                  FROM <b class="v">pdatetime</b>);</pre>
+  </div></div>
+
+  <div class="card"><h3>CREATE VIEW</h3><div class="b">
+<pre><b class="k">CREATE VIEW</b> <b class="v">transaction_2021</b> <b class="k">AS</b>
+( SELECT acc_num, bank_name, tr_date_time,
+         amount, type
+  FROM TRANSACTION
+  WHERE YEAR(tr_date_time) = 2021 );</pre>
+    <p class="cap">A view is a saved SELECT that behaves like a table. <span class="zh">存起來的查詢，當表用</span></p>
+  </div></div>
+
+  <div class="card"><h3>EXISTS <small>correlated</small></h3><div class="b">
+<pre>SELECT bank_name, email
+FROM BANK <b class="v">b</b>
+WHERE <b class="k">EXISTS (</b>SELECT *
+              FROM BRANCH br
+              WHERE br.bank_name = <b class="v">b</b>.bank_name
+                AND br.total_emps IS NULL<b class="k">)</b>;</pre>
+    <p class="cap">Inner query uses the outer row, runs once per row. Same answer as IN here (E2 Q3-3). <span class="zh">內層引用外層</span></p>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 8 DML -->
+<section class="unit" id="dml" data-title="DML" data-sub="INSERT · UPDATE · DELETE" data-q="SQL" data-c="#0f6b7a">
+  <div class="card"><h3>Three statements</h3><div class="b">
+<pre><b class="k">INSERT INTO</b> <b class="v">T</b> <b class="k">VALUES</b> (<b class="v">v1, v2, …</b>);
+
+<b class="k">UPDATE</b> <b class="v">T</b>
+<b class="k">SET</b> <b class="v">col = value</b>
+<b class="k">WHERE</b> <b class="v">condition</b>;
+
+<b class="k">DELETE FROM</b> <b class="v">T</b>
+<b class="k">WHERE</b> <b class="v">condition</b>;</pre>
+    <ul class="pts">
+      <li><b class="w">No WHERE = every row.</b> <span class="zh">沒 WHERE 就是全部</span></li>
+      <li>VALUES follow the <b class="k">column order of CREATE TABLE</b>.</li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>Foreign key order</h3><div class="b">
+    <svg class="d" viewBox="0 0 520 132">
+      <rect class="bx" x="6" y="36" width="130" height="46"/><text class="t" x="71" y="65">Customer</text>
+      <rect class="bx" x="195" y="36" width="130" height="46"/><text class="t" x="260" y="65">Pbasket</text>
+      <rect class="hl" x="384" y="36" width="130" height="46"/><text class="t" x="449" y="65">PP</text>
+      <path class="ak" d="M195 59H140"/><path class="ak" d="M384 59H329"/>
+      <text class="s cm" x="166" y="50">FK</text><text class="s cm" x="356" y="50">FK</text>
+      <text class="cg" x="260" y="20">INSERT: parent first  →</text>
+      <text class="cr" x="260" y="118">←  DELETE: child first</text>
+    </svg>
+    <p class="cap">The child is the table that holds the FK. <span class="zh">有外鍵的是子表</span></p>
+<pre><span class="c">-- cancel all purchases of customer 10 (E1 Q5-4)</span>
+DELETE FROM <b class="k">PP</b>
+WHERE whenfinalised IN (SELECT whenfinalised
+                        FROM Pbasket
+                        WHERE cNumber = 10);
+DELETE FROM <b class="k">Pbasket</b>
+WHERE cNumber = 10;</pre>
+  </div></div>
+
+  <div class="card"><h3>Advanced DML = DML + subquery</h3><div class="b">
+    <table class="tb">
+      <tr><th>Where the subquery sits</th><th>Example</th></tr>
+      <tr><td><b class="k">WHERE … IN (SELECT)</b></td><td>raise prices of 'Stainless' products</td></tr>
+      <tr><td><b class="k">SET col = (SELECT)</b></td><td>fill a new total column</td></tr>
+      <tr><td><b class="k">INSERT INTO T (SELECT)</b></td><td>copy rows from a query</td></tr>
+    </table>
+<pre>UPDATE Product
+SET price = price * <b class="v">1.01</b>
+WHERE pNumber <b class="k">IN (</b>SELECT pNumber
+                  FROM Keyword
+                  WHERE kword = 'Stainless'<b class="k">)</b>;</pre>
+  </div></div>
+
+  <div class="card"><h3>Small examples</h3><div class="b">
+<pre><span class="c">-- new evaluation (E1 Q5-1)</span>
+INSERT INTO Cevaluation
+VALUES (3, 'Great product', 5, 23);
+<span class="c">--      cNumber, etext, erank, pNumber</span>
+
+<span class="c">-- one keyword of product 1 (E1 Q5-3)</span>
+UPDATE Keyword SET kword = 'White'
+WHERE pNumber = 1 <b class="k">AND kword = 'Grey'</b>;
+
+<span class="c">-- next day (E3 Q4-3)</span>
+UPDATE TRIP
+SET TDATE = <b class="k">DATE_ADD(</b>TDATE, <b class="k">INTERVAL 1 DAY)</b>
+WHERE TNUM = 26;
+
+<span class="c">-- legs 2 and 3 of trip 36 (E3 Q4-2)</span>
+DELETE FROM TRIPLEG
+WHERE TNUM = 36 AND LEGNUM <b class="k">IN (2, 3)</b>;</pre>
+  </div></div>
+
+  <div class="card trap"><h3>Traps <small>DML</small></h3><div class="b">
+    <ul class="pts">
+      <li><b class="w">WHERE too wide</b>: "first leg of trip 20" needs <code>TNUM = 20 <b>AND LEGNUM = 1</b></code>. The practice solution forgets it.</li>
+      <li><b class="w">Wrong delete order</b> → FK error.</li>
+      <li><b class="w">Dropping a constraint</b> is not allowed.</li>
+    </ul>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 9 DDL -->
+<section class="unit" id="ddl" data-title="DDL" data-sub="CREATE TABLE · ALTER TABLE · DROP" data-q="SQL" data-c="#0f6b7a">
+  <div class="card"><h3>CREATE TABLE anatomy</h3><div class="b">
+<pre><b class="k">CREATE TABLE</b> <b class="v">TRIP</b>(
+ <b class="v">TNUM</b>   DECIMAL(10) <b class="k">NOT NULL</b>,
+ <b class="v">LNUM</b>   DECIMAL(8)  NOT NULL,
+ <b class="v">REGNUM</b> VARCHAR(10) NOT NULL,
+ <b class="v">TDATE</b>  DATE        NOT NULL,
+ <b class="k">CONSTRAINT</b> TRIP_PKEY <b class="k">PRIMARY KEY</b> (TNUM),
+ CONSTRAINT TRIP_CKEY <b class="k">UNIQUE</b> (LNUM, REGNUM, TDATE),
+ CONSTRAINT TRIP_FKEY1 <b class="k">FOREIGN KEY</b> (LNUM)
+            <b class="k">REFERENCES</b> DRIVER(LNUM),
+ CONSTRAINT TRIP_CHK <b class="k">CHECK</b> (TNUM &gt; 0) );</pre>
+    <table class="tb">
+      <tr><td><b>PRIMARY KEY</b></td><td>primary key</td></tr>
+      <tr><td><b>UNIQUE</b></td><td>candidate key <span class="zh">候選鍵</span></td></tr>
+      <tr><td><b>FOREIGN KEY … REFERENCES</b></td><td>points to the parent</td></tr>
+      <tr><td><b>CHECK</b></td><td>allowed values</td></tr>
+    </table>
+    <p class="cap">Types: <code>DECIMAL(p,s)</code> number · <code>VARCHAR(n)</code> text · <code>DATE</code>.</p>
+  </div></div>
+
+  <div class="card"><h3>ALTER TABLE</h3><div class="b">
+<pre><b class="k">ALTER TABLE</b> T <b class="k">ADD COLUMN</b> <b class="v">c DECIMAL(4) NULL</b>;
+ALTER TABLE T <b class="k">DROP COLUMN</b> c;
+ALTER TABLE T <b class="k">MODIFY</b> c VARCHAR(50) NOT NULL;
+ALTER TABLE T <b class="k">ADD CONSTRAINT</b> n CHECK (…);</pre>
+  </div></div>
+
+  <div class="card"><h3>"Add information about…": which shape?</h3><div class="b">
+    <table class="tb">
+      <tr><th>New fact is</th><th>Do</th></tr>
+      <tr><td><b>one value per row</b><br><span class="zh">每列一個值</span></td><td><b class="k">ADD COLUMN</b>, then UPDATE to fill</td></tr>
+      <tr><td><b>many-to-many</b><br><span class="zh">多對多</span></td><td><b class="k">new table(s)</b> with composite PK + FKs</td></tr>
+    </table>
+<pre><span class="c">-- total transactions per account (E2 Q3-4)</span>
+ALTER TABLE ACCOUNT
+  ADD COLUMN total_tr DECIMAL(4) NULL;
+UPDATE ACCOUNT
+SET total_tr = <b class="k">(</b>SELECT COUNT(*)
+   FROM TRANSACTION t
+   WHERE t.acc_num = <b class="v">ACCOUNT.account_num</b>
+     AND t.bank_name = <b class="v">ACCOUNT.bank_name</b><b class="k">)</b>;</pre>
+  </div></div>
+
+  <div class="card"><h3>Drivers ↔ skills <small>Exam 3 Q4-1</small></h3><div class="b">
+    <svg class="d" viewBox="0 0 520 110">
+      <rect class="bx" x="6" y="30" width="120" height="50"/><text class="t" x="66" y="52">DRIVER</text><text class="s" x="66" y="71">LNUM</text>
+      <rect class="hl" x="180" y="22" width="160" height="66"/><text class="t" x="260" y="46">POSSESSES</text><text class="s cr" x="260" y="68">PK (LNUM, SNAME)</text>
+      <rect class="bx" x="394" y="30" width="120" height="50"/><text class="t" x="454" y="52">SKILL</text><text class="s" x="454" y="71">SNAME</text>
+      <path class="ab" d="M180 55H130"/><path class="ab" d="M340 55H390"/>
+    </svg>
+    <ul class="pts">
+      <li>"Some skills nobody has" → SKILL needs <b class="k">its own table</b>. <span class="zh">沒人會的技能也要存得下</span></li>
+      <li>The practice solution uses a single table, which cannot store such a skill.</li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>DELETE vs TRUNCATE vs DROP</h3><div class="b">
+    <table class="tb ctr">
+      <tr><th></th><th>DELETE</th><th>TRUNCATE</th><th>DROP TABLE</th></tr>
+      <tr><td>removes</td><td>chosen rows</td><td>all rows</td><td>table itself</td></tr>
+      <tr><td>WHERE</td><td class="ok">yes</td><td class="no">no</td><td class="no">no</td></tr>
+      <tr><td>ROLLBACK</td><td class="ok">yes</td><td class="no">no</td><td class="no">no</td></tr>
+      <tr><td>kind</td><td>DML</td><td>DDL</td><td>DDL</td></tr>
+    </table>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 10 ACCESS -->
+<section class="unit" id="access" data-title="Access Control" data-sub="CREATE USER · GRANT" data-q="SQL" data-c="#2c6e2f">
+  <div class="card"><h3>GRANT = what · where · who</h3><div class="b">
+<pre><b class="k">GRANT</b> <b class="v">privilege</b> <b class="k">ON</b> <b class="v">level</b> <b class="k">TO</b> <b class="v">user</b>
+      [<b class="k">WITH GRANT OPTION</b>];
+
+<b class="k">REVOKE</b> <b class="v">privilege</b> <b class="k">ON</b> <b class="v">level</b> <b class="k">FROM</b> <b class="v">user</b>;</pre>
+    <div class="flow"><span class="on">what</span><i>SELECT · INSERT · UPDATE · DELETE · CREATE</i></div>
+    <div class="flow"><span class="on">where</span><i>*.* · db.* · db.table</i></div>
+    <ul class="pts">
+      <li>read = <b class="k">SELECT</b>. Create tables = <b class="k">CREATE</b>. Create views = <b class="k">CREATE VIEW</b>.</li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>Four levels</h3><div class="b">
+    <table class="tb">
+      <tr><th>Level</th><th>ON …</th><th>Stored in</th></tr>
+      <tr><td>Global</td><td class="m"><b class="k">*.*</b></td><td class="m">mysql.user</td></tr>
+      <tr><td>Database</td><td class="m"><b class="k">db.*</b></td><td class="m">mysql.db</td></tr>
+      <tr><td>Table</td><td class="m"><b class="k">db.table</b></td><td class="m">mysql.tables_priv</td></tr>
+      <tr><td>Column</td><td class="m">SELECT<b class="k">(col)</b> ON db.table</td><td class="m">mysql.columns_priv</td></tr>
+    </table>
+    <div class="nest n1"><p><b>Global *.*</b></p><div class="nest n2"><p><b>Database db.*</b></p><div class="nest n3"><p><b>Table db.t</b></p><div class="nest n4"><p><b>Column (c)</b></p></div></div></div></div>
+    <p class="cap">An upper level covers everything inside it. <span class="zh">上層涵蓋下層</span></p>
+  </div></div>
+
+  <div class="card"><h3>Question words → SQL</h3><div class="b">
+    <table class="tb">
+      <tr><th>Words</th><th>Write</th></tr>
+      <tr><td>default database</td><td class="m"><b class="k">USE</b> banks;</td></tr>
+      <tr><td>create a user</td><td class="m"><b class="k">CREATE USER</b> u <b class="k">IDENTIFIED BY</b> 'pw';</td></tr>
+      <tr><td>run the script</td><td class="m"><b class="k">source</b> dbcreate.sql;</td></tr>
+      <tr><td>can propagate <span class="zh">可轉授</span></td><td>add <b class="k">WITH GRANT OPTION</b></td></tr>
+      <tr><td>cannot propagate</td><td>add nothing</td></tr>
+      <tr><td>all tables in db</td><td class="m">ON <b class="k">db.*</b></td></tr>
+      <tr><td>two tables</td><td><b class="k">two GRANT</b> statements</td></tr>
+      <tr><td>some rows / a total</td><td><b class="k">CREATE VIEW</b>, then GRANT SELECT on it</td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>Full script <small>Exam 2 Q5 · Exam 1 Q6</small></h3><div class="b">
+    <div class="flow"><span>database</span><i>→</i><span>tables</span><i>→</i><span>user</span><i>→</i><span class="on">grants</span><i>→</i><span>check</span></div>
+<pre>CREATE DATABASE banks;
+<b class="k">USE</b> banks;
+<b class="k">source</b> dbcreate.sql;
+<b class="k">CREATE USER</b> admin <b class="k">IDENTIFIED BY</b> 'admin';
+
+GRANT <b class="v">CREATE, CREATE VIEW</b> ON <b class="v">banks.*</b>
+  TO admin <b class="k">WITH GRANT OPTION</b>;
+
+GRANT SELECT ON banks.Product TO admin;
+GRANT SELECT ON banks.Pbasket TO admin;
+
+<span class="c">-- only 2021 transactions: view first</span>
+<b class="k">CREATE VIEW</b> transaction_2021 AS
+( SELECT * FROM TRANSACTION
+  WHERE YEAR(tr_date_time) = 2021 );
+GRANT SELECT ON banks.<b class="v">transaction_2021</b> TO admin;
+
+<span class="c">-- list table-level privileges</span>
+SELECT user, db, table_name, table_priv
+FROM <b class="k">mysql.tables_priv</b>
+WHERE user = 'admin';</pre>
+  </div></div>
+
+  <div class="card"><h3>A total per driver <small>Exam 3 Q5-5</small></h3><div class="b">
+<pre>CREATE VIEW TOTAL_TRIPS AS
+( SELECT d.ENUM, COUNT(tr.TNUM) AS TOTAL
+  FROM DRIVER d <b class="k">LEFT OUTER JOIN</b> TRIP tr
+       ON d.LNUM = tr.LNUM
+  GROUP BY d.ENUM );
+GRANT SELECT ON transport.TOTAL_TRIPS TO Bob;</pre>
+    <p class="cap">"Each driver" includes drivers with 0 trips → LEFT OUTER JOIN. The practice solution uses a plain JOIN.</p>
+  </div></div>
+
+  <div class="card"><h3>Roles <small>group of privileges</small></h3><div class="b">
+<pre><b class="k">CREATE ROLE</b> <b class="v">CUSTOMER</b>;
+GRANT SELECT ON ITEM <b class="k">TO</b> <b class="v">CUSTOMER</b>;
+<b class="k">GRANT</b> <b class="v">CUSTOMER</b> <b class="k">TO</b> James;</pre>
+    <div class="flow"><span>privileges</span><i>→</i><span class="on">role</span><i>→</i><span>users</span></div>
+  </div></div>
+</section>
+
+<!-- ---------------------------------------------------------------- 11 OPTIONAL -->
+<section class="unit" id="optional" data-title="Optional" data-sub="Transactions · Integrity · Auditing" data-q="CHECK" data-c="#6a6f7a"
+  data-banner="The practice papers mark these topics as not on the Spring 2025 final. Check your session's announcement. 考卷註明不考，請先確認公告">
+  <div class="card"><h3>Isolation levels × phenomena</h3><div class="b">
+    <table class="tb ctr">
+      <tr><th>Level</th><th>Dirty</th><th>Non-rep.</th><th>Phantom</th></tr>
+      <tr><td>READ UNCOMMITTED</td><td class="no">yes</td><td class="no">yes</td><td class="no">yes</td></tr>
+      <tr><td>READ COMMITTED</td><td class="ok">no</td><td class="no">yes</td><td class="no">yes</td></tr>
+      <tr><td>REPEATABLE READ</td><td class="ok">no</td><td class="ok">no</td><td class="no">yes</td></tr>
+      <tr><td>SERIALIZABLE</td><td class="ok">no</td><td class="ok">no</td><td class="ok">no</td></tr>
+    </table>
+    <ul class="pts">
+      <li><b>Dirty read</b>: see uncommitted data. <span class="zh">讀到未提交</span></li>
+      <li><b>Non-repeatable</b>: same row, two reads, different value.</li>
+      <li><b>Phantom</b>: same query, different set of rows.</li>
+    </ul>
+  </div></div>
+
+  <div class="card"><h3>Tracing T1 / T2 <small>Exam 2 Q6</small></h3><div class="b">
+    <svg class="d" viewBox="0 0 520 86">
+      <ellipse class="bx" cx="90" cy="42" rx="52" ry="28"/><text class="t" x="90" y="48">T1</text>
+      <ellipse class="bx" cx="430" cy="42" rx="52" ry="28"/><text class="t" x="430" y="48">T2</text>
+      <path class="ar" d="M376 42H148"/><text class="cr" x="262" y="30">waits for T1's lock</text>
+      <text class="s cm" x="262" y="68">both UPDATE the same row</text>
+    </svg>
+    <ol class="steps">
+      <li><b class="k">UPDATE locks the row</b> until COMMIT.</li>
+      <li>Second UPDATE on that row <b class="k">waits</b>.</li>
+      <li>READ COMMITTED reads the <b class="k">latest committed</b> value.</li>
+      <li>SERIALIZABLE: row changed by a later commit → <b class="w">can't serialize, aborted</b>.</li>
+    </ol>
+    <table class="tb">
+      <tr><th>Case</th><th>acct 1</th><th>acct 2</th></tr>
+      <tr><td>(1) both SERIALIZABLE</td><td><b>120</b> <span class="zh">T2 +20 lost</span></td><td><b>200</b></td></tr>
+      <tr><td>(2) READ COMMITTED</td><td><b>230</b> = 220 + 10</td><td><b>220</b></td></tr>
+    </table>
+  </div></div>
+
+  <div class="card"><h3>Integrity check script <small>Exam 3 Q6</small></h3><div class="b">
+<pre><b class="k">CREATE TABLE</b> MESSAGE <b class="k">AS</b>
+( SELECT REGNUM, COUNT(TNUM) <b class="v">TOTAL</b>
+  FROM TRIP
+  GROUP BY REGNUM
+  <b class="k">HAVING</b> COUNT(TNUM) &gt; 100 );
+
+SELECT <b class="k">CONCAT(</b>'Truck ', REGNUM,
+  ' has been used for ', TOTAL, ' trips.'<b class="k">)</b>
+FROM MESSAGE;
+
+<b class="k">COMMIT;</b>              <span class="c">-- make permanent</span>
+<b class="k">DROP TABLE</b> MESSAGE;</pre>
+  </div></div>
+
+  <div class="card"><h3>Simple auditing <small>Exam 2 Q4</small></h3><div class="b">
+<pre><b class="k">SET GLOBAL general_log = 'ON';</b>   <span class="c">-- start logging</span>
+<b class="k">SET GLOBAL log_output = 'TABLE';</b> <span class="c">-- log to a table</span>
+TRUNCATE TABLE mysql.general_log; <span class="c">-- start clean</span>
+
+SELECT event_time, user_host, argument
+FROM <b class="k">mysql.general_log</b>
+WHERE user_host LIKE <b class="v">'%alice%'</b>
+  AND UPPER(argument) LIKE <b class="v">'UPDATE%ACCOUNT%'</b>;</pre>
+    <p class="cap">The question wants a comment on every statement. <span class="zh">每句都要加註解</span></p>
+  </div></div>
+</section>
+
+</main>
+
+<div id="fab" hidden>
+  <button id="prev" aria-label="previous unit">‹</button>
+  <button id="goHome">⌂ Home</button>
+  <button id="next" aria-label="next unit">›</button>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const units = [...document.querySelectorAll('.unit')];
+const pad = n => String(n).padStart(2, '0');
+
+units.forEach(u => u.style.setProperty('--c', u.dataset.c));
+$('tiles').innerHTML = units.map((u, i) =>
+  '<button class="tile" style="--c:' + u.dataset.c + '" data-id="' + u.id + '">' +
+  '<div class="bar"><span>' + pad(i + 1) + '</span><span>' + u.dataset.q + '</span></div>' +
+  '<div class="in"><b>' + u.dataset.title.replace('&', '&amp;') + '</b><span>' + u.dataset.sub + '</span></div></button>'
+).join('');
+$('tiles').addEventListener('click', e => {
+  const t = e.target.closest('.tile');
+  if (t) location.hash = t.dataset.id;
+});
+
+let cur = -1;
+const banner = document.createElement('p');
+banner.className = 'banner';
+function show() {
+  cur = units.findIndex(u => u.id === location.hash.slice(1));
+  const on = cur >= 0;
+  $('home').hidden = on; $('view').hidden = !on; $('fab').hidden = !on;
+  units.forEach((u, i) => u.hidden = i !== cur);
+  banner.remove();
+  if (!on) { document.title = 'CSIT882 Quick Notes'; return; }
+  const u = units[cur];
+  $('head').style.setProperty('--c', u.dataset.c);
+  $('uTitle').innerHTML = u.dataset.title.replace('&', '&amp;') +
+    '<small>' + u.dataset.sub + ' · ' + (cur + 1) + ' / ' + units.length + '</small>';
+  if (u.dataset.banner) { banner.textContent = u.dataset.banner; u.before(banner); }
+  document.title = u.dataset.title + ' · CSIT882';
+  window.scrollTo(0, 0);
+}
+const go = d => { if (cur >= 0) location.hash = units[(cur + d + units.length) % units.length].id; };
+const goHome = () => { history.pushState(null, '', location.pathname + location.search); show(); };
+$('prev').onclick = () => go(-1);
+$('next').onclick = () => go(1);
+$('goHome').onclick = goHome;
+window.addEventListener('hashchange', show);
+window.addEventListener('popstate', show);
+window.addEventListener('keydown', e => {
+  if (cur < 0) return;
+  if (e.key === 'Escape') goHome();
+  else if (e.key === 'ArrowLeft') go(-1);
+  else if (e.key === 'ArrowRight') go(1);
+});
+
+const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+function setHand(left) {
+  document.body.classList.toggle('left', left);
+  $('hand').textContent = left ? '☜ Left hand' : 'Right hand ☞';
+  store.set('quick-hand', left ? 'L' : 'R');
+}
+$('hand').onclick = () => setHand(!document.body.classList.contains('left'));
+setHand(store.get('quick-hand') === 'L');
+
+let zoom = parseFloat(store.get('quick-zoom')) || 1;
+function setZoom(z) {
+  zoom = Math.min(1.6, Math.max(0.7, Math.round(z * 10) / 10));
+  document.documentElement.style.setProperty('--zoom', zoom);
+  store.set('quick-zoom', zoom);
+}
+$('zOut').onclick = () => setZoom(zoom - 0.1);
+$('zIn').onclick = () => setZoom(zoom + 0.1);
+setZoom(zoom);
+show();
+</script>
+</body>
+</html>
