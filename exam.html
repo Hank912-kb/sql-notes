@@ -527,105 +527,67 @@ FOREIGN KEY = (departure-city, destination-city, departure-time)
 },
 /* ------------------------------------------------------------------ 03 */
 {
-  id: 'fd', title: 'FDs & Keys', sub: 'Functional dependencies · deriving minimal keys', q: 'E1 Q3', color: C.norm,
+  id: 'fd', title: 'FDs & Keys', sub: 'Find candidate keys · prime / nonprime', q: 'E1 Q3', color: C.norm,
   sections: [
-    { k: 'def', h: 'Functional dependency', src: 'Week 5B-2 Derivations of Functional Dependencies', code: `
-⟦X → Y⟧ is valid in R
-⇔ no table over R can have two rows that agree on X
-  yet disagree on Y
-
--- examples
-e# → ename
-department → department-address
-(part, warehouse) → quantity`, notes: [
-      `Read it as "X determines Y" / "Y functionally depends on X"`,
+    { k: 'tpl', h: 'Step 1: Find the candidate keys', src: 'Week 5B-2 (keys, Armstrong axioms); Week 8B (derivation style). Closure is the standard shortcut', code: `
+1. ⟦Who is on no right-hand side?⟧
+      -- they are in every key
+2. ⟦Compute the closure⟧  (X)+ = R
+      -- so X is a superkey
+3. ⟦Check minimal⟧  drop any attribute → closure ≠ R
+      -- so no smaller subset works
+4. closure ≠ R? add the other attributes one by one, retry
+5. ⟦Find them all⟧
+      -- several keys appear when FDs point back at a key`, notes: [
+      `Closure (X)+ = every attribute you can reach from X using F`,
+      `In the exam, write the steps as derivation lines (see card 3)`,
     ]},
-    { k: 'tpl', h: 'Armstrong axioms + inference rules', src: 'Week 5B-2 — Armstrong axioms, Additional inference rules', code: `
-⟦Reflexivity⟧     Y ⊆ X           ⇒  X → Y
-⟦Augmentation⟧    X → Y           ⇒  XZ → YZ
-⟦Transitivity⟧    X → Y, Y → Z    ⇒  X → Z
+    { k: 'tpl', h: 'Step 2: Mark prime / nonprime', src: 'Week 5B-2 — Keys, Attributes', code: `
+⟦Prime⟧      attribute that is in ⟦any⟧ candidate key
+⟦Nonprime⟧   all the others
 
-⟦Union⟧               X → Y, X → Z    ⇒  X → YZ
-⟦Decomposition⟧       X → Y, Z ⊆ Y    ⇒  X → Z
-⟦Pseudotransitivity⟧  X → Y, WY → Z   ⇒  WX → Z`, notes: [
-      `The first three form a ⟦minimal and complete⟧ set of axioms`,
-      `In every derivation line ⟦name the rule you used⟧ — the question demands justification`,
+-- words you need
+⟦Superkey⟧          determines every attribute of R
+⟦Minimal key⟧       superkey with nothing removable
+⟦Primary key⟧       one minimal key you pick
+⟦Candidate key⟧     any other minimal key`, notes: [
+      `Miss a key and prime / nonprime is wrong — then every normal form test is wrong`,
     ]},
-    { k: 'def', h: 'Four kinds of key + prime / nonprime', src: 'Week 5B-2 — Keys, Attributes', code: `
-⟦Superkey⟧       attribute set that identifies every row;
-               X → (A1, ..., An)
-⟦Minimal key⟧    superkey from which no attribute can be
-               removed
-⟦Primary key⟧    an arbitrarily selected minimal key
-⟦Candidate key⟧  any other minimal key
-
-⟦Prime attribute⟧     member of at least one key
-⟦Nonprime attribute⟧  member of no key
-
--- if X ∪ Y = R and X → Y  then  ⟦X is a key⟧`, notes: [
-      `⟪(A, B, D) is not a minimal key⟫ when (A, B) already determines everything`,
-    ]},
-    { k: 'tpl', h: 'How to write a minimal-key derivation', src: 'Week 8B Normalization examples (style of Example 7)', code: `
-R = (A, B, C, D)    F = {A → B, A → C, B → D}
-
-If A → B and A → C then (⟦union⟧) A → BC
+    { k: 'tpl', h: 'Step 3: Write each derivation line like this', src: 'Week 5B-2 — Armstrong axioms, Additional inference rules', code: `
 If A → B and B → D then (⟦transitivity⟧) A → D
-If A → BC and A → D then (⟦union⟧) A → BCD
-⇒ ⟦K1 = (A)⟧
-
--- use augmentation when attributes are missing
-R = (A, B, C)    F = {A → B}
 If A → B then (⟦augmentation⟧) AC → BC
-⇒ ⟦K1 = (A, C)⟧`, notes: [
-      `Goal: left side → ⟦all attributes of R⟧, and the left side cannot be made smaller`,
-      `Fixed sentence: If ... then (rule) ... ⇒ K = (...)`,
+If A → B and A → C then (⟦union⟧) A → BC
+
+⟦Reflexivity⟧       Y ⊆ X          ⇒ X → Y
+⟦Augmentation⟧      X → Y          ⇒ XZ → YZ
+⟦Transitivity⟧      X → Y, Y → Z   ⇒ X → Z
+⟦Union⟧             X → Y, X → Z   ⇒ X → YZ
+⟦Decomposition⟧     X → YZ         ⇒ X → Y`, notes: [
+      `Always name the rule in brackets — the question demands justification`,
+      `Goal: left side → all attributes of R`,
     ]},
-    { k: 'ex', h: 'Schemas with several minimal keys', src: 'Week 8B — Examples 2, 5, 10, 11', code: `
-F = {AB → C, C → B}
-  AB → C                        ⇒ K1 = (A, B)
-  C → B  (augmentation) AC → AB ⇒ ⟦K2 = (A, C)⟧
-
-F = {A → B, B → A}     R = (A, B, C)
-  A → B  (augmentation) AC → BC ⇒ K1 = (A, C)
-  B → A  (augmentation) BC → AC ⇒ ⟦K2 = (B, C)⟧
-
-F = {AB → C, C → D, D → A, D → B}
-  ⇒ K1 = (A, B), K2 = (D), K3 = (C)
-
-F = {A → B, B → C, C → D, D → A}
-  ⇒ K1 = (A), K2 = (B), K3 = (C), K4 = (D)`, notes: [
-      `⟪Whenever an FD points back at a key attribute, look for a second key⟫`,
-      `Miss a key and prime / nonprime is wrong, and then every normal form test is wrong`,
+    { k: 'tpl', h: 'Fixed sentences for the answer', src: 'Style of Week 8B Normalization examples', code: `
+⟦A and C are not on any right-hand side, so they are in every key.⟧
+⟦(AC)+ = ABCDE = R, so AC is a superkey.⟧
+⟦Removing A or C gives closure ≠ R, so AC is minimal.⟧
+⟦Therefore K = (A, C).⟧`, notes: [
+      `Replace A, C and the attribute list with the ones in your question`,
     ]},
-    { k: 'ex', h: 'Example: the four FD sets of the practice paper', src: 'Practice Exam 1 Q3 ← derivation style of Week 5B-2 / 8B', code: `
-(1) R = (A,B,C,D)   F = {A → C, B → D}
-    A → C (augmentation) AB → BC
-    B → D (augmentation) AB → AD
-    (union) AB → ABCD                ⇒ ⟦K = (A, B)⟧
+    { k: 'ex', h: 'Example: the four FD sets of the practice paper', src: 'Practice Exam 1 Q3', code: `
+(1) F = {A → C, B → D}
+    not on RHS: A, B    (AB)+ = ABCD    ⇒ ⟦K = (A, B)⟧
 
-(2) R = (A,B,C,D,E) F = {AC → B, B → D, D → E}
-    AC → B, B → D (transitivity) AC → D
-    AC → D, D → E (transitivity) AC → E
-    (union) AC → BDE                 ⇒ ⟦K = (A, C)⟧
+(2) F = {AC → B, B → D, D → E}
+    not on RHS: A, C    (AC)+ = ABCDE   ⇒ ⟦K = (A, C)⟧
 
-(3) R = (A,B,C,D,E) F = {A → BCDE, B → A, C → D}
-    A → BCDE                         ⇒ ⟦K1 = (A)⟧
-    B → A, A → BCDE (transitivity)   ⇒ ⟦K2 = (B)⟧
+(3) F = {A → BCDE, B → A, C → D}
+    nobody is free; A+ = ABCDE          ⇒ ⟦K1 = (A)⟧
+    B → A, so B+ = ABCDE too            ⇒ ⟦K2 = (B)⟧
 
-(4) R = (A,B,C,D,E) F = {A → CE, AB → D}
-    A → CE (augmentation) AB → BCE
-    AB → BCE, AB → D (union) AB → BCDE ⇒ ⟦K = (A, B)⟧`, notes: [
-      `The normal form tests continue in the next unit, "Normalization"`,
-    ]},
-    { k: 'trap', h: 'Self-check trick (not from the slides)', src: 'Extra — follows from the definition of a minimal key; still write the derivation above in the exam', code: `
-An attribute that appears on ⟦no right-hand side⟧
-  ⇒ nothing determines it
-  ⇒ ⟦it is in every key⟧
-
-F = {A → C, B → D}: A and B are on no right-hand side
-  ⇒ every key contains A and B;
-    AB already determines everything ⇒ K = (A, B)`, notes: [
-      `Use it only to check yourself; marks come from the Armstrong derivation`,
+(4) F = {A → CE, AB → D}
+    not on RHS: A, B    (AB)+ = ABCDE   ⇒ ⟦K = (A, B)⟧`, notes: [
+      `(3): B → A points back at a key attribute, so look for a second key`,
+      `Next: the normal form tests → unit "Normalization"`,
     ]},
   ]
 },
