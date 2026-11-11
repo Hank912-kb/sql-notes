@@ -527,68 +527,65 @@ FOREIGN KEY = (departure-city, destination-city, departure-time)
 },
 /* ------------------------------------------------------------------ 03 */
 {
-  id: 'fd', title: 'FDs & Keys', sub: 'Find candidate keys · prime / nonprime', q: 'E1 Q3', color: C.norm,
+  id: 'fd', title: 'FDs & Keys', sub: 'Minimal key template · Armstrong rules · prime / nonprime', q: 'E1 Q3', color: C.norm,
   sections: [
-    { k: 'tpl', h: 'Step 1: Find the candidate keys', src: 'Week 5B-2 (keys, Armstrong axioms); Week 8B (derivation style). Closure is the standard shortcut', code: `
-1. ⟦Who is on no right-hand side?⟧
-      -- they are in every key
-2. ⟦Compute the closure⟧  (X)+ = R
-      -- so X is a superkey
-3. ⟦Check minimal⟧  drop any attribute → closure ≠ R
-      -- so no smaller subset works
-4. closure ≠ R? add the other attributes one by one, retry
-5. ⟦Find them all⟧
-      -- several keys appear when FDs point back at a key`, notes: [
-      `Closure (X)+ = every attribute you can reach from X using F`,
-      `In the exam, write the steps as derivation lines (see card 3)`,
-    ]},
-    { k: 'tpl', h: 'Step 2: Mark prime / nonprime', src: 'Week 5B-2 — Keys, Attributes', code: `
-⟦Prime⟧      attribute that is in ⟦any⟧ candidate key
-⟦Nonprime⟧   all the others
+    { k: 'tpl', h: 'Minimal key: template + check', src: 'Week 5B-2 (keys, derivations); Week 8B (derivation style). Steps 1 and 3 marked where the slides do not state them', code: `
+TEMPLATE
+Step 1  Attributes on no right-hand side: ⟨___⟩
+        → they are in every key
+        -- 找不在任何右邊的欄位。通用做法，不確定老師是否接受
+Step 2  If ⟨___ → ___⟩ and ⟨___ → ___⟩ then (⟦rule⟧) ⟨___ → ___⟩
+        repeat until  left side → ⟦all attributes of R⟧
+        -- 逐行推導，每行寫規則名
+Step 3  Remove each attribute from the left side:
+        can the rest still derive all of R?
+        -- 左邊不能再縮小。通用做法，不確定老師是否接受
+Step 4  An FD points back at a key attribute?
+        → look for a ⟦second key⟧
+        -- 有 FD 指回 key 的欄位 → 找第二個 key
+Step 5  ⟦K1 = (___)⟧   Prime: ⟨___⟩   Nonprime: ⟨___⟩
 
--- words you need
-⟦Superkey⟧          determines every attribute of R
-⟦Minimal key⟧       superkey with nothing removable
-⟦Primary key⟧       one minimal key you pick
-⟦Candidate key⟧     any other minimal key`, notes: [
-      `Miss a key and prime / nonprime is wrong — then every normal form test is wrong`,
-    ]},
-    { k: 'tpl', h: 'Step 3: Write each derivation line like this', src: 'Week 5B-2 — Armstrong axioms, Additional inference rules', code: `
-If A → B and B → D then (⟦transitivity⟧) A → D
-If A → B then (⟦augmentation⟧) AC → BC
-If A → B and A → C then (⟦union⟧) A → BC
+CHECK
+□ every derivation line names its rule
+□ left side is already minimal
+□ no other key missed
+□ every attribute is prime or nonprime`, notes: [] },
+    { k: 'tpl', h: 'Armstrong rules: template + check', src: 'Week 5B-2 — Armstrong axioms, Additional inference rules', code: `
+TEMPLATE
+If ⟨___ → ___⟩ and ⟨___ → ___⟩ then (⟦rule⟧) ⟨___ → ___⟩
 
-⟦Reflexivity⟧       Y ⊆ X          ⇒ X → Y
-⟦Augmentation⟧      X → Y          ⇒ XZ → YZ
-⟦Transitivity⟧      X → Y, Y → Z   ⇒ X → Z
-⟦Union⟧             X → Y, X → Z   ⇒ X → YZ
-⟦Decomposition⟧     X → YZ         ⇒ X → Y`, notes: [
-      `Always name the rule in brackets — the question demands justification`,
-      `Goal: left side → all attributes of R`,
-    ]},
-    { k: 'tpl', h: 'Fixed sentences for the answer', src: 'Style of Week 8B Normalization examples', code: `
-⟦A and C are not on any right-hand side, so they are in every key.⟧
-⟦(AC)+ = ABCDE = R, so AC is a superkey.⟧
-⟦Removing A or C gives closure ≠ R, so AC is minimal.⟧
-⟦Therefore K = (A, C).⟧`, notes: [
-      `Replace A, C and the attribute list with the ones in your question`,
-    ]},
-    { k: 'ex', h: 'Example: the four FD sets of the practice paper', src: 'Practice Exam 1 Q3', code: `
-(1) F = {A → C, B → D}
-    not on RHS: A, B    (AB)+ = ABCD    ⇒ ⟦K = (A, B)⟧
+-- axioms 公理
+⟦Reflexivity⟧          Y ⊆ X           ⇒  X → Y
+⟦Augmentation⟧         X → Y           ⇒  XZ → YZ
+⟦Transitivity⟧         X → Y, Y → Z    ⇒  X → Z
+-- inference rules 推論規則
+⟦Union⟧                X → Y, X → Z    ⇒  X → YZ
+⟦Decomposition⟧        X → Y, Z ⊆ Y    ⇒  X → Z
+⟦Pseudotransitivity⟧   X → Y, WY → Z   ⇒  WX → Z
 
-(2) F = {AC → B, B → D, D → E}
-    not on RHS: A, C    (AC)+ = ABCDE   ⇒ ⟦K = (A, C)⟧
+CHECK
+□ rule name written on every line
+□ each line uses only FDs already given or derived`, notes: [] },
+    { k: 'tpl', h: 'Key words, prime / nonprime: template + check', src: 'Week 5B-2 — Keys, Attributes', code: `
+TEMPLATE
+⟦Superkey⟧            determines all attributes of R:
+                    X → (A1, ..., An)
+⟦Minimal key⟧         superkey; remove any attribute
+                    → no longer a superkey
+⟦Primary key⟧         an arbitrarily selected minimal key
+⟦Candidate key⟧       any other minimal key
+⟦Prime attribute⟧     member of at least one key
+⟦Nonprime attribute⟧  member of no key
 
-(3) F = {A → BCDE, B → A, C → D}
-    nobody is free; A+ = ABCDE          ⇒ ⟦K1 = (A)⟧
-    B → A, so B+ = ABCDE too            ⇒ ⟦K2 = (B)⟧
+Prime: ⟨___⟩      Nonprime: ⟨___⟩
 
-(4) F = {A → CE, AB → D}
-    not on RHS: A, B    (AB)+ = ABCDE   ⇒ ⟦K = (A, B)⟧`, notes: [
-      `(3): B → A points back at a key attribute, so look for a second key`,
-      `Next: the normal form tests → unit "Normalization"`,
-    ]},
+CHECK
+□ prime = in at least one key; nonprime = in no key
+□ ⟪(A, B, D) is not a minimal key⟫ when (A, B) already
+  determines everything
+□ ⟪FD points back at a key attribute → look for a second key⟫
+□ a missed key makes prime / nonprime wrong, and then
+  every normal form test wrong`, notes: [] },
   ]
 },
 /* ------------------------------------------------------------------ 04 */
