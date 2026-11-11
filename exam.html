@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>CSIT882 Final Exam Handout</title>
+<style>
+  :root {
+    --desk: #e9e2d0;
+    --sheet: #fffdf6;
+    --ink: #20242c;
+    --ink2: #5d6472;
+    --rule: #cfc5a8;
+    --navy: #1d3f72;
+    --pen: #1557b0;
+    --red: #c0392b;
+    --marker: #ffe45e;
+    --codebg: #f4efe0;
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", ui-monospace, Menlo, Consolas, "Cascadia Mono", monospace;
+    --fs-body: clamp(18px, 1.85vw, 23px);
+    --fs-code: clamp(15px, 1.5vw, 20px);
+    --zoom: 1;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--desk); color: var(--ink);
+    font-family: var(--sans); font-size: var(--fs-body); line-height: 1.5;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  [hidden] { display: none !important; }
+
+  /* ================= Cover (home) ================= */
+  #home {
+    min-height: 100dvh; display: flex; flex-direction: column; gap: 10px;
+    padding: max(12px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
+             max(12px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  }
+  .mast {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+    border-bottom: 3px double var(--ink); padding-bottom: 8px;
+  }
+  .mast .course { font-size: .68em; letter-spacing: .14em; color: var(--ink2); text-transform: uppercase; }
+  .mast h1 { margin: 0; font-family: var(--serif); font-size: clamp(24px, 3vw, 40px); line-height: 1.15; }
+  .mast h1 small { font-family: var(--sans); font-weight: 400; font-size: .45em; color: var(--ink2); margin-left: 12px; }
+  .pill {
+    border: 1.5px solid var(--ink); border-radius: 6px; background: var(--sheet);
+    padding: 6px 14px; min-height: 44px; font-size: .78em; white-space: nowrap;
+  }
+  .pill:active { background: var(--marker); }
+  #rotate { display: none; text-align: center; color: var(--ink2); font-size: .8em; }
+  #toc {
+    flex: 1; min-height: 0; display: grid; gap: 10px;
+    grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr;
+  }
+  .entry {
+    position: relative; text-align: left; background: var(--sheet);
+    border: 1.5px solid var(--ink); border-top: 9px solid var(--c);
+    border-radius: 4px; padding: 8px 14px 10px; min-height: 92px;
+    display: flex; flex-direction: column; justify-content: center;
+    box-shadow: 3px 3px 0 rgba(32,36,44,.16);
+  }
+  .entry:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(32,36,44,.16); background: #fff8d6; }
+  .entry .no { font-family: var(--serif); font-size: .8em; color: var(--c); font-weight: 700; letter-spacing: .08em; font-style: normal; }
+  .entry b { font-family: var(--serif); font-size: clamp(20px, 2.2vw, 30px); line-height: 1.2; }
+  .entry span { font-size: .7em; color: var(--ink2); margin-top: 3px; line-height: 1.3; }
+  .entry .q {
+    position: absolute; top: 6px; right: 8px; font-size: .62em; font-weight: 700;
+    border: 1.5px solid var(--c); color: var(--c); border-radius: 3px; padding: 0 6px; background: var(--sheet);
+  }
+  .foot { font-size: .66em; color: var(--ink2); display: flex; gap: 18px; flex-wrap: wrap; }
+
+  /* ================= Unit page ================= */
+  #unit {
+    padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+             130px max(16px, env(safe-area-inset-left));
+  }
+  #uHead {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px;
+    border-bottom: 3px double var(--ink); padding-bottom: 8px; margin-bottom: 14px;
+  }
+  #uHead h2 { margin: 0; font-family: var(--serif); font-size: clamp(24px, 2.9vw, 38px); line-height: 1.2; }
+  #uHead h2 i { font-style: normal; color: var(--c, var(--navy)); margin-right: 10px; }
+  #uHead h2 small { font-family: var(--sans); font-weight: 400; font-size: .48em; color: var(--ink2); margin-left: 12px; }
+  .legend { margin: 0; font-size: .72em; color: var(--ink2); }
+  .legend > span { margin-right: 12px; white-space: nowrap; }
+  #zoom { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  #zoom button { border: 1.5px solid var(--ink); background: var(--sheet); border-radius: 6px; min-width: 52px; height: 40px; font-size: 16px; font-weight: 700; }
+  #zoom button:active { background: var(--marker); }
+  #zoom b { font-size: 13px; color: var(--ink2); min-width: 44px; text-align: center; font-weight: 400; }
+  #banner {
+    border: 1.5px dashed var(--red); color: var(--red); background: #fff4ef; border-radius: 4px;
+    padding: 6px 12px; margin: 0 0 14px; font-size: .82em;
+  }
+  #sections {
+    display: grid; gap: 14px; align-items: start;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 860px), 1fr));
+  }
+  .sheet {
+    position: relative; min-width: 0; background: var(--sheet);
+    border: 1.5px solid var(--ink); border-radius: 4px; padding: 12px 14px 10px;
+    box-shadow: 3px 3px 0 rgba(32,36,44,.14);
+    container-type: inline-size;
+  }
+  .body { display: grid; gap: 8px 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+  @container (min-width: 700px) {
+    .body.side { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+    .body.side ul.notes { margin-top: 0; border-left: 1px dotted var(--rule); padding-left: 1.5em; }
+  }
+  .sheet h3 {
+    margin: 0 0 8px; padding-right: 110px; font-family: var(--serif);
+    font-size: clamp(19px, 2.05vw, 26px); line-height: 1.25;
+    border-bottom: 1px solid var(--rule); padding-bottom: 5px;
+  }
+  .sheet h3 em { font-style: normal; color: var(--c, var(--navy)); margin-right: 8px; }
+  .kind {
+    position: absolute; top: 0; right: 12px; font-size: 12px; font-weight: 700; color: #fff;
+    padding: 2px 9px 3px; border-radius: 0 0 5px 5px; background: var(--navy);
+    letter-spacing: .08em; text-transform: uppercase;
+  }
+  .sheet.ex .kind { background: #2e7d4f; }
+  .sheet.trap .kind { background: var(--red); }
+  .sheet.def .kind { background: #6b5b95; }
+  .sheet.trap { border-color: var(--red); }
+  pre {
+    margin: 0; padding: 10px 12px; background: var(--codebg);
+    border-left: 4px solid var(--c, var(--navy)); border-radius: 2px;
+    font: calc(var(--fs-code) * var(--zoom))/1.55 var(--mono);
+    overflow-x: auto; white-space: pre; tab-size: 2; color: var(--ink);
+  }
+  .k { background: var(--marker); border-radius: 3px; padding: 0 3px; font-weight: 700; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .v { color: var(--pen); font-weight: 700; border-bottom: 2px dotted var(--pen); }
+  .w { color: var(--red); font-weight: 700; text-decoration: underline wavy var(--red); text-underline-offset: 3px; }
+  .c { color: #7d7a6c; font-style: italic; }
+  .c .k { font-style: normal; }
+  ul.notes { margin: 0; padding-left: 1.15em; font-size: calc(.92em * var(--zoom)); }
+  ul.notes li { margin: 4px 0; }
+  ul.notes .k, ul.notes .v { font-family: var(--mono); font-size: .9em; }
+  .src { margin: 8px 0 0; font-size: 13px; color: var(--ink2); text-align: right; border-top: 1px dotted var(--rule); padding-top: 4px; }
+
+  /* ================= Thumb-zone floating buttons ================= */
+  #fab {
+    position: fixed; z-index: 10; display: flex; gap: 10px; align-items: center;
+    bottom: max(14px, env(safe-area-inset-bottom)); right: max(14px, env(safe-area-inset-right));
+  }
+  body.left #fab { right: auto; left: max(14px, env(safe-area-inset-left)); flex-direction: row-reverse; }
+  #fab button {
+    height: 62px; min-width: 62px; border-radius: 10px; font-size: 26px; font-weight: 700;
+    background: var(--sheet); border: 2px solid var(--ink); box-shadow: 3px 3px 0 rgba(32,36,44,.35);
+  }
+  #fab #goHome { background: var(--ink); color: #fffdf6; padding: 0 24px; font-size: 21px; font-family: var(--serif); letter-spacing: .04em; }
+  #fab button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(32,36,44,.35); }
+
+  /* ================= Portrait hint ================= */
+  @media (orientation: portrait) {
+    #rotate { display: block; }
+    #toc { grid-template-columns: repeat(2, 1fr); grid-auto-rows: minmax(104px, auto); }
+    .mast { flex-wrap: wrap; }
+  }
+  /* ================= Phone landscape ================= */
+  @media (orientation: landscape) and (max-height: 500px) {
+    :root { --fs-body: 14.5px; --fs-code: 13.5px; }
+    #home { gap: 6px; padding-top: 6px; padding-bottom: 6px; height: 100dvh; }
+    .mast { padding-bottom: 4px; }
+    .mast h1 { font-size: 19px; }
+    .mast .course { display: none; }
+    .pill { min-height: 32px; padding: 2px 12px; }
+    #toc { gap: 6px; }
+    .entry { min-height: 0; padding: 3px 10px 4px; border-top-width: 6px; }
+    .entry b { font-size: 16px; }
+    .entry span { font-size: 10.5px; margin-top: 1px; }
+    .entry .no { font-size: 10.5px; }
+    .entry .q { font-size: 9.5px; top: 3px; right: 5px; }
+    .foot { display: none; }
+    #uHead h2 { font-size: 20px; }
+    #zoom button { height: 34px; min-width: 46px; font-size: 14px; }
+    #sections { gap: 10px; }
+    .sheet .body.side { grid-template-columns: minmax(0, 2.6fr) minmax(0, 1fr); }
+    .sheet { padding: 9px 10px 8px; }
+    .sheet h3 { font-size: 16.5px; }
+    .kind { font-size: 10px; }
+    #fab button { height: 50px; min-width: 50px; font-size: 22px; }
+    #fab #goHome { font-size: 17px; padding: 0 18px; }
+    #unit { padding-bottom: 96px; }
+  }
+</style>
+</head>
+<body>
+
+<main id="home">
+  <div class="mast">
+    <div>
+      <div class="course">CSIT882 · Data Management Systems</div>
+      <h1>Final Exam Handout<small>Built around Practice Exams 1–3 · content from the lecture slides</small></h1>
+    </div>
+    <button class="pill" id="hand" aria-label="Switch handedness"></button>
+  </div>
+  <div id="rotate">Best viewed in landscape</div>
+  <div id="toc"></div>
+  <div class="foot">
+    <span>Corner tag = matching practice exam question (E1 Q4 = Practice Exam 1, Question 4)</span>
+    <span>"Optional" = topics the practice papers mark as not examined in Spring 2025</span>
+  </div>
+</main>
+
+<main id="unit" hidden>
+  <div id="uHead">
+    <h2 id="uTitle"></h2>
+    <p class="legend">
+      <span><span class="k">Highlighter</span> memorise</span>
+      <span><span class="v">Blue pen</span> replace per question</span>
+      <span><span class="w">Red pen</span> common mistake</span>
+      <span><span class="c">Grey</span> comment</span>
+    </p>
+    <span id="zoom"><button id="zOut" aria-label="Smaller text">A−</button><b id="zVal"></b><button id="zIn" aria-label="Larger text">A+</button></span>
+  </div>
+  <p id="banner" hidden></p>
+  <div id="sections"></div>
+</main>
+
+<nav id="fab" hidden>
+  <button id="prev" aria-label="Previous unit">‹</button>
+  <button id="goHome">⌂ Home</button>
+  <button id="next" aria-label="Next unit">›</button>
+  <button id="toTop" aria-label="Back to top">↑</button>
+</nav>
+
+<script>
+// Markup: ⟦…⟧ highlighter (memorise)   ⟨…⟩ blue pen (replaceable)   ⟪…⟫ red pen (mistake)
+//         a trailing "-- …" on a code line is rendered as a grey comment
+// k: tpl template / def concept / ex example / trap watch out
+const C = { design: '#1d3f72', norm: '#7a3b69', sql: '#1f6f54', sec: '#b4601a', opt: '#6a6f7a' };
+
+const UNITS = [
+/* ------------------------------------------------------------------ 01 */
+{
+  id: 'conceptual', title: 'Conceptual Modeling', sub: 'UML class diagram from a text specification', q: 'E1–E3 Q1', color: C.design,
+  sections: [
+    { k: 'tpl', h: 'The six steps (in this order)', src: '04 Conceptual Modeling — Methodology', code: `
+Input : specification (natural language text)
+Output: conceptual schema (simplified UML class diagram)
+
+Step 1  ⟦classes of objects⟧  -- nouns → boxes
+Step 2  ⟦associations⟧ / association classes
+                           -- verbs → lines + multiplicities
+Step 3  ⟦attributes⟧ / link attributes
+                           -- "is described by ..."
+Step 4  ⟦identifiers⟧      -- "unique" / "identified by" → ID
+Step 5  ⟦qualifications⟧   -- "unique within ..." → small box
+Step 6  ⟦generalizations⟧  -- "two groups of" / IS-A → triangle`, notes: [
+      `At every step ⟦re-read the whole specification⟧ and pick out only what that step needs`,
+    ]},
+    { k: 'tpl', h: 'Sentence pattern → notation', src: '03 Object Data Model', code: `
+"X is described by a, b, c"          → attributes of X
+"uniquely identified by a"           → a ⟦ID1⟧
+"b can also identify X"              → b ⟦ID2⟧
+"name and dob can identify X too"    → name ⟦ID2⟧, dob ⟦ID2⟧
+"optional c"                         → c ⟦[0..1]⟧
+"a list of / several c"              → c ⟦[1..*]⟧
+"X offers many Y; each Y by one X"   → X ⟦1⟧ ──── ⟦*⟧ Y
+"zero or more" / "one or more"       → ⟦*⟧ / ⟦1..*⟧
+"at most two"                        → ⟦0..2⟧
+"enrolment is described by a date"   → ⟦link attribute⟧
+                                       / ⟦association class⟧
+"number unique within a ward"        → ⟦qualification⟧
+"two groups of / three types of"     → ⟦generalization⟧`, notes: [
+      `The same tag on several attributes (all ⟦ID2⟧) = one ⟦composite identifier⟧`,
+      `An attribute with no multiplicity written defaults to ⟦[1]⟧`,
+    ]},
+    { k: 'def', h: 'Attribute tags', src: '03 Object Data Model — Class of Objects', code: `
+┌──────────────────────────┐
+│          PERSON          │   -- header = class name
+├──────────────────────────┤
+│ ssn             ⟦ID1⟧      │   -- identifier
+│ name            ⟦ID2⟧      │   -- composite identifier
+│ date-of-birth   ⟦ID2⟧      │      (name, dob, address)
+│ address         ⟦ID2⟧      │
+│ email      ⟦[1..5]⟧        │   -- one to five
+│ phone      ⟦[*]⟧           │   -- zero or more (= [0..*])
+│ country    ⟦[0..1]⟧        │   -- optional
+│ ⟦/⟧age                     │   -- derived attribute
+└──────────────────────────┘`, notes: [
+      `The question always asks for: multiplicities, identifiers, ⟦multivalued⟧, ⟦optional⟧ and ⟦derived⟧ attributes`,
+    ]},
+    { k: 'def', h: 'Associations and multiplicity', src: '03 Object Data Model — Association', code: `
+PERSON ⟦1⟧ ────── Owns ► ────── ⟦*⟧ VEHICLE
+-- A person owns zero or more vehicles
+-- A vehicle has one owner
+
+One-to-one   DEPARTMENT ⟦1⟧ ─── ⟦1⟧ MANAGER
+One-to-many  COMPANY ⟦0..1⟧ ─── ⟦*⟧ EMPLOYEE
+Many-to-many SUPPLIER ⟦*⟧ ─── ⟦*⟧ PART`, notes: [
+      `Write the number at the ⟦far end⟧: "how many vehicles does one person own" goes on the VEHICLE end`,
+      `The association name sits on the line; ⟦►⟧ shows the reading direction`,
+      `Where classes and associations sit in the diagram does not matter`,
+    ]},
+    { k: 'def', h: 'Link attribute / association class', src: '03 Object Data Model — Link Attribute, Association Class', code: `
+STUDENT ⟦*⟧ ───────── Enrols ───────── ⟦*⟧ SUBJECT
+                        ┆
+                 ┌───────────────┐
+                 │               │  -- empty header
+                 ├───────────────┤     = ⟦link attribute⟧
+                 │ enrolment-date│
+                 └───────────────┘
+-- header with a name (ENROLMENT) = ⟦association class⟧`, notes: [
+      `An attribute that describes the association ⟪cannot go into either class⟫ (in STUDENT you lose the subject, in SUBJECT you lose the student)`,
+      `An M:N association class has a default identifier made of both sides' identifiers (snumber, code) — ⟦no need to write it⟧`,
+      `An association class can itself take part in further associations`,
+    ]},
+    { k: 'def', h: 'Qualification', src: '03 Object Data Model — Qualification', code: `
+┌──────────┐┌─────────┐              ┌────────┐
+│ BUILDING ││⟦rnumber⟧ │──── Has ──── │  ROOM  │
+│bnumber ID│└─────────┘     ⟦0..1⟧   │ area   │
+└──────────┘                         └────────┘
+-- in a given building there is at most one room
+-- with a given rnumber
+-- rnumber is a ⟦local identifier⟧
+-- identifier of ROOM = (⟦bnumber, rnumber⟧)`, notes: [
+      `Trigger words: ⟦unique within ...⟧ / ⟦local identifier⟧`,
+      `A qualification can also sit in the middle of an M:N: repeated enrolment → identifier (snumber, code, ⟦enrolment-date⟧)`,
+    ]},
+    { k: 'def', h: 'Generalization (IS-A)', src: '03 Object Data Model — Generalization', code: `
+              ┌───────────┐
+              │  STUDENT  │      -- superclass: shared attrs
+              └─────△─────┘
+          ┌─────────┴──────────┐
+┌─────────────────┐  ┌──────────────────┐
+│  UNDERGRADUATE  │  │   POSTGRADUATE   │
+│ project-title   │  │ thesis-title     │
+└─────────────────┘  └──────────────────┘
+-- subclasses: their own specific attributes`, notes: [
+      `Arrows point ⟦from subclass to superclass⟧ (subset → IS-A)`,
+      `Several arrows may be joined into a single triangle`,
+    ]},
+    { k: 'ex', h: 'Example: Department / Course / Student', src: 'Practice Exam 1 Q1 ← 04 Conceptual Modeling, six steps', code: `
+Step 1  Department, Course, Student, Academic staff,
+        Undergraduate, Postgraduate
+Step 2  Department ⟦1⟧ ─ Offers ─ ⟦1..*⟧ Course
+        Student ⟦1..*⟧ ─ Enrols ─ ⟦*⟧ Course     -- + Enrolment
+        Department ⟦1⟧ ─ Hires ─ ⟦*⟧ Academic staff
+        Student ⟦*⟧ ─ Supervised-by ─ ⟦0..2⟧ Academic staff
+Step 3  Department: name, chairperson, b#, budget
+        Course: code, title, cp, semester
+        Enrolment: date, finalGrade ⟦[0..1]⟧
+Step 4  Department: name ⟦ID1⟧, chairperson ⟦ID2⟧
+        Course: code ⟦ID⟧     Academic staff: staff# ⟦ID⟧
+        Student: student# ⟦ID1⟧, (name, dob) ⟦ID2⟧
+Step 5  -- nothing is "unique within" here
+Step 6  Undergraduate(softwareProjectTitle),
+        Postgraduate(thesisTitle)  IS-A  Student`, notes: [
+      `"at most two" → ⟦0..2⟧; "zero or more courses" → ⟦*⟧; "one or more students" → ⟦1..*⟧`,
+    ]},
+    { k: 'trap', h: 'Where marks are lost', src: 'Practice Exam 2 Q1 instructions; 04 Conceptual Modeling Example 3', code: `
+⟪Never⟫ add an artificial identifier (id, xxx_id)
+⟪Never⟫ add an attribute the text does not mention
+⟪Do not draw⟫ an association derivable from others
+        -- COMPANY─STAGE and STAGE─BUILDING exist,
+        -- so COMPANY─BUILDING is not needed
+⟪Do not forget⟫ both multiplicities, ID, [0..1], [1..*]`, notes: [
+      `Only the final class diagram is required — no written analysis`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 02 */
+{
+  id: 'logical', title: 'Logical Design', sub: 'UML class diagram → relational schemas', q: 'E1–E3 Q2', color: C.design,
+  sections: [
+    { k: 'tpl', h: 'The ten steps (memorise the order)', src: '06 Logical Design — Methodology', code: `
+(1)  ⟦multivalued attributes⟧  → new class + 1:N or M:N
+(2)  ⟦association classes / link attributes⟧
+                               → 1:N ─ class ─ N:1
+(3)  ⟦many-to-many⟧            → 1:N ─ new class ─ N:1
+(4)  ⟦qualifications⟧          → 1:N + composite identifier
+(5)  ⟦foreign keys⟧  copy "one" side identifier to "many" side
+(6)  ⟦one-to-one⟧              → merge into one class
+(7)  ⟦generalizations⟧  superset / subset / association
+(8)  ⟦primary keys, candidate keys⟧  → PK, CKn
+(9)  remove associations (FK gets its REFERENCES)
+(10) write the ⟦relational schemas⟧`, notes: [
+      `Chain: multivalued → association class → M:N → qualification → FK → 1:1 → generalization → PK → schemas`,
+    ]},
+    { k: 'tpl', h: 'Answer format', src: '06 Logical Design — Relational schemas', code: `
+⟨TABLE⟩(⟨attr1⟩, ⟨attr2⟩, ⟨...⟩)
+⟦PRIMARY KEY⟧ = (⟨...⟩)
+⟦CANDIDATE KEY⟧ = (⟨...⟩)        -- only if a 2nd identifier
+⟦FOREIGN KEY1⟧ = (⟨...⟩) ⟦REFERENCES⟧ ⟨OTHER⟩(⟨...⟩)
+⟦FOREIGN KEY2⟧ = (⟨...⟩) ⟦REFERENCES⟧ ⟨OTHER⟩(⟨...⟩)
+
+-- slide example
+ROOM(bldg#, room#, area)
+PRIMARY KEY = (bldg#, room#)
+
+EQUIPMENT(serialnum, name, installation-date, bldg#, room#)
+PRIMARY KEY = (serialnum)
+FOREIGN KEY = (bldg#, room#) REFERENCES ROOM(bldg#, room#)`, notes: [
+      `Four things are asked for: ⟦attributes, primary key, candidate keys (if any), foreign keys (if any)⟧`,
+      `FK columns must also appear in the attribute list in the brackets`,
+    ]},
+    { k: 'def', h: '(1) Multivalued attribute', src: '06 Logical Design — Multivalued attributes', code: `
+Case 1  a value can be shared by many objects → ⟦M:N⟧
+  BOOK(author-name [1..*])
+  ⇒ AUTHOR(author-name ⟦ID⟧)   BOOK ⟦*⟧─Is-written-by─⟦*⟧ AUTHOR
+
+Case 2  a value belongs to one object only → ⟦1:N⟧
+  PERSON(phone-number [*])
+  ⇒ PHONE(number ⟦ID⟧)         PERSON ⟦1⟧─Has─⟦*⟧ PHONE
+
+-- result (slide example)
+PHONE(number, sname)
+PRIMARY KEY = (number)
+FOREIGN KEY = (sname) REFERENCES SUPPLIER(sname)`, notes: [
+      `Promoting an attribute to a class is called ⟦reification⟧`,
+      `After Case 1 the new M:N is split again in step (3)`,
+    ]},
+    { k: 'def', h: '(2)(3) Association class / link attribute / M:N', src: '06 Logical Design — Association classes, Many-to-many', code: `
+STUDENT ⟦*⟧ ── Enrols ── ⟦*⟧ SUBJECT     (+ ENROLMENT: edate)
+⇒
+STUDENT ⟦1⟧─Performs─⟦*⟧ ENROLMENT ⟦*⟧─Is-involved-in─⟦1⟧ SUBJECT
+
+ENROLMENT(⟦s#, code⟧, edate)
+PRIMARY KEY = (s#, code)
+FOREIGN KEY1 = (s#) REFERENCES STUDENT(s#)
+FOREIGN KEY2 = (code) REFERENCES SUBJECT(code)`, notes: [
+      `⟦Link attribute⟧: promote it to an association class first, then split as above`,
+      `Plain ⟦M:N⟧ (no attributes): create a new class yourself, e.g. SHIPMENT with PK = (p#, s#)`,
+      `Qualified by edate (repeated enrolment) → PK = (s#, code, ⟦edate⟧)`,
+    ]},
+    { k: 'def', h: '(4) Qualification', src: '06 Logical Design — Qualifications', code: `
+BUILDING ─[room#]── Has ── ROOM
+⇒
+ROOM(⟦bldg#, room#⟧, area)
+PRIMARY KEY = (⟦bldg#, room#⟧)
+FOREIGN KEY = (bldg#) REFERENCES BUILDING(bldg#)`, notes: [
+      `Identifier of the "one" side + qualification attribute = ⟦composite identifier⟧ of the "many" side`,
+      `Multiplicity on the ROOM side becomes ⟦*⟧ or ⟦1..*⟧; the qualification box is removed`,
+    ]},
+    { k: 'def', h: '(5)(6) Foreign keys and one-to-one', src: '06 Logical Design — Foreign keys, One-to-one associations', code: `
+-- (5) "one" → "many": copy the ⟦whole⟧ identifier
+ROOM ⟦1⟧ ── Is-located-in ── ⟦*⟧ EQUIPMENT
+EQUIPMENT(serialnum, ..., ⟦bldg#, room#⟧)      -- tagged FK1
+
+-- (6) 1:1 → merge
+CHAIRMAN ⟦0..1⟧ ── Is-head-of ── ⟦1⟧ SCHOOL
+⇒ SCHOOL(name ⟦ID⟧, ..., emp# ⟦CK⟧ [0..1],
+         first-name [0..1], last-name [0..1], dob [0..1])`, notes: [
+      `In a 1:1 merge, every attribute coming from the optional (0..1) side becomes ⟦[0..1]⟧`,
+      `Identifier of the mandatory side → ⟦ID (PK)⟧; identifier of the optional side → ⟦CK⟧ (may be NULL)`,
+    ]},
+    { k: 'tpl', h: '(7) Generalization: three methods', src: '06 Logical Design — Generalizations', code: `
+⟦Superset method⟧   -- the one the exam asks for! → 1 table
+  1. move subclass attributes up, make them ⟦[0..1]⟧
+  2. add a ⟦type-of-⟨superclass⟩⟧ attribute
+  3. remove the subclasses; repeat until one class is left
+  STUDENT(s#, ..., project [0..1], thesis [0..1],
+          ⟦type-of-student⟧)
+
+⟦Subset method⟧     -- keep only the lowest level
+  copy superclass attributes down, remove the superclass
+
+⟦Association method⟧ -- one table per level
+  copy the superclass identifier into each subclass as FK
+  FREQUENT-CUSTOMER(phone, points)
+  PRIMARY KEY = (phone)
+  FOREIGN KEY = (phone) REFERENCES CUSTOMER(phone)`, notes: [
+      `Superset: associations that were attached to a subclass now attach to the merged superclass`,
+    ]},
+    { k: 'def', h: '(8)(9) PK / CK and removing associations', src: '06 Logical Design — Primary keys and candidate keys, Associations', code: `
+STUDENT
+  s#                            → ⟦PK⟧
+  ssno                          → ⟦CK1⟧
+  (first-name, last-name, dob)  → ⟦CK2⟧
+
+-- removing a 1:N association completes the FK
+FK1: (bldg#, room#)  ⇒  ⟦REFERENCES⟧ ROOM(bldg#, room#)`, notes: [
+      `Pick ⟦one⟧ identifier per class as PK; every other identifier becomes a CK`,
+    ]},
+    { k: 'ex', h: 'Example: Bus / Tservice (superset)', src: 'Practice Exam 3 Q2 ← 06 Logical Design', code: `
+BUS(rego, make)
+PRIMARY KEY = (rego)
+
+DRIVER(dlnumber, enumber, full-name)
+PRIMARY KEY = (dlnumber)
+⟦CANDIDATE KEY⟧ = (enumber)              -- ID2 → CK
+
+TSERVICE(departure-city, destination-city, departure-time,
+         arrival-time, ⟦rego⟧, ⟦tserviceType⟧,
+         total-days ⟦[0..1]⟧, total-hours ⟦[0..1]⟧)   -- superset
+PRIMARY KEY = (departure-city, destination-city, departure-time)
+FOREIGN KEY = (rego) REFERENCES BUS(rego)
+
+ASSIGNMENT(departure-city, destination-city,
+           departure-time, dlnumber)                -- M:N
+PRIMARY KEY = (departure-city, destination-city,
+               departure-time, dlnumber)
+FOREIGN KEY1 = (departure-city, destination-city, departure-time)
+   REFERENCES TSERVICE(departure-city, destination-city,
+                       departure-time)
+FOREIGN KEY2 = (dlnumber) REFERENCES DRIVER(dlnumber)
+
+STOP(departure-city, destination-city, departure-time,
+     ⟦snumber⟧, stop-city, stop-departure-time, stop-arrival-time)
+PRIMARY KEY = (departure-city, destination-city,
+               departure-time, snumber)     -- qualification
+FOREIGN KEY = (departure-city, destination-city, departure-time)
+   REFERENCES TSERVICE(departure-city, destination-city,
+                       departure-time)`, notes: [
+      `Rules used: superset (7), M:N (3), qualification (4), 1:N FK (5), ID2 → CK (8)`,
+    ]},
+    { k: 'trap', h: 'Where marks are lost', src: '06 Logical Design — Foreign keys; compared with Practice Exam 1–3 Solution 2', code: `
+⟪An FK must reference the whole PK⟫
+  ✔ (bldg#, room#) REFERENCES ROOM(bldg#, room#)
+  ✘ (room#) REFERENCES ROOM(room#)
+
+⟪The attribute list must contain the FK columns⟫
+  ✘ TSERVICE(...) without rego, yet FOREIGN KEY = (rego)
+
+⟪Superset: do not forget⟫ the type attribute,
+  and [0..1] on the former subclass attributes`, notes: [
+      `The practice solutions reference only part of a key in places: E1 TRANSACTION → ACCOUNT(account#), E2 (date) → FLIGHT-INSTANCE(date). Following the slides, reference the whole key: ACCOUNT(account#, branch#), FLIGHT-INSTANCE(flight-number, date)`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 03 */
+{
+  id: 'fd', title: 'FDs & Keys', sub: 'Functional dependencies · deriving minimal keys', q: 'E1 Q3', color: C.norm,
+  sections: [
+    { k: 'def', h: 'Functional dependency', src: 'Week 5B-2 Derivations of Functional Dependencies', code: `
+⟦X → Y⟧ is valid in R
+⇔ no table over R can have two rows that agree on X
+  yet disagree on Y
+
+-- examples
+e# → ename
+department → department-address
+(part, warehouse) → quantity`, notes: [
+      `Read it as "X determines Y" / "Y functionally depends on X"`,
+    ]},
+    { k: 'tpl', h: 'Armstrong axioms + inference rules', src: 'Week 5B-2 — Armstrong axioms, Additional inference rules', code: `
+⟦Reflexivity⟧     Y ⊆ X           ⇒  X → Y
+⟦Augmentation⟧    X → Y           ⇒  XZ → YZ
+⟦Transitivity⟧    X → Y, Y → Z    ⇒  X → Z
+
+⟦Union⟧               X → Y, X → Z    ⇒  X → YZ
+⟦Decomposition⟧       X → Y, Z ⊆ Y    ⇒  X → Z
+⟦Pseudotransitivity⟧  X → Y, WY → Z   ⇒  WX → Z`, notes: [
+      `The first three form a ⟦minimal and complete⟧ set of axioms`,
+      `In every derivation line ⟦name the rule you used⟧ — the question demands justification`,
+    ]},
+    { k: 'def', h: 'Four kinds of key + prime / nonprime', src: 'Week 5B-2 — Keys, Attributes', code: `
+⟦Superkey⟧       attribute set that identifies every row;
+               X → (A1, ..., An)
+⟦Minimal key⟧    superkey from which no attribute can be
+               removed
+⟦Primary key⟧    an arbitrarily selected minimal key
+⟦Candidate key⟧  any other minimal key
+
+⟦Prime attribute⟧     member of at least one key
+⟦Nonprime attribute⟧  member of no key
+
+-- if X ∪ Y = R and X → Y  then  ⟦X is a key⟧`, notes: [
+      `⟪(A, B, D) is not a minimal key⟫ when (A, B) already determines everything`,
+    ]},
+    { k: 'tpl', h: 'How to write a minimal-key derivation', src: 'Week 8B Normalization examples (style of Example 7)', code: `
+R = (A, B, C, D)    F = {A → B, A → C, B → D}
+
+If A → B and A → C then (⟦union⟧) A → BC
+If A → B and B → D then (⟦transitivity⟧) A → D
+If A → BC and A → D then (⟦union⟧) A → BCD
+⇒ ⟦K1 = (A)⟧
+
+-- use augmentation when attributes are missing
+R = (A, B, C)    F = {A → B}
+If A → B then (⟦augmentation⟧) AC → BC
+⇒ ⟦K1 = (A, C)⟧`, notes: [
+      `Goal: left side → ⟦all attributes of R⟧, and the left side cannot be made smaller`,
+      `Fixed sentence: If ... then (rule) ... ⇒ K = (...)`,
+    ]},
+    { k: 'ex', h: 'Schemas with several minimal keys', src: 'Week 8B — Examples 2, 5, 10, 11', code: `
+F = {AB → C, C → B}
+  AB → C                        ⇒ K1 = (A, B)
+  C → B  (augmentation) AC → AB ⇒ ⟦K2 = (A, C)⟧
+
+F = {A → B, B → A}     R = (A, B, C)
+  A → B  (augmentation) AC → BC ⇒ K1 = (A, C)
+  B → A  (augmentation) BC → AC ⇒ ⟦K2 = (B, C)⟧
+
+F = {AB → C, C → D, D → A, D → B}
+  ⇒ K1 = (A, B), K2 = (D), K3 = (C)
+
+F = {A → B, B → C, C → D, D → A}
+  ⇒ K1 = (A), K2 = (B), K3 = (C), K4 = (D)`, notes: [
+      `⟪Whenever an FD points back at a key attribute, look for a second key⟫`,
+      `Miss a key and prime / nonprime is wrong, and then every normal form test is wrong`,
+    ]},
+    { k: 'ex', h: 'Example: the four FD sets of the practice paper', src: 'Practice Exam 1 Q3 ← derivation style of Week 5B-2 / 8B', code: `
+(1) R = (A,B,C,D)   F = {A → C, B → D}
+    A → C (augmentation) AB → BC
+    B → D (augmentation) AB → AD
+    (union) AB → ABCD                ⇒ ⟦K = (A, B)⟧
+
+(2) R = (A,B,C,D,E) F = {AC → B, B → D, D → E}
+    AC → B, B → D (transitivity) AC → D
+    AC → D, D → E (transitivity) AC → E
+    (union) AC → BDE                 ⇒ ⟦K = (A, C)⟧
+
+(3) R = (A,B,C,D,E) F = {A → BCDE, B → A, C → D}
+    A → BCDE                         ⇒ ⟦K1 = (A)⟧
+    B → A, A → BCDE (transitivity)   ⇒ ⟦K2 = (B)⟧
+
+(4) R = (A,B,C,D,E) F = {A → CE, AB → D}
+    A → CE (augmentation) AB → BCE
+    AB → BCE, AB → D (union) AB → BCDE ⇒ ⟦K = (A, B)⟧`, notes: [
+      `The normal form tests continue in the next unit, "Normalization"`,
+    ]},
+    { k: 'trap', h: 'Self-check trick (not from the slides)', src: 'Extra — follows from the definition of a minimal key; still write the derivation above in the exam', code: `
+An attribute that appears on ⟦no right-hand side⟧
+  ⇒ nothing determines it
+  ⇒ ⟦it is in every key⟧
+
+F = {A → C, B → D}: A and B are on no right-hand side
+  ⇒ every key contains A and B;
+    AB already determines everything ⇒ K = (A, B)`, notes: [
+      `Use it only to check yourself; marks come from the Armstrong derivation`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 04 */
+{
+  id: 'nf', title: 'Normalization', sub: 'Highest normal form · 1NF / 2NF / 3NF / BCNF', q: 'E1 Q3', color: C.norm,
+  sections: [
+    { k: 'tpl', h: 'The four definitions', src: 'Week 6B (1NF, 2NF); Week 7B (3NF, BCNF)', code: `
+⟦1NF⟧   every row has the same number of fields and
+        only ⟦atomic values⟧
+        (no repeating fields and groups)
+
+⟦2NF⟧   every nonprime attribute is ⟦fully⟧
+        functionally dependent on a key
+        -- no nonprime depends on a part of a key
+
+⟦3NF⟧   2NF and no nonprime attribute is
+        ⟦transitively⟧ dependent on a key
+        -- equivalent: for every X → A,
+        -- ⟦X is a superkey or A is prime⟧
+
+⟦BCNF⟧  for every X → A, ⟦X is a superkey⟧`, notes: [
+      `3NF and BCNF differ by one clause: 3NF also accepts "the right side is prime"`,
+      `Partial dependency = the dependency still holds after removing an attribute from the left side`,
+    ]},
+    { k: 'tpl', h: 'Test procedure (write it in this order)', src: 'Week 8B — Normalization of relational schemas', code: `
+1. derive ⟦all minimal keys⟧ from F
+2. list the prime / nonprime attributes
+3. ⟦2NF?⟧  is there (part of a key) → nonprime ?
+          yes → ⟪highest is 1NF, stop⟫
+4. ⟦3NF?⟧  for each X → A: X superkey? A prime?
+          neither → ⟪highest is 2NF, stop⟫
+5. ⟦BCNF?⟧ is every left-hand side a superkey?
+          one is not → ⟪highest is 3NF⟫; all are → BCNF`, notes: [
+      `Required: derivations of minimal keys + ⟦testing 2NF, 3NF and BCNF one by one⟧. A correct guess alone scores nothing`,
+    ]},
+    { k: 'def', h: 'Cases you can settle immediately', src: 'Week 6B slides 11, 15; Week 7B slides 10, 21', code: `
+all minimal keys consist of ⟦one attribute⟧
+  ⇒ ⟦always in 2NF⟧
+  -- a single-attribute key has no "part"
+
+schema of ⟦at most 2 attributes⟧
+  ⇒ always in 2NF, 3NF and ⟦BCNF⟧
+
+⟦no nonprime attributes⟧ (everything is prime)
+  ⇒ at least ⟦3NF⟧
+  -- 2NF and 3NF only restrict nonprime attributes`, notes: [
+      `The third case follows directly from the definitions — state the reason when you use it`,
+    ]},
+    { k: 'tpl', h: 'Answer sentences', src: 'Week 6B slide 10; Week 7B slides 6, 12, 13, 17', code: `
+Minimal key = (⟨A, B⟩)
+Prime: ⟨A, B⟩      Nonprime: ⟨C, D⟩
+
+-- not in 2NF
+R is ⟦not in 2NF⟧ because nonprime attribute ⟨C⟩
+depends on a part (⟨A⟩) of a key (⟨A, B⟩).
+The functional dependency which violates 2NF is ⟨A → C⟩.
+
+-- in 2NF, not in 3NF
+R is in 2NF because no nonprime attribute is functionally
+dependent on a part of a minimal key.
+R is ⟦not in 3NF⟧ because attribute ⟨D⟩ is transitively
+dependent on ⟨A⟩:  ⟨A → B & B → D⟩.
+
+-- in 3NF, not in BCNF
+R is in 3NF because attribute ⟨B⟩ on the right hand side
+of ⟨C → B⟩ is prime.
+R is ⟦not in BCNF⟧ because ⟨C⟩ is not a superkey.
+
+⟦The highest normal form is ⟨2NF⟩.⟧`, notes: [] },
+    { k: 'ex', h: 'Slide examples at a glance', src: 'Week 8B — Examples 1–11', code: `
+R=(A,B,C)
+{AB → C}                  K=(AB)         ⟦BCNF⟧
+{AB → C, C → B}           K=(AB),(AC)    ⟦3NF⟧   C → B
+{AB → C, C → B, C → A}    K=(AB),(C)     ⟦BCNF⟧
+{A → B}                   K=(AC)         ⟦1NF⟧   A → B partial
+{A → B, B → A}            K=(AC),(BC)    ⟦3NF⟧   A → B
+{A → B, B → C}            K=(A)          ⟦2NF⟧   transitive
+
+R=(A,B,C,D)
+{A → B, A → C, B → D}     K=(A)          ⟦2NF⟧   B → D
+{A → B, B → D, C → B}     K=(AC)         ⟦1NF⟧   A → B partial
+{A → B, A → C, B → A, B → C}
+                          K=(AD),(BD)    ⟦1NF⟧   B → C partial
+{AB → C, C → D, D → A, D → B}
+                          K=(AB),(D),(C) ⟦BCNF⟧
+{A → B, B → C, C → D, D → A}
+                          K=(A),(B),(C),(D)  ⟦BCNF⟧`, notes: [
+      `The last column is the FD that blocks the next normal form — name it in your answer`,
+    ]},
+    { k: 'ex', h: 'Named slide examples', src: 'Week 6B (Inventory); Week 7B (Supplier, Location); Week 8B (Shipment)', code: `
+Inventory(part, quantity, warehouse, warehouse-address)
+  key = (part, warehouse)
+  warehouse → warehouse-address          ⟪not 2NF⟫
+  ⇒ Store(part, quantity, warehouse)
+    Location(warehouse, warehouse-address)
+
+Supplier(s#, sname, company-name, city)
+  key = (s#)
+  s# → company-name & company-name → city  ⟪not 3NF⟫
+  ⇒ Supplier-new(s#, sname, company-name)
+    Company(company-name, city)
+
+Location(city, street, zip-code)
+  keys = (city, street), (zip-code, street)
+  zip-code → city    city is prime ⇒ 3NF
+                     zip-code is not a superkey ⟪not BCNF⟫
+  ⇒ CS(street, zip-code)   CZ(city, zip-code)`, notes: [
+      `Decomposition rule: move the violating FD into a table of its own`,
+      `Normalization to BCNF ⟦costs a functional dependency⟧ (city, street → zip-code is lost)`,
+    ]},
+    { k: 'ex', h: 'Example: find the highest normal form', src: 'Practice Exam 1 Q3 ← definitions in Week 6B / 7B', code: `
+(1) F = {A → C, B → D}        K = (A, B)
+    nonprime: C, D
+    A → C: C depends on a part (A) of the key ⇒ not 2NF
+    ⟦Highest = 1NF⟧
+
+(2) F = {AC → B, B → D, D → E}  K = (A, C)
+    nonprime: B, D, E; no FD from (A) or (C) alone ⇒ 2NF
+    AC → B & B → D: D transitively dependent  ⇒ not 3NF
+    ⟦Highest = 2NF⟧
+
+(3) F = {A → BCDE, B → A, C → D}  K1 = (A), K2 = (B)
+    all keys are single attributes           ⇒ 2NF
+    C → D: C not a superkey, D not prime     ⇒ not 3NF
+    ⟦Highest = 2NF⟧
+
+(4) F = {A → CE, AB → D}       K = (A, B)
+    A → CE: C, E depend on a part (A) of the key ⇒ not 2NF
+    ⟦Highest = 1NF⟧`, notes: [] },
+    { k: 'trap', h: 'Differs from the practice solution (ask the lecturer)', src: 'From the minimal key definition (Week 5B-2) and Week 6B slide 11', code: `
+(1) practice paper: K = (A,B,D), (A,B,C) → 3NF
+    ⟪(A,B) already determines everything,
+      so (A,B,D) is not minimal⟫
+    by the slides: K = (A,B), A → C is partial → ⟦1NF⟧
+
+(3) practice paper: (A,C) is a candidate key → 1NF
+    ⟪(A) is already a key, so (A,C) is not minimal⟫
+    by the slides: single-attribute keys ⇒ 2NF → ⟦2NF⟧
+
+(2)(4) same conclusion as the practice paper`, notes: [
+      `I re-derived these two from the slide definitions and got a different result from the practice solution. Worth confirming with the lecturer which one is expected`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 05 */
+{
+  id: 'select', title: 'SELECT Basics', sub: 'WHERE · NULL · DISTINCT · ORDER BY · functions', q: 'E1 Q4 · E3 Q3', color: C.sql,
+  sections: [
+    { k: 'tpl', h: 'Skeleton: clause order', src: '11 SELECT (1); 12 SELECT (2)', code: `
+⟦SELECT⟧ [DISTINCT] ⟨columns / functions⟩
+⟦FROM⟧ ⟨table⟩
+⟦WHERE⟧ ⟨row condition⟩
+⟦GROUP BY⟧ ⟨columns⟩
+⟦HAVING⟧ ⟨group condition⟩
+⟦ORDER BY⟧ ⟨columns⟩ [ASC | DESC];`, notes: [
+      `The order is fixed; end with ⟦;⟧`,
+      `"Find A, B and C" → SELECT lists exactly A, B, C — no more, no less`,
+    ]},
+    { k: 'tpl', h: 'WHERE conditions', src: '12 SELECT (2) — Queries with simple / Boolean conditions', code: `
+WHERE credits ⟦=⟧ 6
+WHERE credits ⟦IN⟧ (6, 12)
+WHERE UPPER(title) ⟦LIKE⟧ ⟨'%DATABASE%'⟩
+WHERE (credits = 6) ⟦AND⟧ (offered_by = 'Physics')
+WHERE (credits = 6) ⟦OR⟧ (offered_by = 'Physics')
+WHERE ⟦NOT⟧ (offered_by = 'Physics') AND (credits = 6)
+WHERE (offered_by ⟦!=⟧ 'Physics') AND (credits = 6)`, notes: [
+      `Strings go in single quotes ⟦'...'⟧; ⟦%⟧ matches any string`,
+      `Bracket each condition so mixed AND / OR cannot go wrong`,
+      `"between 100 inclusive and 500 inclusive" → ⟦(x >= 100) AND (x <= 500)⟧`,
+    ]},
+    { k: 'trap', h: 'NULL needs IS', src: '12 SELECT (2) — Queries with NULLs', code: `
+WHERE offered_by ⟦IS NULL⟧;         -- ✔
+WHERE offered_by ⟦IS NOT NULL⟧;     -- ✔
+WHERE offered_by ⟪= NULL⟫;          -- ✘ returns no rows
+WHERE offered_by ⟪<> NULL⟫;         -- ✘
+
+SELECT name, 1.1 * ⟦IFNULL(⟧budget, 0⟦)⟧   -- treat NULL as 0
+SELECT AVG(⟦IFNULL(⟧budget, 0⟦)⟧)`, notes: [
+      `Trigger words: ⟦unknown⟧, not provided, missing → ⟦IS NULL⟧`,
+    ]},
+    { k: 'tpl', h: 'DISTINCT / ORDER BY / UNION', src: '12 SELECT (2) — Set algebra, Sorting', code: `
+SELECT ⟦DISTINCT⟧ credits FROM COURSE;      -- no duplicates
+
+ORDER BY title ⟦ASC⟧;                       -- ascending
+ORDER BY credits ASC, title ⟦DESC⟧;         -- several columns
+ORDER BY ⟨3⟩ ASC, ⟨2⟩ DESC;                   -- by position
+
+SELECT credits FROM COURSE WHERE offered_by = 'Physics'
+⟦UNION⟧                                     -- removes duplicates
+SELECT credits FROM COURSE WHERE offered_by = 'Mathematics';`, notes: [
+      `⟦UNION ALL⟧ keeps duplicates`,
+      `Columns follow DISTINCT directly: ⟦SELECT DISTINCT a, b⟧ — ⟪not DISTINCT (a, b)⟫`,
+    ]},
+    { k: 'def', h: 'Useful functions', src: '11 SELECT (1) — Queries with row / group functions, Special queries', code: `
+-- row functions: evaluated for each row
+⟦UPPER(⟧name⟦)⟧     ⟦SUBSTR(⟧cnum, 1, 3⟦)⟧     ⟦IFNULL(⟧budget, 0⟦)⟧
+⟦CONCAT(⟧'I am ', CURRENT_USER()⟦)⟧
+
+-- group functions: one value for a group
+⟦COUNT(*)⟧   ⟦COUNT(⟧col⟦)⟧   ⟦SUM(⟧col⟦)⟧
+⟦AVG(⟧col⟦)⟧   ⟦MAX(⟧col⟦)⟧   ⟦MIN(⟧col⟦)⟧
+
+-- dates
+⟦DATE_ADD(⟧⟨d⟩, ⟦INTERVAL⟧ 1 ⟦DAY)⟧
+DATE_ADD(d, INTERVAL 2 MONTH)
+⟦DATEDIFF(⟧SYSDATE(), '2001-01-01'⟦)⟧`, notes: [
+      `⟦YEAR(date)⟧ is used in the practice solutions to extract a year (the slides' date examples are DATE_ADD / DATEDIFF)`,
+    ]},
+    { k: 'ex', h: 'Example: single-table queries', src: 'Practice Exam 1 Q4(1); Practice Exam 3 Q3(1) ← 12 SELECT (2)', code: `
+-- manufactured by 'ABC Pty Ltd' and price under 10
+SELECT pNumber, price, manufacturer
+FROM Product
+WHERE (manufacturer ⟦=⟧ 'ABC Pty Ltd') ⟦AND⟧ (price ⟦<⟧ 10);
+
+-- capacity between 100 and 500, both inclusive
+SELECT REGNUM
+FROM TRUCK
+WHERE (CAPACITY ⟦>=⟧ 100) ⟦AND⟧ (CAPACITY ⟦<=⟧ 500);`, notes: [] },
+    { k: 'ex', h: 'Example: two columns listed together', src: 'Practice Exam 3 Q3(5) ← 12 SELECT (2) DISTINCT / UNION', code: `
+-- "names of all departure cities together with
+--  the names of all destination cities"
+
+-- reading A: (departure, destination) pairs
+SELECT ⟦DISTINCT⟧ DEPARTURE, DESTINATION
+FROM TRIPLEG;
+
+-- reading B: one combined list of cities
+SELECT DEPARTURE FROM TRIPLEG
+⟦UNION⟧
+SELECT DESTINATION FROM TRIPLEG;`, notes: [
+      `The practice solution writes ⟪DISTINCT (DEPARTURE, DESTINATION)⟫; the slides write DISTINCT without brackets`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 06 */
+{
+  id: 'join', title: 'JOIN & Grouping', sub: 'JOIN · LEFT OUTER JOIN · GROUP BY · HAVING', q: 'E1 Q4 · E2 Q3 · E3 Q3', color: C.sql,
+  sections: [
+    { k: 'tpl', h: 'JOIN skeleton (three equivalent forms)', src: '13 SELECT (3) — Join queries', code: `
+SELECT COURSE.title
+FROM COURSE ⟦JOIN⟧ DEPARTMENT
+     ⟦ON⟧ DEPARTMENT.name = COURSE.offered_by
+WHERE DEPARTMENT.chair = 'Peter';
+
+-- with aliases
+SELECT C.title
+FROM COURSE ⟨C⟩ JOIN DEPARTMENT ⟨D⟩
+     ON D.name = C.offered_by
+WHERE D.chair = 'Peter';
+
+-- comma + WHERE
+SELECT COURSE.title
+FROM COURSE⟦,⟧ DEPARTMENT
+WHERE DEPARTMENT.name = COURSE.offered_by
+  AND DEPARTMENT.chair = 'Peter';`, notes: [
+      `ON holds the ⟦FK = PK⟧ matching condition`,
+      `When both tables have a column of the same name, prefix it with ⟦table.⟧ or an alias`,
+    ]},
+    { k: 'tpl', h: 'Three tables / self-join', src: '13 SELECT (3) — Join queries, Self-join', code: `
+SELECT STUDENT.name
+FROM COURSE ⟦JOIN⟧ ENROLMENT
+       ON COURSE.cnum = ENROLMENT.cnum
+     ⟦JOIN⟧ STUDENT
+       ON ENROLMENT.snum = STUDENT.snum
+WHERE COURSE.title = 'Java';
+
+-- self-join: the same table under two aliases
+SELECT E2.name
+FROM EMPLOYEE ⟨E1⟩ JOIN EMPLOYEE ⟨E2⟩
+     ON E1.manager = E2.enum
+WHERE E1.enum = 40;`, notes: [
+      `N tables need ⟦N−1⟧ ON conditions`,
+      `Composite key: ON a.k1 = b.k1 ⟦AND⟧ a.k2 = b.k2`,
+    ]},
+    { k: 'def', h: 'Other joins', src: '13 SELECT (3) — Natural join, Cross join', code: `
+FROM EMPLOYEE ⟦NATURAL JOIN⟧ DEPARTMENT
+-- matches on the columns with the same name
+
+FROM EMPLOYEE ⟦CROSS JOIN⟧ DEPARTMENT;
+-- every combination (= FROM EMPLOYEE, DEPARTMENT)`, notes: [] },
+    { k: 'tpl', h: 'LEFT OUTER JOIN: keep the unmatched rows', src: '14 SELECT (4) — Outer join queries', code: `
+SELECT name, title
+FROM DEPARTMENT ⟦LEFT OUTER JOIN⟧ COURSE
+     ON name = offered_by;
+-- departments with no course are still listed, title NULL
+
+⟦RIGHT OUTER JOIN⟧      -- keeps all rows of the right table
+-- FULL OUTER JOIN = LEFT OUTER JOIN ⟦UNION⟧ RIGHT OUTER JOIN`, notes: [
+      `Trigger words: ⟦including ... that do not have any⟧, ⟦must be listed as zero⟧`,
+      `The table whose rows must all be kept goes on the ⟦LEFT⟧`,
+    ]},
+    { k: 'tpl', h: 'GROUP BY / HAVING', src: '12 SELECT (2) — Grouping', code: `
+SELECT offered_by, ⟦COUNT(*)⟧
+FROM COURSE
+⟦GROUP BY⟧ offered_by
+⟦HAVING⟧ COUNT(*) > 1;
+
+SELECT offered_by, SUM(credits)
+FROM COURSE
+GROUP BY offered_by;
+
+-- group first, then take the maximum
+SELECT MAX(total)
+FROM (SELECT COUNT(*) total
+      FROM COURSE
+      GROUP BY offered_by) ⟨T⟩;`, notes: [
+      `Trigger words: ⟦for each ...⟧, ⟦total number of ...⟧ → GROUP BY`,
+      `Every SELECT column not inside a function must appear in GROUP BY`,
+      `⟦WHERE⟧ filters rows (before grouping); ⟦HAVING⟧ filters groups (after, may use COUNT)`,
+    ]},
+    { k: 'trap', h: 'LEFT JOIN + COUNT: count a column', src: '14 SELECT (4) — Outer join with GROUP BY', code: `
+SELECT name, ⟦COUNT(title)⟧
+FROM DEPARTMENT LEFT OUTER JOIN COURSE
+     ON DEPARTMENT.name = COURSE.offered_by
+GROUP BY name;
+
+-- ⟪COUNT(*)⟫ counts a department with no course as 1
+-- ⟦COUNT(right-table column)⟧ skips NULL → gives 0`, notes: [
+      `Slide wording: we must count the values in a column with COUNT(title), ⟪not the rows with COUNT(*)⟫`,
+    ]},
+    { k: 'ex', h: 'Example: include the ones with none', src: 'Practice Exam 1 Q4(2); Practice Exam 2 Q3(1) ← 14 SELECT (4)', code: `
+-- every keyword of every product,
+-- including products with no keyword
+SELECT k.kword, p.pNumber, p.price
+FROM Product p ⟦LEFT OUTER JOIN⟧ Keyword k
+     ON p.pNumber = k.pNumber;
+
+-- branches per bank, zero when a bank has none
+SELECT ba.bank_name, ⟦COUNT(br.br_name)⟧
+FROM BANK ba ⟦LEFT OUTER JOIN⟧ BRANCH br
+     ON ba.bank_name = br.bank_name
+⟦GROUP BY⟧ ba.bank_name;`, notes: [] },
+    { k: 'ex', h: 'Example: no need to include the ones with none', src: 'Practice Exam 3 Q3(4) ← 13 SELECT (3) + 12 Grouping', code: `
+-- total trips per truck; unused trucks not needed
+SELECT t.REGNUM, COUNT(tr.TNUM)
+FROM TRUCK t ⟦JOIN⟧ TRIP tr
+     ON t.REGNUM = tr.REGNUM
+GROUP BY t.REGNUM;`, notes: [
+      `"no need to include ... not used" → a plain ⟦JOIN⟧ is enough`,
+      `Both tables have REGNUM, so SELECT must say ⟦t.REGNUM⟧`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 07 */
+{
+  id: 'nested', title: 'Subqueries & Views', sub: 'IN / NOT IN · EXISTS · WITH clause · CREATE VIEW', q: 'E1 Q4 · E2 Q3 · E3 Q3', color: C.sql,
+  sections: [
+    { k: 'tpl', h: 'IN + subquery', src: '15 SELECT (5) — Nested queries', code: `
+SELECT title
+FROM COURSE
+WHERE offered_by ⟦IN (⟧ SELECT name
+                      FROM DEPARTMENT
+                      WHERE chair = 'Peter' ⟦)⟧;`, notes: [
+      `The subquery column must be ⟦the same kind of value⟧ as the column left of IN (FK ↔ PK)`,
+      `When the subquery returns a single value, ⟦=⟧ also works`,
+    ]},
+    { k: 'tpl', h: 'NOT IN: "those that have no ..."', src: '15 SELECT (5) — Nested queries with NOT IN', code: `
+-- chairs of departments that offer no courses
+SELECT chair
+FROM DEPARTMENT
+WHERE name ⟦NOT IN (⟧ SELECT offered_by
+                     FROM COURSE ⟦)⟧;`, notes: [
+      `Trigger words: ⟦have not been used for any⟧, ⟦have no ...⟧, ⟦never⟧`,
+      `Method: write the subquery for "those that do", then wrap it in ⟦NOT IN⟧`,
+    ]},
+    { k: 'tpl', h: 'EXISTS / NOT EXISTS (correlated)', src: '15 SELECT (5) — Correlated nested queries', code: `
+SELECT chair
+FROM DEPARTMENT
+WHERE ⟦EXISTS (⟧ SELECT *
+               FROM COURSE
+               WHERE credits = 12
+                 AND offered_by = ⟦DEPARTMENT.name⟧ ⟦)⟧;
+
+SELECT chair
+FROM DEPARTMENT
+WHERE ⟦NOT EXISTS (⟧ SELECT *
+                   FROM COURSE
+                   WHERE offered_by = ⟦DEPARTMENT.name⟧ ⟦)⟧;`, notes: [
+      `The subquery refers to the ⟦outer table⟧ (DEPARTMENT.name) = correlated nested query`,
+      `EXISTS only checks whether any row comes back; what you SELECT does not matter`,
+    ]},
+    { k: 'tpl', h: 'WITH clause', src: '11 SELECT (1); 16 Views — WITH clause', code: `
+⟦WITH⟧ ⟨JAMES⟩ ⟦AS⟧
+  ⟦(⟧ SELECT name
+    FROM DEPARTMENT
+    WHERE chair = 'James Bond' ⟦)⟧⟦,⟧
+⟨JAMESCOURSE⟩ ⟦AS⟧
+  ⟦(⟧ SELECT *
+    FROM COURSE JOIN JAMES
+         ON COURSE.offered_by = JAMES.name ⟦)⟧
+SELECT JAMESCOURSE.*
+FROM JAMESCOURSE;`, notes: [
+      `Query definitions are separated by a ⟦comma⟧; ⟪no comma after the last one⟫ — SELECT follows directly`,
+      `A later definition may use the names defined before it`,
+      `WITH is written only once`,
+    ]},
+    { k: 'def', h: 'Inline view (subquery in FROM)', src: '13 SELECT (3); 16 Views — Inline views', code: `
+SELECT DEPARTMENT.chair, MORETHAN1.total
+FROM DEPARTMENT JOIN
+     ⟦(⟧ SELECT offered_by, COUNT(*) total
+       FROM COURSE
+       GROUP BY offered_by
+       HAVING COUNT(*) > 1 ⟦)⟧ ⟨MORETHAN1⟩
+     ON DEPARTMENT.name = MORETHAN1.offered_by;`, notes: [
+      `A subquery in FROM must be given an ⟦alias⟧`,
+    ]},
+    { k: 'tpl', h: 'CREATE VIEW', src: '16 Views — Relational views', code: `
+⟦CREATE VIEW⟧ ⟨VDEPT⟩(⟨name, total_courses⟩) ⟦AS⟧
+  ( SELECT name, COUNT(COURSE.cnum)
+    FROM DEPARTMENT LEFT OUTER JOIN COURSE
+         ON DEPARTMENT.name = COURSE.offered_by
+    GROUP BY DEPARTMENT.name );
+
+SELECT name
+FROM VDEPT
+WHERE total_courses > 1;`, notes: [
+      `A view stores the definition; afterwards query it like a table`,
+      `Common in privilege questions: ⟦CREATE VIEW first, then GRANT SELECT ON the view⟧ → see "Access Control"`,
+    ]},
+    { k: 'ex', h: 'Example: written with WITH', src: 'Practice Exam 1 Q4(3) ← 16 Views WITH clause', code: `
+-- products purchased and finalised on
+-- '2022-01-02 15:20:20'
+⟦WITH⟧ pdatetime ⟦AS⟧
+  ( SELECT pNumber
+    FROM PP
+    WHERE whenfinalised = '2022-01-02 15:20:20' )
+SELECT pNumber, price, manufacturer
+FROM Product
+WHERE pNumber ⟦IN⟧ ( SELECT pNumber FROM pdatetime );`, notes: [] },
+    { k: 'ex', h: 'Example: IN / NOT IN / IS NULL', src: 'Practice Exam 3 Q3(2)(3); Practice Exam 2 Q3(3) ← 15 SELECT (5)', code: `
+-- names of drivers on leave (names are in EMPLOYEE)
+SELECT FNAME, LNAME
+FROM EMPLOYEE
+WHERE ENUM ⟦IN⟧ ( SELECT ENUM
+                FROM DRIVER
+                WHERE STATUS = 'ON LEAVE' );
+
+-- trucks never used for any trip
+SELECT REGNUM
+FROM TRUCK
+WHERE REGNUM ⟦NOT IN⟧ ( SELECT REGNUM FROM TRIP );
+
+-- banks with at least one branch whose
+-- number of employees is unknown
+SELECT bank_name, email
+FROM BANK
+WHERE bank_name ⟦IN⟧ ( SELECT bank_name
+                     FROM BRANCH
+                     WHERE total_emps ⟦IS NULL⟧ );`, notes: [] },
+    { k: 'trap', h: '"No transactions in 2021"', src: 'Practice Exam 2 Q3(2) ← 15 SELECT (5) NOT IN', code: `
+SELECT account_num, balance
+FROM ACCOUNT
+WHERE (account_num, bank_name) ⟦NOT IN⟧
+      ( SELECT acc_num, bank_name
+        FROM TRANSACTION
+        WHERE YEAR(tr_date_time) ⟦= 2021⟧ );`, notes: [
+      `Logic: find the accounts that ⟦do have a 2021 transaction⟧, then NOT IN`,
+      `The practice solution writes ⟪!= 2021⟫ in the subquery, which excludes accounts with transactions in other years — the opposite meaning`,
+      `The PK of ACCOUNT is (account_num, bank_name), so compare both columns`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 08 */
+{
+  id: 'dml', title: 'DML', sub: 'INSERT · UPDATE · DELETE · with subqueries', q: 'E1 Q5 · E2 Q3 · E3 Q4', color: C.sql,
+  sections: [
+    { k: 'tpl', h: 'INSERT', src: '10 SQL DML — INSERT statement', code: `
+⟦INSERT INTO⟧ ⟨DEPARTMENT⟩
+⟦VALUES⟧ (⟨'Computer Science', 'CSCI', 30, 'Peter', 123456.9⟩);
+-- value order = column order of CREATE TABLE
+
+⟦INSERT INTO⟧ ⟨COURSE⟩(⟨cnum, title, offered_by, credits⟩)
+⟦VALUES⟧ (⟨'MATH345', 'Topology', 'Mathematics', 6⟩);
+-- with a column list: the order you listed`, notes: [
+      `Quote strings and dates; do not quote numbers; write ⟦NULL⟧ for no value`,
+      `⟪INSERT the parent (referenced) row first, then the child⟫, or the FK fails`,
+      `INSERT automatically verifies the consistency constraints (PK, FK, CHECK, NOT NULL)`,
+    ]},
+    { k: 'tpl', h: 'UPDATE', src: '10 SQL DML — UPDATE statement', code: `
+⟦UPDATE⟧ ⟨COURSE⟩
+⟦SET⟧ credits = 12
+⟦WHERE⟧ cnum IN ('CSCI235', 'CSCI205', 'CSCI203');
+
+UPDATE DEPARTMENT
+SET chair = 'Margaret'⟦,⟧
+    total_staff_number = total_staff_number ⟦+ 1⟧
+WHERE name = 'Physics';`, notes: [
+      `Several columns in one SET are separated by ⟦commas⟧`,
+      `⟪No WHERE = every row is updated⟫`,
+      `"raise by 1%" → ⟦price = price * 1.01⟧`,
+    ]},
+    { k: 'tpl', h: 'DELETE', src: '10 SQL DML — DELETE statement', code: `
+⟦DELETE FROM⟧ ⟨COURSE⟩
+⟦WHERE⟧ cnum = 'CSCI235';
+
+DELETE FROM COURSE
+WHERE (credits = 12) OR (UPPER(title) LIKE '%DATABASE%');
+
+DELETE FROM DEPARTMENT;       -- ⟪no WHERE = all rows⟫`, notes: [
+      `DELETE removes rows; it does not delete the table`,
+      `It can be undone with ⟦ROLLBACK⟧ unless already ⟦COMMIT⟧ted`,
+    ]},
+    { k: 'trap', h: 'Delete order when there is a foreign key', src: '10 SQL DML — DELETE: BEWARE', code: `
+-- ✘ deleting the parent directly
+DELETE FROM DEPARTMENT WHERE name = 'Physics';
+⟪ERROR 1451: Cannot delete or update a parent row:
+a foreign key constraint fails⟫
+
+-- ✔ child first, then parent
+DELETE FROM ⟦COURSE⟧ WHERE offered_by = 'Physics';
+DELETE FROM ⟦DEPARTMENT⟧ WHERE name = 'Physics';`, notes: [
+      `Only an FK with ⟦ON DELETE CASCADE⟧ deletes the child rows automatically`,
+      `"not allowed to drop / suspend any referential integrity constraints" means the order is being tested`,
+      `Rule: ⟦INSERT parent first; DELETE child first⟧`,
+    ]},
+    { k: 'tpl', h: 'Advanced DML: subquery in WHERE', src: '17 Advanced DDL and DML — DELETE / UPDATE with subquery', code: `
+DELETE FROM COURSE
+WHERE offered_by ⟦= (⟧ SELECT name
+                     FROM DEPARTMENT
+                     WHERE chair = 'Peter' ⟦)⟧;
+
+DELETE FROM DEPARTMENT
+WHERE ⟦NOT EXISTS (⟧
+        SELECT 'whatever'
+        FROM COURSE
+        WHERE COURSE.offered_by = DEPARTMENT.name ⟦)⟧;
+
+UPDATE DEPARTMENT
+SET total_staff_number = total_staff_number + 5
+WHERE name ⟦IN (⟧ SELECT offered_by
+                FROM COURSE
+                GROUP BY offered_by
+                HAVING COUNT(cnum) > 20 ⟦)⟧;`, notes: [
+      `⟦Advanced DML⟧ in a question = a DML statement containing a SELECT subquery`,
+    ]},
+    { k: 'tpl', h: 'Advanced DML: subquery in SET / INSERT with subquery', src: '17 Advanced DDL and DML — UPDATE / INSERT with subquery', code: `
+UPDATE DEPARTMENT
+SET total_courses =
+    ⟦(⟧ SELECT COUNT(title)
+      FROM COURSE
+      WHERE COURSE.offered_by = ⟦DEPARTMENT.name⟧ ⟦)⟧;
+
+⟦INSERT INTO⟧ DCNT
+  ⟦(⟧ SELECT name, COUNT(cnum)
+    FROM DEPARTMENT LEFT OUTER JOIN COURSE
+         ON DEPARTMENT.name = COURSE.offered_by
+    GROUP BY name ⟦)⟧;`, notes: [
+      `The subquery in SET must be ⟦correlated⟧ (refer to the row being updated)`,
+      `INSERT with a subquery has no VALUES`,
+    ]},
+    { k: 'ex', h: 'Example: Product / Basket', src: 'Practice Exam 1 Q5 ← 10 SQL DML; 17 Advanced DDL and DML', code: `
+-- (1) new evaluation
+--     column order: cNumber, etext, erank, pNumber
+INSERT INTO Cevaluation
+VALUES (3, 'Fantastic product, no complaints', 5, 23);
+
+-- (2) +1% for products with keyword 'Stainless'
+UPDATE Product
+SET price = price ⟦* 1.01⟧
+WHERE pNumber ⟦IN⟧ ( SELECT pNumber
+                   FROM Keyword
+                   WHERE kword = 'Stainless' );
+
+-- (3) product 1: keyword 'Grey' becomes 'White'
+UPDATE Keyword
+SET kword = 'White'
+WHERE (pNumber = 1) ⟦AND⟧ (kword = 'Grey');
+
+-- (4) customer 10 cancels everything:
+--     child (PP) first, then parent (Pbasket)
+DELETE FROM ⟦PP⟧
+WHERE whenfinalised IN ( SELECT whenfinalised
+                         FROM Pbasket
+                         WHERE cNumber = 10 );
+DELETE FROM ⟦Pbasket⟧
+WHERE cNumber = 10;`, notes: [
+      `(3) The product has several keywords, so ⟪WHERE needs both conditions⟫ — otherwise every keyword becomes White`,
+    ]},
+    { k: 'ex', h: 'Example: Trip / Tripleg', src: 'Practice Exam 3 Q4(2)–(5); Practice Exam 2 Q3(5) ← 10 SQL DML', code: `
+-- delete the 2nd and 3rd leg of trip 36
+DELETE FROM TRIPLEG
+WHERE (TNUM = 36) AND (LEGNUM ⟦IN (2, 3)⟧);
+
+-- move trip 26 to the next day
+UPDATE TRIP
+SET TDATE = ⟦DATE_ADD(⟧TDATE, ⟦INTERVAL 1 DAY)⟧
+WHERE TNUM = 26;
+
+-- trip 25 (3 legs, Sydney → Perth): add a leg back
+INSERT INTO TRIPLEG VALUES (25, ⟦4⟧, 'Perth', 'Sydney');
+
+-- trip 20: destination of the first leg becomes Perth
+UPDATE TRIPLEG
+SET DESTINATION = 'Perth'
+WHERE (TNUM = 20) ⟦AND (LEGNUM = 1)⟧;
+
+-- delete all transactions of 2019
+-- (TRANSACTION has no child table)
+DELETE FROM TRANSACTION
+WHERE YEAR(tr_date_time) = 2019;`, notes: [
+      `For trip 20 the practice solution has only ⟪WHERE TNUM = 20⟫, which also changes the second leg; the question says first leg`,
+      `Whether the departure of leg 2 must change as well depends on what the question asks`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 09 */
+{
+  id: 'ddl', title: 'DDL', sub: 'CREATE TABLE · ALTER TABLE · CREATE TABLE AS · DROP', q: 'E2 Q3 · E3 Q4', color: C.sql,
+  sections: [
+    { k: 'tpl', h: 'CREATE TABLE skeleton', src: '09 SQL DDL — CREATE TABLE statement', code: `
+⟦CREATE TABLE⟧ ⟨COURSE⟩(
+  ⟨cnum⟩        ⟨CHAR(7)⟩       ⟦NOT NULL⟧,
+  ⟨title⟩       ⟨VARCHAR(200)⟩  NOT NULL,
+  ⟨credits⟩     ⟨DECIMAL(2)⟩    NOT NULL,
+  ⟨offered_by⟩  ⟨VARCHAR(50)⟩   ⟦NULL⟧,
+  ⟦CONSTRAINT⟧ ⟨course_pkey⟩ ⟦PRIMARY KEY⟧(cnum),
+  CONSTRAINT ⟨course_ckey⟩ ⟦UNIQUE⟧(title),
+  CONSTRAINT ⟨course_check1⟩ ⟦CHECK⟧ (credits IN (6, 12)),
+  CONSTRAINT ⟨course_fkey1⟩ ⟦FOREIGN KEY⟧(offered_by)
+             ⟦REFERENCES⟧ DEPARTMENT(name) );`, notes: [
+      `Each line: ⟦name  type  NULL / NOT NULL⟧ and a comma; no comma on the last line`,
+      `PRIMARY KEY = primary key; ⟦UNIQUE⟧ = candidate key; ⟦CHECK⟧ = domain constraint`,
+      `Types: CHAR(n) fixed, VARCHAR(n) variable, DECIMAL(p, s), DATE`,
+      `An FK may add ⟦ON DELETE CASCADE⟧`,
+    ]},
+    { k: 'tpl', h: 'ALTER TABLE statements', src: '09 SQL DDL — ALTER TABLE statement', code: `
+⟦ALTER TABLE⟧ DEPARTMENT ⟦ADD COLUMN⟧ ⟨category VARCHAR(20)⟩;
+ALTER TABLE DEPARTMENT ⟦DROP COLUMN⟧ budget;
+ALTER TABLE DEPARTMENT ⟦MODIFY⟧ code CHAR(6) NOT NULL;
+ALTER TABLE DEPARTMENT ⟦ADD CONSTRAINT⟧ ⟨dept_check2⟩
+            CHECK (⟨...⟩);
+ALTER TABLE COURSE ⟦DROP FOREIGN KEY⟧ course_fkey1;
+ALTER TABLE DEPARTMENT ⟦DROP PRIMARY KEY⟧;
+ALTER TABLE COURSE ⟦DROP CHECK⟧ course_check1;
+ALTER TABLE DEPARTMENT ⟦RENAME TO⟧ NEWDEPARTMENT;`, notes: [
+      `"add to a database information about ..." (one value per row) → ⟦ADD COLUMN⟧, then ⟦UPDATE⟧ to fill it`,
+    ]},
+    { k: 'tpl', h: 'CREATE TABLE ... AS (table from a query)', src: '17 Advanced DDL and DML — CREATE TABLE with subquery', code: `
+⟦CREATE TABLE⟧ ⟨DCNT⟩ ⟦AS⟧
+  ( SELECT name, COUNT(cnum) ⟨totc⟩
+    FROM DEPARTMENT LEFT OUTER JOIN COURSE
+         ON DEPARTMENT.name = COURSE.offered_by
+    GROUP BY name );
+
+-- add the constraints afterwards
+ALTER TABLE DCNT ADD CONSTRAINT DCNT_pkey PRIMARY KEY(name);
+ALTER TABLE DCNT ADD CONSTRAINT DCNT_fkey FOREIGN KEY(name)
+            REFERENCES DEPARTMENT(name);`, notes: [
+      `Column names come from the SELECT columns or their ⟦aliases⟧ (a function needs an alias)`,
+      `The new table has ⟪no constraints⟫ except NULL / NOT NULL`,
+      `It is DDL, so it ⟪cannot be rolled back⟫`,
+    ]},
+    { k: 'def', h: 'DROP / TRUNCATE / DELETE', src: '09 SQL DDL — DROP TABLE; 17 — TRUNCATE TABLE', code: `
+⟦DROP TABLE⟧ COURSE;         -- drop the child first
+⟦DROP TABLE⟧ DEPARTMENT;     -- then the parent
+
+⟦TRUNCATE TABLE⟧ COURSE;     -- all rows gone, table stays
+
+             DELETE          TRUNCATE
+kind         DML             ⟦DDL⟧
+WHERE        yes             ⟪none, all rows only⟫
+ROLLBACK     yes             ⟪no⟫
+speed        slower          faster (no rollback info)
+storage      not released    released`, notes: [] },
+    { k: 'ex', h: 'Example: add a column and fill it', src: 'Practice Exam 2 Q3(4) ← 17 Advanced DDL and DML (ALTER + UPDATE with subquery)', code: `
+-- total number of transactions per account
+⟦ALTER TABLE⟧ ACCOUNT ⟦ADD COLUMN⟧ total_tr DECIMAL(4) NULL;
+
+⟦UPDATE⟧ ACCOUNT
+SET total_tr =
+  ( SELECT COUNT(tr_date_time)
+    FROM TRANSACTION
+    WHERE TRANSACTION.acc_num = ⟦ACCOUNT.account_num⟧
+      AND TRANSACTION.bank_name = ⟦ACCOUNT.bank_name⟧ );`, notes: [
+      `Composite key: the correlated condition needs both columns`,
+      `Same pattern as the total_courses example in the slides`,
+    ]},
+    { k: 'ex', h: 'Example: new M:N information (driver ↔ skill)', src: 'Practice Exam 3 Q4(1) ← 06 Logical Design (3) many-to-many; 09 CREATE TABLE', code: `
+-- a driver has many skills, a skill many drivers,
+-- some skills nobody has → skills need their own table
+CREATE TABLE ⟦SKILL⟧(
+  SNAME   VARCHAR(30)  NOT NULL,
+  CONSTRAINT SKILL_PKEY PRIMARY KEY(SNAME) );
+
+CREATE TABLE ⟦POSSESSES⟧(
+  LNUM    ⟨DECIMAL(8)⟩   NOT NULL,   -- same type as DRIVER.LNUM
+  SNAME   VARCHAR(30)  NOT NULL,
+  CONSTRAINT POSSESSES_PKEY ⟦PRIMARY KEY(LNUM, SNAME)⟧,
+  CONSTRAINT POSSESSES_FKEY1 FOREIGN KEY(LNUM)
+             REFERENCES DRIVER(LNUM),
+  CONSTRAINT POSSESSES_FKEY2 FOREIGN KEY(SNAME)
+             REFERENCES SKILL(SNAME) );`, notes: [
+      `M:N → ⟦two classes + a table in the middle⟧ whose PK is both keys`,
+      `The practice solution builds a single SKILLPOSSESSED(ENUM, SKILLNAME, ...) table, which ⟪cannot store a skill nobody has⟫`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 10 */
+{
+  id: 'access', title: 'Access Control', sub: 'CREATE USER · GRANT · WITH GRANT OPTION · roles', q: 'E1 Q6 · E2 Q5 · E3 Q5', color: C.sec,
+  sections: [
+    { k: 'tpl', h: 'Users and databases', src: '19 Discretionary Access Control — User / Database management', code: `
+⟦CREATE USER⟧ ⟨jamesb⟩ ⟦IDENTIFIED BY⟧ ⟨'mi6'⟩;
+⟦ALTER USER⟧ jamesb IDENTIFIED BY 'cia';   -- new password
+⟦DROP USER⟧ jamesb;
+SELECT user FROM mysql.user;             -- list users
+
+⟦CREATE DATABASE⟧ ⟨university⟩;
+⟦use⟧ ⟨university⟩;                        -- default database
+DROP DATABASE university;
+show databases;
+SELECT * FROM university.COURSE;         -- without "use"`, notes: [
+      `"nominate ... as a default database" → ⟦use dbname;⟧`,
+      `A newly created user has ⟦no privileges⟧ (USAGE)`,
+      `Running a script: the practice solution uses ⟦source dbcreate.sql;⟧`,
+    ]},
+    { k: 'tpl', h: 'GRANT / REVOKE skeleton', src: '19 Discretionary Access Control — Privileges', code: `
+⟦GRANT⟧ ⟨privilege-type⟩ ⟦ON⟧ ⟨privilege-level⟩ ⟦TO⟧ ⟨user⟩
+      [⟦WITH GRANT OPTION⟧];
+
+⟦REVOKE⟧ ⟨privilege-type⟩ ⟦ON⟧ ⟨privilege-level⟩ ⟦FROM⟧ ⟨user⟩;
+REVOKE ALL PRIVILEGES FROM ⟨user⟩;
+REVOKE GRANT OPTION FROM ⟨user⟩;`, notes: [
+      `GRANT ... ⟦TO⟧; REVOKE ... ⟦FROM⟧`,
+      `Several privileges separated by commas: GRANT ⟦INSERT, UPDATE, DELETE⟧ ON ...`,
+      `read = ⟦SELECT⟧; write = ⟦INSERT, UPDATE, DELETE⟧`,
+    ]},
+    { k: 'tpl', h: 'The four privilege levels', src: '19 Discretionary Access Control — Global / Database / Table / Column privileges', code: `
+Global    ⟦*.*⟧          GRANT SELECT ON *.* TO James;
+Database  ⟦⟨db⟩.*⟧        GRANT SELECT ON csit115.* TO James;
+Table     ⟦⟨db⟩.⟨table⟩⟧   GRANT SELECT ON csit115.DRIVER TO James;
+Column    ⟦(⟨col⟩) ON ⟨db⟩.⟨table⟩⟧
+          GRANT SELECT ⟦(LNUM)⟧ ON csit115.DRIVER TO James;
+
+-- where each level is stored
+Global   → mysql.⟦user⟧
+Database → mysql.⟦db⟧
+Table    → mysql.⟦tables_priv⟧
+Column   → mysql.⟦columns_priv⟧`, notes: [
+      `"all tables in database X" → ⟦X.*⟧`,
+      `"create relational tables in database X" → ⟦GRANT CREATE ON X.*⟧`,
+      `Global only: CREATE USER, SHOW DATABASES, SHUTDOWN, PROCESS ...`,
+    ]},
+    { k: 'tpl', h: 'Propagation: WITH GRANT OPTION', src: '19 Discretionary Access Control — GRANT syntax', code: `
+-- "allowed to propagate the privileges"
+GRANT CREATE ON banks.* TO admin ⟦WITH GRANT OPTION⟧;
+
+-- "not allowed to propagate" / "cannot be propagated"
+GRANT SELECT ON banks.Product TO admin;   -- add nothing`, notes: [
+      `One GRANT covers ⟦one⟧ privilege level: two tables need ⟦two GRANT statements⟧`,
+      `After GRANT ALL ON *.* the user has every privilege but ⟦grant_priv = N⟧ (cannot grant)`,
+    ]},
+    { k: 'tpl', h: 'Access to part of the data → create a view first', src: '19 Discretionary Access Control — Applications (view ITDEPT); 16 Views', code: `
+-- may read the IT department only
+⟦CREATE VIEW⟧ ⟨ITDEPT⟩(DNAME, BUDGET, CHAIRMAN) ⟦AS⟧
+  ( SELECT *
+    FROM DEPARTMENT
+    WHERE DNAME = 'IT' );
+
+⟦GRANT⟧ SELECT ⟦ON⟧ csit115.⟦ITDEPT⟧ ⟦TO⟧ jamesb;`, notes: [
+      `When access is to ⟦some rows⟧ (transactions of 2021) or to ⟦a summary⟧ (trips per driver) rather than a whole table → CREATE VIEW, then GRANT SELECT ON the view`,
+      `Privileges on a view are stored in mysql.tables_priv (it is treated as a table)`,
+    ]},
+    { k: 'tpl', h: 'Listing granted privileges', src: '19 Discretionary Access Control — Applications', code: `
+-- global
+SELECT user, select_priv, insert_priv, update_priv,
+       delete_priv, grant_priv
+FROM mysql.⟦user⟧
+WHERE user = ⟨'jamesb'⟩;
+
+-- database
+SELECT user, db, select_priv, insert_priv,
+       delete_priv, update_priv
+FROM mysql.⟦db⟧
+WHERE user = ⟨'harryp'⟩;
+
+-- table
+SELECT user, db, table_name, table_priv
+FROM mysql.⟦tables_priv⟧
+WHERE user = ⟨'jamesb'⟩;
+
+-- column
+SELECT user, db, table_name, column_name, column_priv
+FROM mysql.⟦columns_priv⟧
+WHERE user = ⟨'jamesb'⟩;`, notes: [
+      `Query the table that matches the level the GRANT was made at`,
+      `show privileges; lists every privilege the system knows`,
+    ]},
+    { k: 'def', h: 'Roles', src: '19 Discretionary Access Control — Roles', code: `
+⟦CREATE ROLE⟧ ⟨CUSTOMER⟩;
+GRANT SELECT ON ITEM ⟦TO CUSTOMER⟧;
+GRANT INSERT, UPDATE, DELETE ON ORDERS TO CUSTOMER;
+
+⟦GRANT CUSTOMER TO⟧ James;
+GRANT CUSTOMER TO Kate;
+
+-- a role granted to a role → hierarchy
+CREATE ROLE FREQUENT_CUSTOMER;
+GRANT CUSTOMER ⟦TO FREQUENT_CUSTOMER⟧;`, notes: [
+      `Role = ⟦a named group of privileges⟧`,
+      `Changing a role changes the privileges of every user who holds it`,
+    ]},
+    { k: 'ex', h: 'Example: banks database', src: 'Practice Exam 1 Q6; Practice Exam 2 Q5 ← 19 Discretionary Access Control', code: `
+CREATE DATABASE banks;
+use banks;
+source dbcreate.sql;
+CREATE USER admin IDENTIFIED BY 'admin';
+
+-- may CREATE TABLE and CREATE VIEW, may propagate
+GRANT ⟦CREATE, CREATE VIEW⟧ ON banks.* TO admin
+      ⟦WITH GRANT OPTION⟧;
+
+-- read Product and Pbasket, no propagation
+GRANT SELECT ON banks.Product TO admin;
+GRANT SELECT ON banks.Pbasket TO admin;
+
+-- read only the transactions of 2021, no propagation
+CREATE VIEW transaction_2021 AS
+  ( SELECT acc_num, bank_name, tr_date_time, amount, type
+    FROM TRANSACTION
+    WHERE YEAR(tr_date_time) = 2021 );
+GRANT SELECT ON banks.transaction_2021 TO admin;
+
+-- list the table-level privileges granted above
+SELECT user, db, table_name, table_priv
+FROM mysql.tables_priv
+WHERE user = 'admin';`, notes: [
+      `Practice E2 Q5(4) grants only CREATE; in the slides' privilege-type list ⟦CREATE VIEW⟧ is a separate privilege, so grant both when both are asked for`,
+    ]},
+    { k: 'ex', h: 'Example: transport database', src: 'Practice Exam 3 Q5 ← 19 Discretionary Access Control', code: `
+use transport;
+CREATE USER Alice IDENTIFIED BY '111';
+CREATE USER Bob IDENTIFIED BY '222';
+
+GRANT SELECT ON transport.EMPLOYEE TO Alice;
+GRANT SELECT ON transport.DRIVER TO Alice;
+
+GRANT INSERT ON transport.TRIP TO Bob ⟦WITH GRANT OPTION⟧;
+GRANT INSERT ON transport.TRIPLEG TO Bob ⟦WITH GRANT OPTION⟧;
+
+GRANT UPDATE ON ⟦transport.*⟧ TO Alice;      -- all tables
+
+-- total trips per driver → view
+CREATE VIEW TOTAL_TRIPS AS
+  ( SELECT d.ENUM, COUNT(tr.TNUM) AS TOTAL
+    FROM DRIVER d JOIN TRIP tr
+         ON d.LNUM = tr.LNUM
+    GROUP BY d.ENUM );
+GRANT SELECT ON transport.TOTAL_TRIPS TO Bob;`, notes: [
+      `To count drivers with zero trips too → ⟦LEFT OUTER JOIN + COUNT(tr.TNUM)⟧`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 11 */
+{
+  id: 'tx', title: 'Transactions', sub: 'Phenomena · isolation levels · tracing T1 / T2', q: 'E2 Q6 · Optional', color: C.opt,
+  banner: 'The practice paper states: "Transaction processing is not on the final exam of Spring 2025." Check this session\'s announcement before deciding whether to study this unit.',
+  sections: [
+    { k: 'def', h: 'ACID', src: 'Week 9B Introduction to Transaction Processing', code: `
+⟦Atomicity⟧    a transaction is indivisible: all or nothing
+⟦Consistency⟧  from one consistent state to another
+⟦Isolation⟧    each transaction is processed independently
+⟦Durability⟧   committed results are permanent`, notes: [] },
+    { k: 'def', h: 'The three phenomena', src: 'Week 11B-2 Phenomenons and Isolation levels', code: `
+⟦Dirty read⟧
+  reading data written by an ⟪uncommitted⟫ transaction
+  (which may still ROLLBACK)
+
+⟦Non-repeatable read⟧
+  two reads of the same data in one transaction
+  return ⟪different values⟫
+  (someone else UPDATEd and COMMITted in between)
+
+⟦Phantom⟧
+  the same query run twice returns
+  ⟪a different set of rows⟫
+  (someone else INSERTed / DELETEd in between)`, notes: [] },
+    { k: 'tpl', h: 'Four isolation levels × three phenomena', src: 'Week 11B-2 — Isolation levels summary table', code: `
+Level               Dirty      Non-repeat.  Phantom
+⟦READ UNCOMMITTED⟧    Possible   Possible     Possible
+⟦READ COMMITTED⟧      ⟦No⟧         Possible     Possible
+⟦REPEATABLE READ⟧     ⟦No⟧         ⟦No⟧           Possible
+⟦SERIALIZABLE⟧        ⟦No⟧         ⟦No⟧           ⟦No⟧`, notes: [
+      `Each level up removes one more phenomenon, left to right`,
+      `Isolation levels are equivalent to ⟦correctness levels⟧`,
+    ]},
+    { k: 'tpl', h: 'Setting the level', src: 'Week 12B Setting isolation levels', code: `
+⟦SET TRANSACTION ISOLATION LEVEL⟧ ⟨READ UNCOMMITTED⟩;
+⟦SET TRANSACTION ISOLATION LEVEL⟧ ⟨READ COMMITTED⟩;
+⟦SET TRANSACTION ISOLATION LEVEL⟧ ⟨REPEATABLE READ⟩;
+⟦SET TRANSACTION ISOLATION LEVEL⟧ ⟨SERIALIZABLE⟩;
+START TRANSACTION;
+⟨...⟩
+⟦COMMIT;⟧      -- or ROLLBACK;`, notes: [] },
+    { k: 'tpl', h: 'Rules for tracing T1 / T2', src: 'Week 12B — READ COMMITTED, Deadlock and SERIALIZABLE examples', code: `
+1. UPDATE locks the row until COMMIT / ROLLBACK
+2. another UPDATE on the same row → ⟦Wait...⟧
+3. READ COMMITTED reads the ⟦latest committed value⟧;
+   a transaction always sees its own changes
+4. READ UNCOMMITTED also reads uncommitted values
+5. SERIALIZABLE: T tries to update / delete data
+   modified by a transaction that committed
+   after T began
+   → ⟪T is aborted: can't serialize access⟫
+6. each waits for the other's lock → ⟪Deadlock⟫,
+   one of them is cancelled`, notes: [
+      `Answer format: one line per step — who does what → the value of the row / waits / error`,
+      `A row no UPDATE touches keeps its value (say so explicitly)`,
+    ]},
+    { k: 'ex', h: 'Example (1): both SERIALIZABLE', src: 'Practice Exam 2 Q6(1) ← Week 12B SERIALIZABLE isolation level', code: `
+start: account 1 = 100, account 2 = 200
+
+T1  UPDATE acct 1 + 10   → acct 1 = ⟦110⟧ (uncommitted,
+                           T1 holds the lock)
+T2  UPDATE acct 1 + 20   → ⟦Wait...⟧ (for T1's lock)
+T1  UPDATE acct 1 = (SELECT balance + 10 ...)
+                         → 110 + 10 = ⟦120⟧
+T1  COMMIT               → acct 1 = 120, lock released
+T2  (the blocked UPDATE) → ⟪can't serialize access⟫
+                           T1 committed after T2 began
+T2  COMMIT               → nothing was updated
+
+result: acct 1 = ⟦120⟧, acct 2 = ⟦200⟧ (never touched)`, notes: [
+      `Derived from the SERIALIZABLE rule on slides 16–17; T2's +20 never takes effect`,
+    ]},
+    { k: 'ex', h: 'Example (2): READ COMMITTED vs READ UNCOMMITTED', src: 'Practice Exam 2 Q6(2) ← Week 12B READ COMMITTED isolation level', code: `
+start: account 1 = 100, account 2 = 200
+
+T1  UPDATE acct 1 + 10   → acct 1 = ⟦110⟧ (uncommitted)
+T2  UPDATE acct 2 + 20   → acct 2 = ⟦220⟧ (other row,
+                           no waiting)
+T2  COMMIT               → acct 2 = 220 is committed
+T1  UPDATE acct 1 = (SELECT balance + 10
+                     FROM acct 2)
+                         → reads the committed 220
+                         → acct 1 = 220 + 10 = ⟦230⟧
+T1  COMMIT
+
+result: acct 1 = ⟦230⟧, acct 2 = ⟦220⟧`, notes: [
+      `T1's first +10 (110) is overwritten completely by its second UPDATE`,
+    ]},
+  ]
+},
+/* ------------------------------------------------------------------ 12 */
+{
+  id: 'integrity', title: 'Integrity & Auditing', sub: 'Consistency constraints · COMMIT · general query log', q: 'E3 Q6 · E2 Q4 · Optional', color: C.opt,
+  banner: 'The practice papers state that data integrity and database auditing are not covered on the Spring 2025 final exam. Check this session\'s announcement before deciding whether to study this unit.',
+  sections: [
+    { k: 'def', h: 'Kinds of consistency constraints', src: '22 Data Integrity — Consistency constraints', code: `
+⟦Key constraint⟧         PRIMARY KEY / candidate key (UNIQUE)
+⟦Referential integrity⟧  FOREIGN KEY ... REFERENCES
+⟦NULL / NOT NULL⟧
+⟦Attribute type⟧         DECIMAL(7), VARCHAR(30)
+⟦Domain constraint⟧      CHECK (credits IN (6, 12))
+others: numerical, exclusion, subset, multitable ...`, notes: [
+      `A consistency constraint is a condition every persistent state of the database must satisfy`,
+      `What CREATE TABLE cannot express is verified by an ⟦SQL script⟧, a stored procedure, a ⟦trigger⟧ or the application`,
+    ]},
+    { k: 'tpl', h: 'Verifying a constraint with SELECT', src: '22 Data Integrity — Verification through SQL script', code: `
+-- everyone in EMPLOYEE must be in DRIVER or ADMIN
+SELECT 'Multitable constraint failed, employee'
+       AS "Constraint",
+       enum,
+       'is not included in either DRIVER or ADMIN tables'
+       AS "Condition"
+FROM EMPLOYEE
+WHERE enum ⟦NOT IN⟧ ( SELECT enum FROM DRIVER )
+  ⟦AND⟧ enum ⟦NOT IN⟧ ( SELECT enum FROM ADMIN );`, notes: [
+      `Pattern: one SELECT that returns ⟦the rows violating the constraint⟧`,
+      `String constants with AS "..." build a readable message`,
+    ]},
+    { k: 'def', h: 'COMMIT / ROLLBACK / AUTOCOMMIT', src: '22 Data Integrity — ROLLBACK and COMMIT statements', code: `
+⟦COMMIT;⟧     makes all changes since the last COMMIT
+            permanent
+⟦ROLLBACK;⟧   reverses all changes since the last COMMIT
+
+AUTOCOMMIT = 'ON' (default)
+  every DML statement is committed immediately
+AUTOCOMMIT = 'OFF'
+  you COMMIT yourself;
+  ⟪any DDL statement also commits what came before⟫`, notes: [
+      `"make the contents permanent" → ⟦COMMIT;⟧`,
+      `DDL (CREATE, ALTER, DROP, TRUNCATE) ⟪cannot be rolled back⟫`,
+    ]},
+    { k: 'ex', h: 'Example: a truck cannot be used for more than 100 trips', src: 'Practice Exam 3 Q6 ← 17 CREATE TABLE with subquery; 11 CONCAT; 22 COMMIT', code: `
+-- (1) store the violating trucks in MESSAGE (2 columns)
+⟦CREATE TABLE⟧ MESSAGE ⟦AS⟧
+  ( SELECT REGNUM, COUNT(TNUM) ⟨TOTAL⟩
+    FROM TRIP
+    GROUP BY REGNUM
+    ⟦HAVING COUNT(TNUM) > 100⟧ );
+
+-- (2) list them in the required format
+SELECT ⟦CONCAT(⟧'Truck ', REGNUM, ' has been used for ',
+              TOTAL, ' trips.'⟦)⟧
+FROM MESSAGE;
+
+-- (3) make the contents permanent
+⟦COMMIT;⟧
+
+-- (4) drop the table
+⟦DROP TABLE⟧ MESSAGE;`, notes: [
+      `"more than 100" is a condition on COUNT → ⟦HAVING⟧, not WHERE`,
+      `Match the required sentence character for character — spaces and the full stop included`,
+    ]},
+    { k: 'def', h: 'Auditing concepts', src: '24 Database Auditing — Concepts, Auditing Categories', code: `
+⟦Database auditing⟧
+  observing a database so as to be aware of the
+  actions of database users
+
+⟦Audit trail / audit log⟧
+  a security-relevant chronological sequence of records
+
+Auditing categories
+  logon / logoff (including failed logins)
+  activities outside normal operation hours
+  ⟦DDL activities⟧ (potentially the most damaging)
+  database errors
+  changes to privileges, users, passwords
+  ⟦changes to sensitive data⟧ (old and new values)`, notes: [] },
+    { k: 'tpl', h: 'Simple auditing: the general query log', src: '24 Database Auditing — Database Auditing in MySQL', code: `
+⟦SET GLOBAL general_log = 'ON';⟧
+-- start logging client connections and every
+-- statement received from clients
+
+⟦SET GLOBAL log_output = 'TABLE';⟧
+-- write the log to relational table mysql.general_log
+
+⟦TRUNCATE TABLE mysql.general_log;⟧
+-- remove old contents; auditing starts from now
+
+⟦SELECT⟧ ⟨event_time, user_host, argument⟩
+⟦FROM mysql.general_log⟧
+WHERE (user_host LIKE ⟨'%alice%'⟩)
+  AND (   UPPER(argument) LIKE ⟨'INSERT%ACCOUNT%'⟩
+       OR UPPER(argument) LIKE ⟨'UPDATE%ACCOUNT%'⟩
+       OR UPPER(argument) LIKE ⟨'DELETE%ACCOUNT%'⟩ );
+-- the DML statements of the selected users
+-- on the selected tables`, notes: [
+      `The question wants a comment explaining the role of every statement — one comment per statement, as above`,
+      `show variables like 'general_log'; shows the current setting`,
+      `Take the column names from ⟦DESCRIBE mysql.general_log;⟧ (the slides show command_type and argument)`,
+      `Other logs: error log, binary log (statements that change data), slow query log`,
+    ]},
+  ]
+},
+];
+
+/* ============================ Rendering ============================ */
+const $ = id => document.getElementById(id);
+const KIND = { tpl: 'Template', def: 'Concept', ex: 'Example', trap: 'Watch out' };
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const mark = s => s
+  .replace(/⟦([\s\S]*?)⟧/g, '<span class="k">$1</span>')
+  .replace(/⟨([\s\S]*?)⟩/g, '<span class="v">$1</span>')
+  .replace(/⟪([\s\S]*?)⟫/g, '<span class="w">$1</span>');
+function renderCode(src) {
+  let s = esc(src.replace(/^\n/, ''));
+  s = s.replace(/(^|[ \t])(--(?=\s|$).*)$/gm, (m, a, b) => a + '<span class="c">' + b + '</span>');
+  return mark(s);
+}
+const pad = n => String(n).padStart(2, '0');
+
+$('toc').innerHTML = UNITS.map((u, i) =>
+  '<button class="entry" style="--c:' + u.color + '" data-id="' + u.id + '">' +
+  '<i class="q">' + u.q + '</i><i class="no">UNIT ' + pad(i + 1) + '</i>' +
+  '<b>' + u.title + '</b><span>' + u.sub + '</span></button>'
+).join('');
+$('toc').addEventListener('click', e => {
+  const t = e.target.closest('.entry');
+  if (t) location.hash = t.dataset.id;
+});
+
+let current = -1;
+function show() {
+  const i = UNITS.findIndex(u => u.id === location.hash.slice(1));
+  const inUnit = i >= 0;
+  current = i;
+  $('home').hidden = inUnit;
+  $('unit').hidden = !inUnit;
+  $('fab').hidden = !inUnit;
+  document.title = inUnit ? UNITS[i].title + ' · CSIT882 Handout' : 'CSIT882 Final Exam Handout';
+  if (!inUnit) return;
+  const u = UNITS[i];
+  $('unit').style.setProperty('--c', u.color);
+  $('uTitle').innerHTML = '<i>' + pad(i + 1) + '</i>' + u.title +
+    '<small>' + u.sub + '  |  ' + u.q + '  |  ' + (i + 1) + ' / ' + UNITS.length + '</small>';
+  $('banner').hidden = !u.banner;
+  $('banner').textContent = u.banner || '';
+  $('sections').innerHTML = u.sections.map((s, n) =>
+    '<section class="sheet ' + s.k + '"><span class="kind">' + KIND[s.k] + '</span>' +
+    '<h3><em>' + (n + 1) + '</em>' + esc(s.h) + '</h3>' +
+    '<div class="body' + (s.notes.length ? ' side' : '') + '"><pre>' + renderCode(s.code) + '</pre>' +
+    (s.notes.length ? '<ul class="notes">' + s.notes.map(x => '<li>' + mark(esc(x)) + '</li>').join('') + '</ul>' : '') +
+    '</div><p class="src">Source: ' + esc(s.src) + '</p></section>'
+  ).join('');
+  window.scrollTo(0, 0);
+}
+const go = d => { if (current >= 0) location.hash = UNITS[(current + d + UNITS.length) % UNITS.length].id; };
+const goHome = () => { history.replaceState(null, '', location.pathname + location.search); show(); window.scrollTo(0, 0); };
+$('prev').onclick = () => go(-1);
+$('next').onclick = () => go(1);
+$('goHome').onclick = goHome;
+$('toTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+window.addEventListener('hashchange', show);
+window.addEventListener('keydown', e => {
+  if (current < 0) return;
+  if (e.key === 'Escape') goHome();
+  else if (e.key === 'ArrowLeft') go(-1);
+  else if (e.key === 'ArrowRight') go(1);
+});
+
+/* Handedness: floating buttons sit bottom-left or bottom-right */
+function setHand(left) {
+  document.body.classList.toggle('left', left);
+  $('hand').textContent = left ? '☜ Left hand' : 'Right hand ☞';
+  try { localStorage.setItem('exam-hand', left ? 'L' : 'R'); } catch (e) {}
+}
+$('hand').onclick = () => setHand(!document.body.classList.contains('left'));
+let savedHand = 'R';
+try { savedHand = localStorage.getItem('exam-hand') || 'R'; } catch (e) {}
+setHand(savedHand === 'L');
+
+/* Text size: remembered on this device */
+let zoom = 1;
+try { zoom = parseFloat(localStorage.getItem('exam-zoom')) || 1; } catch (e) {}
+function setZoom(z) {
+  zoom = Math.min(1.8, Math.max(0.7, Math.round(z * 10) / 10));
+  document.documentElement.style.setProperty('--zoom', zoom);
+  $('zVal').textContent = Math.round(zoom * 100) + '%';
+  try { localStorage.setItem('exam-zoom', zoom); } catch (e) {}
+}
+$('zOut').onclick = () => setZoom(zoom - 0.1);
+$('zIn').onclick = () => setZoom(zoom + 0.1);
+setZoom(zoom);
+show();
+</script>
+</body>
+</html>
